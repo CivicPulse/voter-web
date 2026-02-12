@@ -1,6 +1,7 @@
 import {
   BarChart3,
   AlertCircle,
+  ExternalLink,
   Users,
   DollarSign,
   GraduationCap,
@@ -293,6 +294,26 @@ export function CensusProfileCard({
             </div>
           </>
         )}
+
+        <Separator />
+
+        <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+          <ExternalLink className="mt-0.5 h-3 w-3 shrink-0" />
+          <span>
+            Data sourced from the{" "}
+            <a
+              href="https://api.census.gov/data.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              U.S. Census Bureau API
+            </a>
+            , American Community Survey (ACS) 5-Year Estimates, 2023 vintage.
+            These estimates are based on data collected over a 5-year period and
+            may differ from actual counts.
+          </span>
+        </p>
       </CardContent>
     </Card>
   )
