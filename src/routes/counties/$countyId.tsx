@@ -1,5 +1,5 @@
-import { useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
+import { z } from "zod"
 import {
   ArrowLeft,
   Lock,
@@ -26,16 +26,22 @@ import { useBoundaryTypes } from "@/hooks/useBoundaryTypes"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import { useAuthStore } from "@/stores/authStore"
 
+const countySearchSchema = z.object({
+  overlay: z.string().optional().catch(undefined),
+})
+
 export const Route = createFileRoute("/counties/$countyId")({
   component: CountyDetailPage,
+  validateSearch: countySearchSchema,
 })
 
 function CountyDetailPage() {
   const { countyId } = Route.useParams()
+  const { overlay } = Route.useSearch()
+  const selectedType = overlay ?? null
+  const navigate = Route.useNavigate()
   const { data: county, isLoading, isError, error } = useCountyBoundary(countyId)
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-
-  const [selectedType, setSelectedType] = useState<string | null>(null)
   const { data: boundaryTypes, isLoading: isTypesLoading } =
     useBoundaryTypes()
   const { data: overlayData, isLoading: isOverlayLoading } =
@@ -118,7 +124,13 @@ function CountyDetailPage() {
                   type="single"
                   value={selectedType ?? ""}
                   onValueChange={(value) =>
-                    setSelectedType(value === "" ? null : value)
+                    navigate({
+                      search: (prev) => ({
+                        ...prev,
+                        overlay: value === "" ? undefined : value,
+                      }),
+                      replace: true,
+                    })
                   }
                   className="flex flex-wrap justify-start"
                 >
