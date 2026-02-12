@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { CensusProfileCard } from "@/components/CensusProfileCard"
 import { CountyDetailMap } from "@/components/CountyDetailMap"
 import { useCountyBoundary } from "@/hooks/useCountyBoundary"
 import { useBoundaryTypes } from "@/hooks/useBoundaryTypes"
@@ -358,6 +359,14 @@ function CountyDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {county.county_metadata && (
+        <CensusProfileCard
+          fipsState={county.county_metadata.fips_state}
+          fipsCounty={county.county_metadata.fips_county}
+          countyName={county.name}
+        />
+      )}
 
       <Separator />
 
