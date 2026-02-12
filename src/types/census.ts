@@ -26,4 +26,16 @@ export interface CensusProfile {
   homeownershipRate: number | null
   meanCommuteTimeMinutes: number | null
   percentBroadband: number | null
+  unemploymentRate: number | null
+  percentWorkFromHome: number | null
+  perCapitaIncome: number | null
+  percentSnap: number | null
+  percentGraduateDegree: number | null
+  percentForeignBorn: number | null
+  percentNonEnglish: number | null
+  percentVeterans: number | null
+  percentDisability: number | null
+  medianGrossRent: number | null
+  vacancyRate: number | null
+  percentNoVehicle: number | null
 }

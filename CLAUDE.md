@@ -64,3 +64,15 @@ The US Census Bureau Statistical Data API provides demographic, economic, and ge
 `GET /boundaries/{id}` returns a `BoundaryDetailResponse` which includes a `county_metadata` field (nullable) containing Census TIGER/Line geographic metadata for county boundaries. This metadata is typed as `CountyMetadata` in `src/types/boundary.ts` and includes FIPS codes, GEOID, land/water area (m² and km²), CBSA/CSA codes, functional status, GNIS code, and internal point coordinates.
 
 The county detail page (`src/routes/counties/$countyId.tsx`) displays this metadata in a "Geographic Details" subsection within the County Information card. Area values are shown in both km² and mi² (converted client-side). Functional status codes are mapped to human-readable labels via `functionalStatusLabels`.
+
+## UI Verification
+
+After making **any** UI changes (components, layouts, styles, routes), you **must** visually verify the result using the Playwright MCP tools before considering the task complete:
+
+1. Ensure the dev server is running (`npm run dev`).
+2. Use `browser_navigate` to open the affected page(s) (e.g., `http://localhost:5173/...`).
+3. Use `browser_snapshot` to capture the page's accessibility tree and confirm the expected elements are present.
+4. Use `browser_take_screenshot` to visually verify layout, styling, and overall appearance.
+5. If the change involves interaction (hover, click, form input), use the appropriate Playwright actions (`browser_click`, `browser_hover`, `browser_fill_form`, etc.) and verify the resulting state.
+
+Do **not** mark a UI task as complete without performing this verification. If the visual result does not match expectations, fix the issue and re-verify before proceeding.

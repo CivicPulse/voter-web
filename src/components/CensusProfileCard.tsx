@@ -9,6 +9,8 @@ import {
   Home,
   Car,
   Wifi,
+  Globe,
+  Briefcase,
 } from "lucide-react"
 import {
   Card,
@@ -121,7 +123,7 @@ function CensusProfileSkeleton() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, i) => (
+        {Array.from({ length: 9 }).map((_, i) => (
           <div key={i} className="space-y-2">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-5 w-16" />
@@ -130,6 +132,15 @@ function CensusProfileSkeleton() {
       </div>
       <Separator />
       <Skeleton className="h-48 w-full" />
+      <Separator />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 9 }).map((_, i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-5 w-16" />
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -180,6 +191,7 @@ export function CensusProfileCard({
         )}
         {profile && (
           <>
+            {/* Section 1: Population & Age */}
             <StatSection icon={Users} title="Population & Age">
               <StatItem
                 label="Total Population"
@@ -205,28 +217,7 @@ export function CensusProfileCard({
 
             <Separator />
 
-            <StatSection icon={DollarSign} title="Income & Poverty">
-              <StatItem
-                label="Median Household Income"
-                value={formatCurrency(profile.medianHouseholdIncome)}
-              />
-              <StatItem
-                label="Poverty Rate"
-                value={formatPercent(profile.povertyRate)}
-              />
-            </StatSection>
-
-            <Separator />
-
-            <StatSection icon={GraduationCap} title="Education">
-              <StatItem
-                label="Bachelor's Degree or Higher"
-                value={formatPercent(profile.percentBachelorsOrHigher)}
-              />
-            </StatSection>
-
-            <Separator />
-
+            {/* Section 2: Race & Ethnicity */}
             <StatSection icon={Users} title="Race & Ethnicity">
               <StatItem
                 label="White"
@@ -249,31 +240,114 @@ export function CensusProfileCard({
 
             <Separator />
 
-            <StatSection icon={Heart} title="Health Insurance">
+            {/* Section 3: Community Profile */}
+            <StatSection icon={Globe} title="Community Profile">
               <StatItem
-                label="Uninsured"
-                value={formatPercent(profile.percentUninsured)}
+                label="Foreign-Born"
+                value={formatPercent(profile.percentForeignBorn)}
+              />
+              <StatItem
+                label="Language Other Than English at Home"
+                value={formatPercent(profile.percentNonEnglish)}
+              />
+              <StatItem
+                label="Veterans"
+                value={formatPercent(profile.percentVeterans)}
               />
             </StatSection>
 
             <Separator />
 
+            {/* Section 4: Education */}
+            <StatSection icon={GraduationCap} title="Education">
+              <StatItem
+                label="Bachelor's Degree or Higher"
+                value={formatPercent(profile.percentBachelorsOrHigher)}
+              />
+              <StatItem
+                label="Graduate or Professional Degree"
+                value={formatPercent(profile.percentGraduateDegree)}
+              />
+            </StatSection>
+
+            <Separator />
+
+            {/* Section 5: Employment */}
+            <StatSection icon={Briefcase} title="Employment">
+              <StatItem
+                label="Unemployment Rate"
+                value={formatPercent(profile.unemploymentRate)}
+              />
+              <StatItem
+                label="Work from Home"
+                value={formatPercent(profile.percentWorkFromHome)}
+              />
+            </StatSection>
+
+            <Separator />
+
+            {/* Section 6: Income & Poverty */}
+            <StatSection icon={DollarSign} title="Income & Poverty">
+              <StatItem
+                label="Median Household Income"
+                value={formatCurrency(profile.medianHouseholdIncome)}
+              />
+              <StatItem
+                label="Per Capita Income"
+                value={formatCurrency(profile.perCapitaIncome)}
+              />
+              <StatItem
+                label="Poverty Rate"
+                value={formatPercent(profile.povertyRate)}
+              />
+              <StatItem
+                label="SNAP/Food Stamp Recipients"
+                value={formatPercent(profile.percentSnap)}
+              />
+            </StatSection>
+
+            <Separator />
+
+            {/* Section 7: Health & Accessibility */}
+            <StatSection icon={Heart} title="Health & Accessibility">
+              <StatItem
+                label="Uninsured"
+                value={formatPercent(profile.percentUninsured)}
+              />
+              <StatItem
+                label="With a Disability"
+                value={formatPercent(profile.percentDisability)}
+              />
+            </StatSection>
+
+            <Separator />
+
+            {/* Section 8: Housing */}
             <StatSection icon={Home} title="Housing">
               <StatItem
                 label="Median Home Value"
                 value={formatCurrency(profile.medianHomeValue)}
               />
               <StatItem
+                label="Median Gross Rent"
+                value={formatCurrency(profile.medianGrossRent)}
+              />
+              <StatItem
                 label="Homeownership Rate"
                 value={formatPercent(profile.homeownershipRate)}
+              />
+              <StatItem
+                label="Vacancy Rate"
+                value={formatPercent(profile.vacancyRate)}
               />
             </StatSection>
 
             <Separator />
 
+            {/* Section 9: Transportation & Technology */}
             <div>
               <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                <Car className="mr-0 h-4 w-4 text-muted-foreground" />
+                <Car className="h-4 w-4 text-muted-foreground" />
                 <Wifi className="h-4 w-4 text-muted-foreground" />
                 Transportation & Technology
               </h3>
@@ -285,6 +359,10 @@ export function CensusProfileCard({
                       ? `${formatDecimal(profile.meanCommuteTimeMinutes)} min`
                       : "N/A"
                   }
+                />
+                <StatItem
+                  label="No Vehicle Available"
+                  value={formatPercent(profile.percentNoVehicle)}
                 />
                 <StatItem
                   label="Broadband Access"

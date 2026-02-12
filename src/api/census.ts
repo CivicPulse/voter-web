@@ -23,6 +23,18 @@ const CENSUS_VARIABLES = {
   DP04_0046PE: "homeownershipRate",
   DP03_0025E: "meanCommuteTimeMinutes",
   DP02_0154PE: "percentBroadband",
+  DP03_0009PE: "unemploymentRate",
+  DP03_0024PE: "percentWorkFromHome",
+  DP03_0088E: "perCapitaIncome",
+  DP03_0074PE: "percentSnap",
+  DP02_0066PE: "percentGraduateDegree",
+  DP02_0094PE: "percentForeignBorn",
+  DP02_0114PE: "percentNonEnglish",
+  DP02_0070PE: "percentVeterans",
+  DP02_0072PE: "percentDisability",
+  DP04_0134E: "medianGrossRent",
+  DP04_0003PE: "vacancyRate",
+  DP04_0058PE: "percentNoVehicle",
 } as const satisfies Record<string, keyof CensusProfile>
 
 /**
