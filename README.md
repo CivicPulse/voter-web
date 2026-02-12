@@ -91,6 +91,12 @@ Each county page (`/counties/:countyId`) shows:
   - GNIS code
 - **Voter Data & Analysis** — authenticated sections (requires sign-in)
 
+## External Data Sources
+
+- **US Census Bureau Statistical Data API** — Dataset discovery and documentation:
+  - Human-readable: <https://api.census.gov/data.html>
+  - Machine-readable (JSON): <https://api.census.gov/data.json>
+
 ## Build & Deploy
 
 ```bash
