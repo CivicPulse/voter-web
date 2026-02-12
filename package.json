@@ -16,6 +16,8 @@
     "@tanstack/react-router": "^1.159.5",
     "@tanstack/react-router-devtools": "^1.159.5",
     "@tanstack/react-table": "^8.21.3",
+    "@turf/bbox": "^7.3.4",
+    "@turf/helpers": "^7.3.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "ky": "^1.14.3",

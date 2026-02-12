@@ -1,5 +1,14 @@
+import { useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { ArrowLeft, Lock, Loader2, AlertCircle, Info, MapPin } from "lucide-react"
+import {
+  ArrowLeft,
+  Lock,
+  Loader2,
+  AlertCircle,
+  Info,
+  Layers,
+  MapPin,
+} from "lucide-react"
 import {
   Card,
   CardContent,
@@ -10,7 +19,11 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { CountyDetailMap } from "@/components/CountyDetailMap"
 import { useCountyBoundary } from "@/hooks/useCountyBoundary"
+import { useBoundaryTypes } from "@/hooks/useBoundaryTypes"
+import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import { useAuthStore } from "@/stores/authStore"
 
 export const Route = createFileRoute("/counties/$countyId")({
@@ -21,6 +34,12 @@ function CountyDetailPage() {
   const { countyId } = Route.useParams()
   const { data: county, isLoading, isError, error } = useCountyBoundary(countyId)
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+
+  const [selectedType, setSelectedType] = useState<string | null>(null)
+  const { data: boundaryTypes, isLoading: isTypesLoading } =
+    useBoundaryTypes()
+  const { data: overlayData, isLoading: isOverlayLoading } =
+    useBoundaryTypeGeoJSON(selectedType, county?.name ?? null)
 
   if (isLoading) {
     return (
@@ -71,6 +90,80 @@ function CountyDetailPage() {
         <h1 className="text-3xl font-bold">{county.name} County</h1>
         <Badge variant="secondary">{county.boundary_type}</Badge>
       </div>
+
+      {county.geometry && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              County Map
+            </CardTitle>
+            <CardDescription>
+              Boundary visualization with optional district overlays
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Layers className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">District Overlays</span>
+              </div>
+              {isTypesLoading ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading available types…
+                </div>
+              ) : boundaryTypes && boundaryTypes.length > 0 ? (
+                <ToggleGroup
+                  type="single"
+                  value={selectedType ?? ""}
+                  onValueChange={(value) =>
+                    setSelectedType(value === "" ? null : value)
+                  }
+                  className="flex flex-wrap justify-start"
+                >
+                  {boundaryTypes.map((type) => (
+                    <ToggleGroupItem
+                      key={type}
+                      value={type}
+                      className="text-xs capitalize"
+                    >
+                      {type.replaceAll("_", " ")}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              ) : null}
+            </div>
+
+            <CountyDetailMap
+              countyGeometry={county.geometry}
+              overlayData={overlayData}
+              isOverlayLoading={isOverlayLoading}
+            />
+
+            {selectedType &&
+              overlayData &&
+              !isOverlayLoading &&
+              overlayData.features.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Showing {overlayData.features.length}{" "}
+                  {selectedType.replaceAll("_", " ")} district
+                  {overlayData.features.length === 1 ? "" : "s"} intersecting{" "}
+                  {county.name} County
+                </p>
+              )}
+            {selectedType &&
+              overlayData &&
+              !isOverlayLoading &&
+              overlayData.features.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  No {selectedType.replaceAll("_", " ")} districts found
+                  intersecting {county.name} County
+                </p>
+              )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
