@@ -8,6 +8,7 @@ import {
   Info,
   Layers,
   MapPin,
+  X,
 } from "lucide-react"
 import {
   Card,
@@ -130,32 +131,53 @@ function CountyDetailPage() {
                   Loading available types…
                 </div>
               ) : boundaryTypes && boundaryTypes.length > 0 ? (
-                <ToggleGroup
-                  type="single"
-                  variant="outline"
-                  size="sm"
-                  value={selectedType ?? ""}
-                  onValueChange={(value) =>
-                    navigate({
-                      search: (prev) => ({
-                        ...prev,
-                        overlay: value === "" ? undefined : value,
-                      }),
-                      replace: true,
-                    })
-                  }
-                  className="flex flex-wrap justify-start gap-2"
-                >
-                  {boundaryTypes.map((type) => (
-                    <ToggleGroupItem
-                      key={type}
-                      value={type}
-                      className="text-xs capitalize bg-neutral-300 hover:bg-neutral-700 hover:text-white data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                <div className="flex flex-wrap items-center gap-2">
+                  <ToggleGroup
+                    type="single"
+                    variant="outline"
+                    size="sm"
+                    value={selectedType ?? ""}
+                    onValueChange={(value) =>
+                      navigate({
+                        search: (prev) => ({
+                          ...prev,
+                          overlay: value === "" ? undefined : value,
+                        }),
+                        replace: true,
+                      })
+                    }
+                    className="flex flex-wrap justify-start gap-2"
+                  >
+                    {boundaryTypes.map((type) => (
+                      <ToggleGroupItem
+                        key={type}
+                        value={type}
+                        className="text-xs capitalize bg-neutral-300 hover:bg-neutral-700 hover:text-white data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                      >
+                        {type.replaceAll("_", " ")}
+                      </ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                  {selectedType && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs bg-neutral-300 hover:bg-neutral-700 hover:text-white"
+                      onClick={() =>
+                        navigate({
+                          search: (prev) => ({
+                            ...prev,
+                            overlay: undefined,
+                          }),
+                          replace: true,
+                        })
+                      }
                     >
-                      {type.replaceAll("_", " ")}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
+                      <X className="h-3 w-3" />
+                      Clear
+                    </Button>
+                  )}
+                </div>
               ) : null}
             </div>
 
