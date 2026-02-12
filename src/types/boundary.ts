@@ -23,6 +23,18 @@ export interface CountyMetadata {
   water_area_km2: number
 }
 
+export interface PrecinctMetadata {
+  precinct_name: string
+  precinct_id: string
+  precinct_county_name: string
+  precinct_fips: string
+  precinct_fips_county: string
+  precinct_sos_district_id: string
+  precinct_sos_id: string
+  precinct_county_number: string
+  precinct_area: number
+}
+
 export interface BoundaryDetailResponse {
   id: string
   name: string
@@ -35,6 +47,7 @@ export interface BoundaryDetailResponse {
   geometry: Record<string, unknown> | null
   properties: Record<string, unknown> | null
   county_metadata: CountyMetadata | null
+  precinct_metadata: PrecinctMetadata | null
 }
 
 export interface BoundaryTypesResponse {
@@ -47,6 +60,16 @@ export interface BoundaryFeatureProperties {
   boundary_identifier: string
   source: string
   county: string | null
+  // Precinct metadata (present only on county_precinct features)
+  precinct_name?: string
+  precinct_id?: string
+  precinct_county_name?: string
+  precinct_fips?: string
+  precinct_fips_county?: string
+  precinct_sos_district_id?: string
+  precinct_sos_id?: string
+  precinct_county_number?: string
+  precinct_area?: number
 }
 
 export type BoundaryFeatureCollection = FeatureCollection<

@@ -122,7 +122,8 @@ function OverlayLayer({
       layer: Layer,
     ) => {
       const props = feature.properties
-      const displayName = props.name || props.boundary_identifier
+      const displayName =
+        props.precinct_name || props.name || props.boundary_identifier
       const typeName = props.boundary_type.replaceAll("_", " ")
       const key = props.boundary_identifier ?? ""
       const index = featureIndexMap.get(key) ?? 0
