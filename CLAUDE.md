@@ -51,3 +51,9 @@ Requires Node.js LTS (use `nvm use` — reads `.nvmrc`).
 The voter-api uses JWT auth (access + refresh tokens), role-based access (admin/analyst/viewer), and async job patterns (returns 202 Accepted, poll for status). Key resource endpoints: `/voters`, `/boundaries`, `/imports`, `/geocoding`, `/analysis`, `/exports`.
 
 Interactive API documentation (Swagger/OpenAPI) is available at `/docs` on the API server (e.g., `http://localhost:8000/docs`).
+
+### Boundary Detail Response
+
+`GET /boundaries/{id}` returns a `BoundaryDetailResponse` which includes a `county_metadata` field (nullable) containing Census TIGER/Line geographic metadata for county boundaries. This metadata is typed as `CountyMetadata` in `src/types/boundary.ts` and includes FIPS codes, GEOID, land/water area (m² and km²), CBSA/CSA codes, functional status, GNIS code, and internal point coordinates.
+
+The county detail page (`src/routes/counties/$countyId.tsx`) displays this metadata in a "Geographic Details" subsection within the County Information card. Area values are shown in both km² and mi² (converted client-side). Functional status codes are mapped to human-readable labels via `functionalStatusLabels`.

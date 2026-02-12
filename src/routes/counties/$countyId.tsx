@@ -35,6 +35,15 @@ export const Route = createFileRoute("/counties/$countyId")({
   validateSearch: countySearchSchema,
 })
 
+const functionalStatusLabels: Record<string, string> = {
+  A: "Active",
+  C: "Consolidated",
+  N: "Nonfunctioning",
+  I: "Inactive",
+  F: "Fictitious",
+  S: "Statistical",
+}
+
 function CountyDetailPage() {
   const { countyId } = Route.useParams()
   const { overlay } = Route.useSearch()
@@ -185,7 +194,7 @@ function CountyDetailPage() {
           </CardTitle>
           <CardDescription>Public boundary data</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
           <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <dt className="text-sm font-medium text-muted-foreground">
@@ -238,6 +247,115 @@ function CountyDetailPage() {
               </dd>
             </div>
           </dl>
+
+          {county.county_metadata && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="mb-3 text-sm font-semibold">
+                  Geographic Details
+                </h3>
+                <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Full Name
+                    </dt>
+                    <dd className="text-sm">
+                      {county.county_metadata.name_lsad}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      FIPS Code
+                    </dt>
+                    <dd className="font-mono text-sm">
+                      {county.county_metadata.fips_state}
+                      {county.county_metadata.fips_county}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      GEOID
+                    </dt>
+                    <dd className="font-mono text-sm">
+                      {county.county_metadata.geoid}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Land Area
+                    </dt>
+                    <dd className="text-sm">
+                      {county.county_metadata.land_area_km2.toLocaleString()} km²
+                      {" "}
+                      <span className="text-muted-foreground">
+                        ({(county.county_metadata.land_area_km2 * 0.386102).toLocaleString(undefined, { maximumFractionDigits: 1 })} mi²)
+                      </span>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Water Area
+                    </dt>
+                    <dd className="text-sm">
+                      {county.county_metadata.water_area_km2.toLocaleString()} km²
+                      {" "}
+                      <span className="text-muted-foreground">
+                        ({(county.county_metadata.water_area_km2 * 0.386102).toLocaleString(undefined, { maximumFractionDigits: 1 })} mi²)
+                      </span>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Internal Point
+                    </dt>
+                    <dd className="font-mono text-sm">
+                      {county.county_metadata.internal_point_lat},{" "}
+                      {county.county_metadata.internal_point_lon}
+                    </dd>
+                  </div>
+                  {county.county_metadata.cbsa_code && (
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">
+                        CBSA Code
+                      </dt>
+                      <dd className="font-mono text-sm">
+                        {county.county_metadata.cbsa_code}
+                      </dd>
+                    </div>
+                  )}
+                  {county.county_metadata.csa_code && (
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">
+                        CSA Code
+                      </dt>
+                      <dd className="font-mono text-sm">
+                        {county.county_metadata.csa_code}
+                      </dd>
+                    </div>
+                  )}
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Functional Status
+                    </dt>
+                    <dd className="text-sm">
+                      {functionalStatusLabels[county.county_metadata.functional_status] ?? county.county_metadata.functional_status}
+                    </dd>
+                  </div>
+                  {county.county_metadata.gnis_code && (
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">
+                        GNIS Code
+                      </dt>
+                      <dd className="font-mono text-sm">
+                        {county.county_metadata.gnis_code}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 

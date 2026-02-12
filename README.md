@@ -71,6 +71,26 @@ npx shadcn@latest add button
 npx shadcn@latest add data-table
 ```
 
+## Features
+
+### Interactive County Map
+
+The home page displays an interactive map of Georgia counties. Clicking a county navigates to its detail page.
+
+### County Detail Page
+
+Each county page (`/counties/:countyId`) shows:
+
+- **County Map** — boundary visualization with selectable district overlays (congressional, state senate, state house, etc.) using a colorblind-friendly palette
+- **County Information** — basic boundary data (name, FIPS identifier, source, dates) plus a **Geographic Details** section populated from the API's `county_metadata` field, which includes:
+  - FIPS and GEOID codes
+  - Land and water area (km² and mi²)
+  - Internal point coordinates (lat/lon)
+  - CBSA/CSA statistical area codes
+  - Functional status
+  - GNIS code
+- **Voter Data & Analysis** — authenticated sections (requires sign-in)
+
 ## Build & Deploy
 
 ```bash
