@@ -49,26 +49,7 @@ function parseCensusValue(raw: string): number | null {
   return num
 }
 
-/**
- * Fetch Census ACS 5-Year Data Profile for a county.
- */
-export async function fetchCensusProfile(
-  fipsState: string,
-  fipsCounty: string,
-): Promise<CensusProfile> {
-  const variableCodes = Object.keys(CENSUS_VARIABLES).join(",")
-  const url = `${CENSUS_BASE_URL}?get=${variableCodes}&for=county:${fipsCounty}&in=state:${fipsState}`
-
-  const response = await fetch(url)
-
-  if (!response.ok) {
-    throw new Error(
-      `Census API request failed: ${response.status} ${response.statusText}`,
-    )
-  }
-
-  const data: CensusApiRawResponse = await response.json()
-
+function parseCensusResponse(data: CensusApiRawResponse): CensusProfile {
   if (data.length < 2) {
     throw new Error("Census API returned no data rows")
   }
@@ -83,4 +64,40 @@ export async function fetchCensusProfile(
   }
 
   return profile as unknown as CensusProfile
+}
+
+async function fetchCensusData(url: string): Promise<CensusProfile> {
+  const response = await fetch(url)
+
+  if (!response.ok) {
+    throw new Error(
+      `Census API request failed: ${response.status} ${response.statusText}`,
+    )
+  }
+
+  const data: CensusApiRawResponse = await response.json()
+  return parseCensusResponse(data)
+}
+
+/**
+ * Fetch Census ACS 5-Year Data Profile for a county.
+ */
+export async function fetchCensusProfile(
+  fipsState: string,
+  fipsCounty: string,
+): Promise<CensusProfile> {
+  const variableCodes = Object.keys(CENSUS_VARIABLES).join(",")
+  const url = `${CENSUS_BASE_URL}?get=${variableCodes}&for=county:${fipsCounty}&in=state:${fipsState}`
+  return fetchCensusData(url)
+}
+
+/**
+ * Fetch Census ACS 5-Year Data Profile for a state.
+ */
+export async function fetchStateCensusProfile(
+  fipsState: string,
+): Promise<CensusProfile> {
+  const variableCodes = Object.keys(CENSUS_VARIABLES).join(",")
+  const url = `${CENSUS_BASE_URL}?get=${variableCodes}&for=state:${fipsState}`
+  return fetchCensusData(url)
 }

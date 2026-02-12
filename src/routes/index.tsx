@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { AlertCircle, Loader2 } from "lucide-react"
 import { GeorgiaCountyMap } from "@/components/GeorgiaCountyMap"
 import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
+import { StateCensusProfileCard } from "@/components/StateCensusProfileCard"
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -43,6 +44,8 @@ function Index() {
 
         {data && <GeorgiaCountyMap data={data} />}
       </div>
+
+      <StateCensusProfileCard fipsState="13" stateName="Georgia" />
     </div>
   )
 }

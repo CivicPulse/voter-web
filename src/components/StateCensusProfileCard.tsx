@@ -6,41 +6,38 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { useCensusProfile } from "@/hooks/useCensusProfile"
+import { useStateCensusProfile } from "@/hooks/useStateCensusProfile"
 import {
   CensusProfileSkeleton,
   CensusProfileError,
   CensusProfileSections,
 } from "@/components/census/CensusProfileContent"
 
-interface CensusProfileCardProps {
+interface StateCensusProfileCardProps {
   fipsState: string
-  fipsCounty: string
-  countyName: string
+  stateName: string
 }
 
-export function CensusProfileCard({
+export function StateCensusProfileCard({
   fipsState,
-  fipsCounty,
-  countyName,
-}: Readonly<CensusProfileCardProps>) {
+  stateName,
+}: Readonly<StateCensusProfileCardProps>) {
   const {
     data: profile,
     isLoading,
     isError,
     error,
-  } = useCensusProfile(fipsState, fipsCounty)
+  } = useStateCensusProfile(fipsState)
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <BarChart3 className="h-5 w-5" />
-          Census Demographics
+          State Census Demographics
         </CardTitle>
         <CardDescription>
-          American Community Survey 5-Year Estimates (2023) for {countyName}{" "}
-          County
+          American Community Survey 5-Year Estimates (2023) for {stateName}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
