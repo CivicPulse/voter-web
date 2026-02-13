@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { requireAuth } from "@/lib/auth-guards"
+import { verifyAddress, geocodeAddress } from "@/api/lookup"
+import type { AddressSuggestion } from "@/types/lookup"
 
 export const Route = createFileRoute("/lookup/")({
   component: LookupPage,
@@ -34,6 +36,12 @@ function LookupPage() {
   const navigate = useNavigate()
   const [geoError, setGeoError] = useState<string | null>(null)
   const [isLocating, setIsLocating] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [isGeocoding, setIsGeocoding] = useState(false)
+  const [suggestions, setSuggestions] = useState<AddressSuggestion[] | null>(
+    null,
+  )
+  const [apiError, setApiError] = useState<string | null>(null)
 
   const {
     register,
@@ -43,11 +51,56 @@ function LookupPage() {
     resolver: zodResolver(addressSchema),
   })
 
-  const onSubmit = (data: AddressFormData) => {
-    navigate({
-      to: "/lookup/results",
-      search: { address: data.address },
-    })
+  const geocodeAndNavigate = async (address: string) => {
+    setIsGeocoding(true)
+    setApiError(null)
+    try {
+      const result = await geocodeAddress(address)
+      navigate({
+        to: "/lookup/results",
+        search: {
+          lat: result.latitude,
+          lng: result.longitude,
+          address: result.formatted_address,
+        },
+      })
+    } catch {
+      setApiError("Failed to geocode address. Please try again.")
+      setIsGeocoding(false)
+    }
+  }
+
+  const onSubmit = async (data: AddressFormData) => {
+    setSuggestions(null)
+    setApiError(null)
+    setIsVerifying(true)
+
+    try {
+      const result = await verifyAddress(data.address)
+
+      if (result.suggestions.length === 0) {
+        setApiError("No matching addresses found. Please check your input.")
+        setIsVerifying(false)
+        return
+      }
+
+      if (result.suggestions.length === 1) {
+        setIsVerifying(false)
+        await geocodeAndNavigate(result.suggestions[0].formatted_address)
+        return
+      }
+
+      setSuggestions(result.suggestions)
+      setIsVerifying(false)
+    } catch {
+      setApiError("Failed to verify address. Please try again.")
+      setIsVerifying(false)
+    }
+  }
+
+  const handleSelectSuggestion = async (suggestion: AddressSuggestion) => {
+    setSuggestions(null)
+    await geocodeAndNavigate(suggestion.formatted_address)
   }
 
   const handleUseMyLocation = () => {
@@ -57,6 +110,8 @@ function LookupPage() {
     }
 
     setGeoError(null)
+    setSuggestions(null)
+    setApiError(null)
     setIsLocating(true)
 
     navigator.geolocation.getCurrentPosition(
@@ -67,6 +122,7 @@ function LookupPage() {
           search: {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
+            accuracy: Math.round(position.coords.accuracy),
           },
         })
       },
@@ -94,6 +150,8 @@ function LookupPage() {
     )
   }
 
+  const isProcessing = isVerifying || isGeocoding
+
   return (
     <div className="flex h-full items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -115,6 +173,7 @@ function LookupPage() {
                 type="text"
                 placeholder="123 Main St, Atlanta, GA 30303"
                 aria-invalid={!!errors.address}
+                disabled={isProcessing}
                 {...register("address")}
               />
               {errors.address && (
@@ -124,11 +183,51 @@ function LookupPage() {
               )}
             </div>
 
-            <Button type="submit" className="w-full">
-              <Search className="h-4 w-4" />
-              Look Up Address
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {isVerifying ? "Verifying address..." : "Geocoding..."}
+                </>
+              ) : (
+                <>
+                  <Search className="h-4 w-4" />
+                  Look Up Address
+                </>
+              )}
             </Button>
           </form>
+
+          {suggestions && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium">
+                Multiple matches found. Select an address:
+              </p>
+              <div className="space-y-1">
+                {suggestions.map((suggestion) => (
+                  <button
+                    key={suggestion.formatted_address}
+                    type="button"
+                    className="w-full rounded-md border px-3 py-2 text-left text-sm hover:bg-accent transition-colors"
+                    onClick={() => handleSelectSuggestion(suggestion)}
+                  >
+                    {suggestion.formatted_address}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {apiError && (
+            <div className="flex items-start gap-2 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{apiError}</span>
+            </div>
+          )}
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -143,7 +242,7 @@ function LookupPage() {
             variant="outline"
             className="w-full"
             onClick={handleUseMyLocation}
-            disabled={isLocating}
+            disabled={isLocating || isProcessing}
           >
             {isLocating ? (
               <>

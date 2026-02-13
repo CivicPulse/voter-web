@@ -4,7 +4,7 @@ import { Loader2, AlertCircle, ArrowLeft, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { DistrictCard } from "@/components/DistrictCard"
-import { useAddressLookup } from "@/hooks/useAddressLookup"
+import { usePointLookup } from "@/hooks/useAddressLookup"
 import { requireAuth } from "@/lib/auth-guards"
 import type { LookupDistrict } from "@/types/lookup"
 
@@ -12,6 +12,7 @@ const resultsSearchSchema = z.object({
   address: z.string().optional().catch(undefined),
   lat: z.coerce.number().optional().catch(undefined),
   lng: z.coerce.number().optional().catch(undefined),
+  accuracy: z.coerce.number().optional().catch(undefined),
 })
 
 export const Route = createFileRoute("/lookup/results")({
@@ -41,20 +42,20 @@ function sortDistricts(districts: LookupDistrict[]): LookupDistrict[] {
 }
 
 function LookupResultsPage() {
-  const { address, lat, lng } = Route.useSearch()
-  const { data, isLoading, isError, error } = useAddressLookup({
-    address,
-    lat,
-    lng,
-  })
+  const { address, lat, lng, accuracy } = Route.useSearch()
 
-  const hasParams = !!address || (lat !== undefined && lng !== undefined)
+  const lookupParams =
+    lat !== undefined && lng !== undefined
+      ? { lat, lng, accuracy }
+      : null
 
-  if (!hasParams) {
+  const { data, isLoading, isError, error } = usePointLookup(lookupParams)
+
+  if (lookupParams === null) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 p-4">
         <p className="text-muted-foreground">
-          No address or location provided.
+          No location provided.
         </p>
         <Button variant="outline" asChild>
           <Link to="/lookup">
@@ -109,10 +110,10 @@ function LookupResultsPage() {
     <div className="mx-auto max-w-4xl space-y-6 p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          {data?.geocoded_address && (
+          {address && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <MapPin className="h-4 w-4 shrink-0" />
-              <span>{data.geocoded_address.formatted_address}</span>
+              <span>{address}</span>
             </div>
           )}
           <p className="text-sm text-muted-foreground">
