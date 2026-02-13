@@ -1,8 +1,10 @@
 import { useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
+import { z } from "zod"
 import { AlertCircle, ChevronDown, ChevronUp, Loader2 } from "lucide-react"
 import { GeorgiaCountyMap } from "@/components/GeorgiaCountyMap"
 import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
+import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import { StateCensusProfileCard } from "@/components/StateCensusProfileCard"
 import {
   Drawer,
@@ -12,12 +14,23 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer"
 
+const homeSearchSchema = z.object({
+  overlay: z
+    .enum(["congressional", "psc", "state_house", "state_senate"])
+    .optional()
+    .catch(undefined),
+})
+
 export const Route = createFileRoute("/")({
   component: Index,
+  validateSearch: homeSearchSchema,
 })
 
 function Index() {
+  const { overlay } = Route.useSearch()
   const { data, isLoading, isError, error } = useCountyBoundaries()
+  const { data: overlayData, isLoading: isOverlayLoading } =
+    useBoundaryTypeGeoJSON(overlay ?? null, null)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   return (
@@ -48,6 +61,8 @@ function Index() {
         {data && (
           <GeorgiaCountyMap
             data={data}
+            overlayData={overlayData}
+            isOverlayLoading={isOverlayLoading}
             className="rounded-none border-0"
           />
         )}

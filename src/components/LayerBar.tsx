@@ -11,6 +11,7 @@ interface LayerBarProps {
   onTypeChange: (type: string | undefined) => void
   overlayFeatureCount: number | null
   countyName: string
+  statewide?: boolean
 }
 
 export function LayerBar({
@@ -20,6 +21,7 @@ export function LayerBar({
   onTypeChange,
   overlayFeatureCount,
   countyName,
+  statewide,
 }: LayerBarProps) {
   const [expanded, setExpanded] = useState(false)
   const barRef = useRef<HTMLDivElement>(null)
@@ -36,11 +38,17 @@ export function LayerBar({
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [expanded])
 
+  const typeName = selectedType?.replaceAll("_", " ") ?? ""
+  const plural = overlayFeatureCount === 1 ? "" : "s"
+  const locationLabel = statewide
+    ? "statewide"
+    : `intersecting ${countyName} County`
+
   const statusText =
     selectedType && overlayFeatureCount !== null
       ? overlayFeatureCount > 0
-        ? `Showing ${overlayFeatureCount} ${selectedType.replaceAll("_", " ")} district${overlayFeatureCount === 1 ? "" : "s"} intersecting ${countyName} County`
-        : `No ${selectedType.replaceAll("_", " ")} districts found intersecting ${countyName} County`
+        ? `Showing ${overlayFeatureCount} ${typeName} district${plural} ${locationLabel}`
+        : `No ${typeName} districts found ${locationLabel}`
       : null
 
   const toggleButtons = boundaryTypes?.map((type) => (

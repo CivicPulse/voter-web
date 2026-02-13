@@ -16,7 +16,8 @@
       "Bash(git log:*)",
       "mcp__plugin_playwright_playwright__browser_evaluate",
       "Bash(grep:*)",
-      "mcp__plugin_playwright_playwright__browser_close"
+      "mcp__plugin_playwright_playwright__browser_close",
+      "WebFetch(domain:voteapi.kerryhatcher.com)"
     ]
   }
 }

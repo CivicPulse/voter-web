@@ -3,13 +3,16 @@ import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
 import { useNavigate } from "@tanstack/react-router"
 import type { Layer, LeafletMouseEvent, PathOptions, LeafletEvent } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
+import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { countySlugPath, slugify } from "@/lib/slugs"
 import { fipsToAbbrev } from "@/lib/states"
+import { OverlayLayer } from "@/components/OverlayLayer"
 import type {
   CountyFeatureCollection,
   CountyProperties,
 } from "@/types/boundaries"
+import type { BoundaryFeatureCollection } from "@/types/boundary"
 
 const GA_CENTER: [number, number] = [32.6791, -83.6233]
 const GA_ZOOM = 7
@@ -31,6 +34,8 @@ const HOVER_STYLE: PathOptions = {
 
 interface GeorgiaCountyMapProps {
   data: CountyFeatureCollection
+  overlayData?: BoundaryFeatureCollection | null
+  isOverlayLoading?: boolean
   className?: string
 }
 
@@ -134,20 +139,38 @@ function CountyGeoJSON({ data }: Readonly<{ data: CountyFeatureCollection }>) {
   )
 }
 
-export function GeorgiaCountyMap({ data, className }: Readonly<GeorgiaCountyMapProps>) {
+export function GeorgiaCountyMap({
+  data,
+  overlayData,
+  isOverlayLoading,
+  className,
+}: Readonly<GeorgiaCountyMapProps>) {
   return (
-    <MapContainer
-      center={GA_CENTER}
-      zoom={GA_ZOOM}
-      scrollWheelZoom={true}
-      doubleClickZoom={false}
-      className={cn("h-full w-full rounded-lg border", className)}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <CountyGeoJSON data={data} />
-    </MapContainer>
+    <div className="relative h-full w-full">
+      <MapContainer
+        center={GA_CENTER}
+        zoom={GA_ZOOM}
+        scrollWheelZoom={true}
+        doubleClickZoom={false}
+        className={cn("h-full w-full rounded-lg border", className)}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <CountyGeoJSON data={data} />
+        {overlayData && overlayData.features.length > 0 && (
+          <OverlayLayer data={overlayData} />
+        )}
+      </MapContainer>
+      {isOverlayLoading && (
+        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-background/50">
+          <div className="flex items-center gap-2 rounded-md bg-background px-3 py-2 text-sm text-muted-foreground shadow-sm">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading districts…
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
