@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "WARNING: This script is deprecated. Deployments are now handled by GitHub Actions."
+echo "  See .github/workflows/deploy.yml"
+echo "  Manual deploy: npx wrangler pages deploy dist/ --project-name=voter-web"
+echo ""
+
 BUCKET="voteweb"
 DIST_DIR="dist"
 export CLOUDFLARE_ACCOUNT_ID="${CLOUDFLARE_ACCOUNT_ID:-6d837580a4d0641139ecada9e74076b8}"
