@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { ChevronDown, ChevronUp, Layers, Loader2, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -22,6 +22,19 @@ export function LayerBar({
   countyName,
 }: LayerBarProps) {
   const [expanded, setExpanded] = useState(false)
+  const barRef = useRef<HTMLDivElement>(null)
+
+  // Close mobile layer menu when tapping outside (e.g. map)
+  useEffect(() => {
+    if (!expanded) return
+    function handleClickOutside(e: MouseEvent) {
+      if (barRef.current && !barRef.current.contains(e.target as Node)) {
+        setExpanded(false)
+      }
+    }
+    document.addEventListener("click", handleClickOutside)
+    return () => document.removeEventListener("click", handleClickOutside)
+  }, [expanded])
 
   const statusText =
     selectedType && overlayFeatureCount !== null
@@ -91,7 +104,7 @@ export function LayerBar({
       </div>
 
       {/* Mobile: collapsible */}
-      <div className="md:hidden">
+      <div className="md:hidden" ref={barRef}>
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
@@ -117,14 +130,28 @@ export function LayerBar({
               variant="outline"
               size="sm"
               value={selectedType ?? ""}
-              onValueChange={(value) =>
+              onValueChange={(value) => {
                 onTypeChange(value === "" ? undefined : value)
-              }
+                setExpanded(false)
+              }}
               className="flex flex-wrap justify-start gap-2"
             >
               {toggleButtons}
             </ToggleGroup>
-            {clearButton}
+            {selectedType && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs bg-neutral-300 hover:bg-neutral-700 hover:text-white"
+                onClick={() => {
+                  onTypeChange(undefined)
+                  setExpanded(false)
+                }}
+              >
+                <X className="h-3 w-3" />
+                Clear
+              </Button>
+            )}
             {statusText && (
               <p className="text-xs text-muted-foreground">{statusText}</p>
             )}
