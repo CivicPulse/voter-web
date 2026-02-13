@@ -77,7 +77,7 @@ function Index() {
           <DrawerHeader>
             <DrawerTitle>Georgia State Demographics</DrawerTitle>
           </DrawerHeader>
-          <div className="overflow-y-auto px-4 pb-6 max-h-[70vh]">
+          <div className="overflow-y-auto px-4 pb-6 max-h-[60vh] sm:max-h-[70vh]">
             <StateCensusProfileCard fipsState="13" stateName="Georgia" />
           </div>
         </DrawerContent>
