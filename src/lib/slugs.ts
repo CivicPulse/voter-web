@@ -25,7 +25,8 @@ export function countySlugPath(
   const stateFips = fipsCode.length > 2 ? fipsCode.slice(0, 2) : fipsCode
   const stateAbbrev = FIPS_TO_ABBREV[stateFips]
   if (!stateAbbrev) {
-    throw new Error(`Unknown state FIPS code: ${stateFips}`)
+    console.error(`countySlugPath: Unknown state FIPS code: ${stateFips} (from FIPS "${fipsCode}")`)
+    return ""
   }
   return `/counties/${stateAbbrev}/${slugify(countyName)}`
 }

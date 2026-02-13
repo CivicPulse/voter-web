@@ -47,7 +47,7 @@ export function useCountySlugResolver(
     const featureStateFips = props.boundary_identifier.slice(0, 2)
     return (
       featureStateFips === stateFips &&
-      slugify(props.name) === countySlug.toLowerCase()
+      slugify(props.name) === countySlug
     )
   })
 

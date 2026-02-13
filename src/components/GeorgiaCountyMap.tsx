@@ -84,16 +84,20 @@ function CountyGeoJSON({ data }: Readonly<{ data: CountyFeatureCollection }>) {
       const stateAbbrev = fipsToAbbrev(props.boundary_identifier.slice(0, 2)) ?? ""
       const countySlug = slugify(props.name)
 
-      layer.bindPopup(
-        `<div class="p-1">
-          <p class="font-semibold text-sm">${props.name} County</p>
-          <p class="text-xs text-muted-foreground">ID: ${props.boundary_identifier}</p>
-          <a href="${slugPath}"
+      const detailLink = slugPath
+        ? `<a href="${slugPath}"
              data-county-state="${stateAbbrev}"
              data-county-slug="${countySlug}"
              class="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline">
             View Details &rarr;
-          </a>
+          </a>`
+        : ""
+
+      layer.bindPopup(
+        `<div class="p-1">
+          <p class="font-semibold text-sm">${props.name} County</p>
+          <p class="text-xs text-muted-foreground">ID: ${props.boundary_identifier}</p>
+          ${detailLink}
         </div>`,
       )
 
@@ -108,7 +112,7 @@ function CountyGeoJSON({ data }: Readonly<{ data: CountyFeatureCollection }>) {
           target.setStyle(DEFAULT_STYLE)
         },
         dblclick: () => {
-          if (stateAbbrev && countySlug) {
+          if (slugPath && stateAbbrev && countySlug) {
             navigate({
               to: "/counties/$state/$county",
               params: { state: stateAbbrev, county: countySlug },
