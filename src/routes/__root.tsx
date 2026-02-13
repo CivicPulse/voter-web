@@ -34,8 +34,8 @@ function RootLayout() {
   }
 
   return (
-    <div className="min-h-svh bg-background text-foreground">
-      <nav className="border-b px-4 py-2 flex items-center justify-between">
+    <div className="h-svh flex flex-col overflow-hidden bg-background text-foreground">
+      <nav className="flex-none border-b px-4 py-2 flex items-center justify-between bg-background z-50">
         <div className="flex gap-4">
           <Link to="/" className="[&.active]:font-bold">
             Home
@@ -67,7 +67,7 @@ function RootLayout() {
           )}
         </div>
       </nav>
-      <main className="p-4">
+      <main className="flex-1 min-h-0">
         <Outlet />
       </main>
       <TanStackRouterDevtools />

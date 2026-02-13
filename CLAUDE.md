@@ -65,6 +65,10 @@ The US Census Bureau Statistical Data API provides demographic, economic, and ge
 
 The county detail page (`src/routes/counties/$countyId.tsx`) displays this metadata in a "Geographic Details" subsection within the County Information card. Area values are shown in both km² and mi² (converted client-side). Functional status codes are mapped to human-readable labels via `functionalStatusLabels`.
 
+## Git Workflow
+
+Feature work, stories, and multi-step changes should be done on a feature branch off `main`. Commit after each logical step so progress is incremental and reviewable. Small changes and quick bug fixes can be made directly on `main`.
+
 ## UI Verification
 
 After making **any** UI changes (components, layouts, styles, routes), you **must** visually verify the result using the Playwright MCP tools before considering the task complete:

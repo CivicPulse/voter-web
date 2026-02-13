@@ -166,12 +166,12 @@ export function CountyDetailMap({
   className,
 }: Readonly<CountyDetailMapProps>) {
   return (
-    <div className="relative">
+    <div className="relative h-full w-full">
       <MapContainer
         center={GA_CENTER}
         zoom={GA_ZOOM}
         scrollWheelZoom={true}
-        className={cn("h-[500px] w-full rounded-lg border", className)}
+        className={cn("h-full w-full rounded-lg border", className)}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
