@@ -6,7 +6,12 @@
       "Bash(npx wrangler:*)",
       "mcp__playwright__browser_press_key",
       "Bash(git diff:*)",
-      "Read(//home/kwhatcher/projects/voter-web/src/routes/counties/**)"
+      "Read(//home/kwhatcher/projects/voter-web/src/routes/counties/**)",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "mcp__playwright__browser_resize"
+    ],
+    "additionalDirectories": [
+      "/home/kwhatcher/.cache/ms-playwright/mcp-chrome-74e0c24"
     ]
   }
 }
