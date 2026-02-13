@@ -15,6 +15,7 @@ import { useCountyBoundary } from "@/hooks/useCountyBoundary"
 import { useCountySlugResolver } from "@/hooks/useCountySlugResolver"
 import { useBoundaryTypes } from "@/hooks/useBoundaryTypes"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
+import { useStatewideOverlayTypes } from "@/hooks/useStatewideOverlayTypes"
 
 function RootLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
@@ -48,15 +49,24 @@ function RootLayout() {
   const countyId = countyIdMatch?.params?.countyId ?? resolvedSlugId ?? ""
   const { data: county } = useCountyBoundary(countyId)
 
-  const overlay =
+  const isOnHomePage = !!homeMatch
+
+  const countyOverlay =
     (countyIdMatch?.search as { overlay?: string } | undefined)?.overlay ??
     (countySlugMatch?.search as { overlay?: string } | undefined)?.overlay
-  const selectedType = overlay ?? null
+  const homeOverlay = (homeMatch?.search as { overlay?: string } | undefined)
+    ?.overlay
+  const selectedType = countyOverlay ?? homeOverlay ?? null
 
   const { data: boundaryTypes, isLoading: isTypesLoading } =
     useBoundaryTypes()
+  const { data: statewideTypes, isLoading: isStatewideTypesLoading } =
+    useStatewideOverlayTypes()
   const { data: overlayData, isLoading: isOverlayLoading } =
-    useBoundaryTypeGeoJSON(selectedType, county?.name ?? null)
+    useBoundaryTypeGeoJSON(
+      selectedType,
+      isOnCountyRoute ? (county?.name ?? null) : null,
+    )
 
   // Determine header title
   let headerTitle: string | null = null
@@ -68,7 +78,13 @@ function RootLayout() {
 
   // Layer bar type change callback
   const handleTypeChange = (type: string | undefined) => {
-    if (countySlugMatch) {
+    if (isOnHomePage) {
+      navigate({
+        to: "/",
+        search: { overlay: type },
+        replace: true,
+      })
+    } else if (countySlugMatch) {
       navigate({
         to: "/counties/$state/$county",
         params: { state: slugState, county: slugCounty },
@@ -148,7 +164,7 @@ function RootLayout() {
           </div>
         </nav>
 
-        {/* Row 2: Layer controls (county detail pages only) */}
+        {/* Row 2: Layer controls (county detail or homepage) */}
         {isOnCountyRoute && county?.geometry && (
           <LayerBar
             boundaryTypes={boundaryTypes}
@@ -161,6 +177,21 @@ function RootLayout() {
                 : null
             }
             countyName={county.name}
+          />
+        )}
+        {isOnHomePage && (
+          <LayerBar
+            boundaryTypes={statewideTypes}
+            isTypesLoading={isStatewideTypesLoading}
+            selectedType={selectedType}
+            onTypeChange={handleTypeChange}
+            overlayFeatureCount={
+              selectedType && overlayData && !isOverlayLoading
+                ? overlayData.features.length
+                : null
+            }
+            countyName="Georgia"
+            statewide
           />
         )}
       </header>
