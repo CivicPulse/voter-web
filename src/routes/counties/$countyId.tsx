@@ -236,7 +236,7 @@ function CountyDetailPage() {
           <DrawerHeader>
             <DrawerTitle>{county.name} County Details</DrawerTitle>
           </DrawerHeader>
-          <div className="overflow-y-auto px-4 pb-6 max-h-[70vh] space-y-6">
+          <div className="overflow-y-auto px-4 pb-6 max-h-[60vh] md:max-h-[70vh] space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
