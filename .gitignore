@@ -35,3 +35,4 @@ dist-ssr
 .playwright-mcp/*.png
 homepage-congressional-overlay.png
 county-detail-regression.png
+.tanstack/tmp/35076e8d-9bc721032de37f897a8fde558e693c58
