@@ -16,6 +16,10 @@ dist-ssr
 .env
 .env.*
 !.env.example
+!.env.production
+
+# Wrangler local state
+.wrangler
 
 # Editor directories and files
 .vscode/*
