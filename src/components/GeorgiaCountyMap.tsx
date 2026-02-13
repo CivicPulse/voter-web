@@ -107,9 +107,17 @@ function CountyGeoJSON({ data }: Readonly<{ data: CountyFeatureCollection }>) {
           const target = e.target
           target.setStyle(DEFAULT_STYLE)
         },
+        dblclick: () => {
+          if (stateAbbrev && countySlug) {
+            navigate({
+              to: "/counties/$state/$county",
+              params: { state: stateAbbrev, county: countySlug },
+            })
+          }
+        },
       })
     },
-    [],
+    [navigate],
   )
 
   return (
@@ -128,6 +136,7 @@ export function GeorgiaCountyMap({ data, className }: Readonly<GeorgiaCountyMapP
       center={GA_CENTER}
       zoom={GA_ZOOM}
       scrollWheelZoom={true}
+      doubleClickZoom={false}
       className={cn("h-full w-full rounded-lg border", className)}
     >
       <TileLayer
