@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { LayerBar } from "@/components/LayerBar"
 import { useAuthStore } from "@/stores/authStore"
 import { useCountyBoundary } from "@/hooks/useCountyBoundary"
+import { useCountySlugResolver } from "@/hooks/useCountySlugResolver"
 import { useBoundaryTypes } from "@/hooks/useBoundaryTypes"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 
@@ -24,18 +25,32 @@ function RootLayout() {
   const navigate = useNavigate()
 
   // Route detection
-  const countyMatch = useMatch({
+  const countyIdMatch = useMatch({
     from: "/counties/$countyId",
+    shouldThrow: false,
+  })
+  const countySlugMatch = useMatch({
+    from: "/counties/$state/$county",
     shouldThrow: false,
   })
   const homeMatch = useMatch({ from: "/", shouldThrow: false })
 
+  // Resolve slug route to UUID when on slug route
+  const slugState = countySlugMatch?.params?.state ?? ""
+  const slugCounty = countySlugMatch?.params?.county ?? ""
+  const { countyId: resolvedSlugId } = useCountySlugResolver(
+    slugState,
+    slugCounty,
+  )
+
   // County data hooks (enabled guards prevent fetches when not on county route)
-  const countyId = countyMatch?.params?.countyId ?? ""
+  const isOnCountyRoute = !!(countyIdMatch || countySlugMatch)
+  const countyId = countyIdMatch?.params?.countyId ?? resolvedSlugId ?? ""
   const { data: county } = useCountyBoundary(countyId)
 
-  const overlay = (countyMatch?.search as { overlay?: string } | undefined)
-    ?.overlay
+  const overlay =
+    (countyIdMatch?.search as { overlay?: string } | undefined)?.overlay ??
+    (countySlugMatch?.search as { overlay?: string } | undefined)?.overlay
   const selectedType = overlay ?? null
 
   const { data: boundaryTypes, isLoading: isTypesLoading } =
@@ -45,7 +60,7 @@ function RootLayout() {
 
   // Determine header title
   let headerTitle: string | null = null
-  if (countyMatch && county) {
+  if (isOnCountyRoute && county) {
     headerTitle = `${county.name} County`
   } else if (homeMatch) {
     headerTitle = "Voter Web"
@@ -53,12 +68,21 @@ function RootLayout() {
 
   // Layer bar type change callback
   const handleTypeChange = (type: string | undefined) => {
-    navigate({
-      to: "/counties/$countyId",
-      params: { countyId },
-      search: { overlay: type },
-      replace: true,
-    })
+    if (countySlugMatch) {
+      navigate({
+        to: "/counties/$state/$county",
+        params: { state: slugState, county: slugCounty },
+        search: { overlay: type },
+        replace: true,
+      })
+    } else {
+      navigate({
+        to: "/counties/$countyId",
+        params: { countyId },
+        search: { overlay: type },
+        replace: true,
+      })
+    }
   }
 
   useEffect(() => {
@@ -125,7 +149,7 @@ function RootLayout() {
         </nav>
 
         {/* Row 2: Layer controls (county detail pages only) */}
-        {countyMatch && county?.geometry && (
+        {isOnCountyRoute && county?.geometry && (
           <LayerBar
             boundaryTypes={boundaryTypes}
             isTypesLoading={isTypesLoading}

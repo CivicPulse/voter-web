@@ -4,6 +4,8 @@ import { useNavigate } from "@tanstack/react-router"
 import type { Layer, LeafletMouseEvent, PathOptions, LeafletEvent } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
 import { cn } from "@/lib/utils"
+import { countySlugPath, slugify } from "@/lib/slugs"
+import { fipsToAbbrev } from "@/lib/states"
 import type {
   CountyFeatureCollection,
   CountyProperties,
@@ -47,15 +49,19 @@ function CountyGeoJSON({ data }: Readonly<{ data: CountyFeatureCollection }>) {
       if (!container) return
 
       const link = container.querySelector(
-        "[data-county-id]",
+        "[data-county-state]",
       ) as HTMLAnchorElement | null
       if (!link) return
 
       link.addEventListener("click", (event: MouseEvent) => {
         event.preventDefault()
-        const countyId = link.dataset.countyId
-        if (countyId) {
-          navigate({ to: "/counties/$countyId", params: { countyId } })
+        const state = link.dataset.countyState
+        const county = link.dataset.countySlug
+        if (state && county) {
+          navigate({
+            to: "/counties/$state/$county",
+            params: { state, county },
+          })
         }
       })
     }
@@ -74,17 +80,24 @@ function CountyGeoJSON({ data }: Readonly<{ data: CountyFeatureCollection }>) {
       layer: Layer,
     ) => {
       const props = feature.properties
-      const featureId = feature.id ?? ""
+      const slugPath = countySlugPath(props.name, props.boundary_identifier)
+      const stateAbbrev = fipsToAbbrev(props.boundary_identifier.slice(0, 2)) ?? ""
+      const countySlug = slugify(props.name)
+
+      const detailLink = slugPath
+        ? `<a href="${slugPath}"
+             data-county-state="${stateAbbrev}"
+             data-county-slug="${countySlug}"
+             class="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline">
+            View Details &rarr;
+          </a>`
+        : ""
 
       layer.bindPopup(
         `<div class="p-1">
           <p class="font-semibold text-sm">${props.name} County</p>
           <p class="text-xs text-muted-foreground">ID: ${props.boundary_identifier}</p>
-          <a href="/counties/${featureId}"
-             data-county-id="${featureId}"
-             class="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline">
-            View Details &rarr;
-          </a>
+          ${detailLink}
         </div>`,
       )
 
@@ -98,9 +111,17 @@ function CountyGeoJSON({ data }: Readonly<{ data: CountyFeatureCollection }>) {
           const target = e.target
           target.setStyle(DEFAULT_STYLE)
         },
+        dblclick: () => {
+          if (slugPath && stateAbbrev && countySlug) {
+            navigate({
+              to: "/counties/$state/$county",
+              params: { state: stateAbbrev, county: countySlug },
+            })
+          }
+        },
       })
     },
-    [],
+    [navigate],
   )
 
   return (
@@ -119,6 +140,7 @@ export function GeorgiaCountyMap({ data, className }: Readonly<GeorgiaCountyMapP
       center={GA_CENTER}
       zoom={GA_ZOOM}
       scrollWheelZoom={true}
+      doubleClickZoom={false}
       className={cn("h-full w-full rounded-lg border", className)}
     >
       <TileLayer
