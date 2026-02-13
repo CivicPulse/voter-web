@@ -3,7 +3,10 @@
     "allow": [
       "mcp__playwright__browser_snapshot",
       "Bash(npx wrangler r2 object put:*)",
-      "Bash(npx wrangler:*)"
+      "Bash(npx wrangler:*)",
+      "mcp__playwright__browser_press_key",
+      "Bash(git diff:*)",
+      "Read(//home/kwhatcher/projects/voter-web/src/routes/counties/**)"
     ]
   }
 }
