@@ -204,7 +204,7 @@ function CountyDetailPage() {
 
       {/* Full-screen map */}
       {county.geometry ? (
-        <div className="h-full w-full">
+        <div className="relative z-0 h-full w-full">
           <CountyDetailMap
             countyGeometry={county.geometry}
             overlayData={overlayData}
