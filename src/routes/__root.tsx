@@ -81,7 +81,14 @@ function RootLayout() {
     if (isOnHomePage) {
       navigate({
         to: "/",
-        search: { overlay: type },
+        search: {
+          overlay: type as
+            | "congressional"
+            | "psc"
+            | "state_house"
+            | "state_senate"
+            | undefined,
+        },
         replace: true,
       })
     } else if (countySlugMatch) {

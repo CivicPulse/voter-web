@@ -15,7 +15,10 @@ import {
 } from "@/components/ui/drawer"
 
 const homeSearchSchema = z.object({
-  overlay: z.string().optional().catch(undefined),
+  overlay: z
+    .enum(["congressional", "psc", "state_house", "state_senate"])
+    .optional()
+    .catch(undefined),
 })
 
 export const Route = createFileRoute("/")({

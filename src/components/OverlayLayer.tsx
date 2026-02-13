@@ -7,6 +7,15 @@ import type {
   BoundaryFeatureProperties,
 } from "@/types/boundary"
 
+function escapeHtml(str: string): string {
+  return str
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;")
+}
+
 // Distinct, colorblind-friendly palette for district overlays
 const DISTRICT_COLORS = [
   { fill: "#e6194b", border: "#a01235" }, // red
@@ -80,8 +89,8 @@ export function OverlayLayer({
 
       layer.bindPopup(
         `<div class="p-1">
-          <p class="font-semibold text-sm">${displayName}</p>
-          <p class="text-xs text-muted-foreground capitalize">${typeName}</p>
+          <p class="font-semibold text-sm">${escapeHtml(displayName)}</p>
+          <p class="text-xs text-muted-foreground capitalize">${escapeHtml(typeName)}</p>
         </div>`,
       )
 
