@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-router"
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
 import { useEffect } from "react"
-import { Loader2, LogIn, LogOut, User } from "lucide-react"
+import { Loader2, LogIn, LogOut, Search, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { LayerBar } from "@/components/LayerBar"
 import { useAuthStore } from "@/stores/authStore"
@@ -29,6 +29,11 @@ function RootLayout() {
     shouldThrow: false,
   })
   const homeMatch = useMatch({ from: "/", shouldThrow: false })
+  const lookupMatch = useMatch({ from: "/lookup/", shouldThrow: false })
+  const lookupResultsMatch = useMatch({
+    from: "/lookup/results",
+    shouldThrow: false,
+  })
 
   // County data hooks (enabled guards prevent fetches when not on county route)
   const countyId = countyMatch?.params?.countyId ?? ""
@@ -47,6 +52,8 @@ function RootLayout() {
   let headerTitle: string | null = null
   if (countyMatch && county) {
     headerTitle = `${county.name} County`
+  } else if (lookupMatch || lookupResultsMatch) {
+    headerTitle = "Address Lookup"
   } else if (homeMatch) {
     headerTitle = "Voter Web"
   }
@@ -90,6 +97,15 @@ function RootLayout() {
             <Link to="/" className="[&.active]:font-bold shrink-0">
               Home
             </Link>
+            {isAuthenticated && (
+              <Link
+                to="/lookup"
+                className="[&.active]:font-bold shrink-0"
+                aria-label="Address lookup"
+              >
+                <Search className="h-4 w-4" />
+              </Link>
+            )}
           </div>
 
           {headerTitle && (

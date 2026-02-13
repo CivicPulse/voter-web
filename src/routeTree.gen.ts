@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LookupIndexRouteImport } from './routes/lookup/index'
+import { Route as LookupResultsRouteImport } from './routes/lookup/results'
 import { Route as CountiesCountyIdRouteImport } from './routes/counties/$countyId'
 
 const LoginRoute = LoginRouteImport.update({
@@ -23,6 +25,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LookupIndexRoute = LookupIndexRouteImport.update({
+  id: '/lookup/',
+  path: '/lookup/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LookupResultsRoute = LookupResultsRouteImport.update({
+  id: '/lookup/results',
+  path: '/lookup/results',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CountiesCountyIdRoute = CountiesCountyIdRouteImport.update({
   id: '/counties/$countyId',
   path: '/counties/$countyId',
@@ -33,30 +45,49 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/counties/$countyId': typeof CountiesCountyIdRoute
+  '/lookup/results': typeof LookupResultsRoute
+  '/lookup/': typeof LookupIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/counties/$countyId': typeof CountiesCountyIdRoute
+  '/lookup/results': typeof LookupResultsRoute
+  '/lookup': typeof LookupIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/counties/$countyId': typeof CountiesCountyIdRoute
+  '/lookup/results': typeof LookupResultsRoute
+  '/lookup/': typeof LookupIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/counties/$countyId'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/counties/$countyId'
+    | '/lookup/results'
+    | '/lookup/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/counties/$countyId'
-  id: '__root__' | '/' | '/login' | '/counties/$countyId'
+  to: '/' | '/login' | '/counties/$countyId' | '/lookup/results' | '/lookup'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/counties/$countyId'
+    | '/lookup/results'
+    | '/lookup/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   CountiesCountyIdRoute: typeof CountiesCountyIdRoute
+  LookupResultsRoute: typeof LookupResultsRoute
+  LookupIndexRoute: typeof LookupIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,6 +106,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lookup/': {
+      id: '/lookup/'
+      path: '/lookup'
+      fullPath: '/lookup/'
+      preLoaderRoute: typeof LookupIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lookup/results': {
+      id: '/lookup/results'
+      path: '/lookup/results'
+      fullPath: '/lookup/results'
+      preLoaderRoute: typeof LookupResultsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/counties/$countyId': {
       id: '/counties/$countyId'
       path: '/counties/$countyId'
@@ -89,6 +134,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   CountiesCountyIdRoute: CountiesCountyIdRoute,
+  LookupResultsRoute: LookupResultsRoute,
+  LookupIndexRoute: LookupIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
