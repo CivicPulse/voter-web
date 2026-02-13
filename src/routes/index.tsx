@@ -31,7 +31,7 @@ function Index() {
       </div>
 
       {/* Full-screen map */}
-      <div className="h-full w-full">
+      <div className="relative z-0 h-full w-full">
         {isLoading && (
           <div className="flex h-full items-center justify-center bg-muted/50">
             <div className="flex items-center gap-2 text-muted-foreground">
