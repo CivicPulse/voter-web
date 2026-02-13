@@ -32,8 +32,8 @@ export function LayerBar({
         setExpanded(false)
       }
     }
-    document.addEventListener("click", handleClickOutside)
-    return () => document.removeEventListener("click", handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [expanded])
 
   const statusText =
@@ -109,6 +109,7 @@ export function LayerBar({
           type="button"
           onClick={() => setExpanded(!expanded)}
           className="flex w-full items-center gap-2 text-sm font-medium"
+          aria-expanded={expanded}
         >
           <Layers className="h-4 w-4 text-muted-foreground" />
           <span>Layers</span>
