@@ -8,7 +8,10 @@ echo ""
 
 BUCKET="voteweb"
 DIST_DIR="dist"
-export CLOUDFLARE_ACCOUNT_ID="${CLOUDFLARE_ACCOUNT_ID:-6d837580a4d0641139ecada9e74076b8}"
+# If a Cloudflare account ID is provided, export it; otherwise, rely on wrangler/GitHub Actions configuration.
+if [[ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
+  export CLOUDFLARE_ACCOUNT_ID
+fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
