@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { z } from "zod"
 import {
@@ -5,6 +6,7 @@ import {
   Lock,
   Loader2,
   AlertCircle,
+  ChevronUp,
   Info,
   Layers,
   MapPin,
@@ -21,6 +23,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
 import { CensusProfileCard } from "@/components/CensusProfileCard"
 import { CountyDetailMap } from "@/components/CountyDetailMap"
 import { useCountyBoundary } from "@/hooks/useCountyBoundary"
@@ -57,10 +66,11 @@ function CountyDetailPage() {
     useBoundaryTypes()
   const { data: overlayData, isLoading: isOverlayLoading } =
     useBoundaryTypeGeoJSON(selectedType, county?.name ?? null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   if (isLoading) {
     return (
-      <div className="flex h-96 items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
           <span>Loading county data…</span>
@@ -71,7 +81,7 @@ function CountyDetailPage() {
 
   if (isError) {
     return (
-      <div className="flex h-96 items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <div className="flex items-center gap-2 text-destructive">
           <AlertCircle className="h-5 w-5" />
           <span>
@@ -85,7 +95,7 @@ function CountyDetailPage() {
 
   if (!county) {
     return (
-      <div className="flex h-96 items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <div className="flex items-center gap-2 text-muted-foreground">
           <AlertCircle className="h-5 w-5" />
           <span>County not found</span>
@@ -95,43 +105,31 @@ function CountyDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <Button variant="ghost" size="sm" asChild>
-        <Link to="/">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Map
-        </Link>
-      </Button>
-
-      <div className="flex items-center gap-3">
-        <h1 className="text-3xl font-bold">{county.name} County</h1>
+    <div className="relative h-full w-full">
+      {/* Floating toolbar */}
+      <div className="absolute top-4 left-4 right-4 z-[1000] flex flex-wrap items-center gap-3 rounded-lg bg-background/90 px-4 py-2 shadow-md backdrop-blur-sm">
+        <Button variant="ghost" size="sm" asChild>
+          <Link to="/">
+            <ArrowLeft className="mr-1 h-4 w-4" />
+            Back
+          </Link>
+        </Button>
+        <Separator orientation="vertical" className="h-6" />
+        <h1 className="text-lg font-bold">{county.name} County</h1>
         <Badge variant="secondary">{county.boundary_type}</Badge>
-      </div>
 
-      {county.geometry && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              County Map
-            </CardTitle>
-            <CardDescription>
-              Boundary visualization with optional district overlays
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Layers className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">District Overlays</span>
-              </div>
+        {county.geometry && (
+          <>
+            <Separator orientation="vertical" className="h-6" />
+            <div className="flex flex-wrap items-center gap-2">
+              <Layers className="h-4 w-4 text-muted-foreground" />
               {isTypesLoading ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Loading available types…
+                  <span>Loading…</span>
                 </div>
               ) : boundaryTypes && boundaryTypes.length > 0 ? (
-                <div className="flex flex-wrap items-center gap-2">
+                <>
                   <ToggleGroup
                     type="single"
                     variant="outline"
@@ -177,21 +175,14 @@ function CountyDetailPage() {
                       Clear
                     </Button>
                   )}
-                </div>
+                </>
               ) : null}
             </div>
-
-            <CountyDetailMap
-              countyGeometry={county.geometry}
-              overlayData={overlayData}
-              isOverlayLoading={isOverlayLoading}
-            />
-
             {selectedType &&
               overlayData &&
               !isOverlayLoading &&
               overlayData.features.length > 0 && (
-                <p className="text-xs text-muted-foreground">
+                <p className="w-full text-xs text-muted-foreground">
                   Showing {overlayData.features.length}{" "}
                   {selectedType.replaceAll("_", " ")} district
                   {overlayData.features.length === 1 ? "" : "s"} intersecting{" "}
@@ -202,243 +193,277 @@ function CountyDetailPage() {
               overlayData &&
               !isOverlayLoading &&
               overlayData.features.length === 0 && (
-                <p className="text-xs text-muted-foreground">
+                <p className="w-full text-xs text-muted-foreground">
                   No {selectedType.replaceAll("_", " ")} districts found
                   intersecting {county.name} County
                 </p>
               )}
-          </CardContent>
-        </Card>
-      )}
+          </>
+        )}
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Info className="h-5 w-5" />
-            County Information
-          </CardTitle>
-          <CardDescription>Public boundary data</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground">
-                Name
-              </dt>
-              <dd className="text-sm">{county.name}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground">
-                Boundary Identifier
-              </dt>
-              <dd className="font-mono text-sm">
-                {county.boundary_identifier}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground">
-                Boundary Type
-              </dt>
-              <dd className="text-sm">{county.boundary_type}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground">
-                Source
-              </dt>
-              <dd className="text-sm">{county.source}</dd>
-            </div>
-            {county.county && (
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">
-                  County
-                </dt>
-                <dd className="text-sm">{county.county}</dd>
-              </div>
-            )}
-            {county.effective_date && (
-              <div>
-                <dt className="text-sm font-medium text-muted-foreground">
-                  Effective Date
-                </dt>
-                <dd className="text-sm">{county.effective_date}</dd>
-              </div>
-            )}
-            <div>
-              <dt className="text-sm font-medium text-muted-foreground">
-                Created At
-              </dt>
-              <dd className="text-sm">
-                {new Date(county.created_at).toLocaleDateString()}
-              </dd>
-            </div>
-          </dl>
-
-          {county.county_metadata && (
-            <>
-              <Separator />
-              <div>
-                <h3 className="mb-3 text-sm font-semibold">
-                  Geographic Details
-                </h3>
-                <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">
-                      Full Name
-                    </dt>
-                    <dd className="text-sm">
-                      {county.county_metadata.name_lsad}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">
-                      FIPS Code
-                    </dt>
-                    <dd className="font-mono text-sm">
-                      {county.county_metadata.fips_state}
-                      {county.county_metadata.fips_county}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">
-                      GEOID
-                    </dt>
-                    <dd className="font-mono text-sm">
-                      {county.county_metadata.geoid}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">
-                      Land Area
-                    </dt>
-                    <dd className="text-sm">
-                      {county.county_metadata.land_area_km2.toLocaleString()} km²
-                      {" "}
-                      <span className="text-muted-foreground">
-                        ({(county.county_metadata.land_area_km2 * 0.386102).toLocaleString(undefined, { maximumFractionDigits: 1 })} mi²)
-                      </span>
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">
-                      Water Area
-                    </dt>
-                    <dd className="text-sm">
-                      {county.county_metadata.water_area_km2.toLocaleString()} km²
-                      {" "}
-                      <span className="text-muted-foreground">
-                        ({(county.county_metadata.water_area_km2 * 0.386102).toLocaleString(undefined, { maximumFractionDigits: 1 })} mi²)
-                      </span>
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">
-                      Internal Point
-                    </dt>
-                    <dd className="font-mono text-sm">
-                      {county.county_metadata.internal_point_lat},{" "}
-                      {county.county_metadata.internal_point_lon}
-                    </dd>
-                  </div>
-                  {county.county_metadata.cbsa_code && (
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">
-                        CBSA Code
-                      </dt>
-                      <dd className="font-mono text-sm">
-                        {county.county_metadata.cbsa_code}
-                      </dd>
-                    </div>
-                  )}
-                  {county.county_metadata.csa_code && (
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">
-                        CSA Code
-                      </dt>
-                      <dd className="font-mono text-sm">
-                        {county.county_metadata.csa_code}
-                      </dd>
-                    </div>
-                  )}
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">
-                      Functional Status
-                    </dt>
-                    <dd className="text-sm">
-                      {functionalStatusLabels[county.county_metadata.functional_status] ?? county.county_metadata.functional_status}
-                    </dd>
-                  </div>
-                  {county.county_metadata.gnis_code && (
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">
-                        GNIS Code
-                      </dt>
-                      <dd className="font-mono text-sm">
-                        {county.county_metadata.gnis_code}
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      {county.county_metadata && (
-        <CensusProfileCard
-          fipsState={county.county_metadata.fips_state}
-          fipsCounty={county.county_metadata.fips_county}
-          countyName={county.name}
-        />
-      )}
-
-      <Separator />
-
-      {isAuthenticated ? (
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Voter Data
-              </CardTitle>
-              <CardDescription>
-                Registered voter information for {county.name} County
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Voter data will appear here.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Analysis</CardTitle>
-              <CardDescription>
-                Analytical data for {county.name} County
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Analysis data will appear here.
-              </p>
-            </CardContent>
-          </Card>
+      {/* Full-screen map */}
+      {county.geometry ? (
+        <div className="h-full w-full">
+          <CountyDetailMap
+            countyGeometry={county.geometry}
+            overlayData={overlayData}
+            isOverlayLoading={isOverlayLoading}
+            className="rounded-none border-0"
+          />
         </div>
       ) : (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-10">
-            <Lock className="mb-3 h-8 w-8 text-muted-foreground" />
-            <p className="text-sm font-medium">Sign in to view voter data</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Voter registration data, analysis, and exports require
-              authentication.
-            </p>
-          </CardContent>
-        </Card>
+        <div className="flex h-full items-center justify-center">
+          <p className="text-sm text-muted-foreground">
+            No geometry data available for this county.
+          </p>
+        </div>
       )}
+
+      {/* Bottom drawer */}
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <DrawerTrigger asChild>
+          <button type="button" className="absolute bottom-0 left-0 right-0 z-[1000] flex items-center justify-center gap-2 rounded-t-lg bg-background/95 px-4 py-2 text-sm font-medium shadow-[0_-2px_10px_rgba(0,0,0,0.1)] backdrop-blur-sm transition-colors hover:bg-accent">
+            <ChevronUp className="h-4 w-4" />
+            County Details
+          </button>
+        </DrawerTrigger>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{county.name} County Details</DrawerTitle>
+          </DrawerHeader>
+          <div className="overflow-y-auto px-4 pb-6 max-h-[70vh] space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Info className="h-5 w-5" />
+                  County Information
+                </CardTitle>
+                <CardDescription>Public boundary data</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Name
+                    </dt>
+                    <dd className="text-sm">{county.name}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Boundary Identifier
+                    </dt>
+                    <dd className="font-mono text-sm">
+                      {county.boundary_identifier}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Boundary Type
+                    </dt>
+                    <dd className="text-sm">{county.boundary_type}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Source
+                    </dt>
+                    <dd className="text-sm">{county.source}</dd>
+                  </div>
+                  {county.county && (
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">
+                        County
+                      </dt>
+                      <dd className="text-sm">{county.county}</dd>
+                    </div>
+                  )}
+                  {county.effective_date && (
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">
+                        Effective Date
+                      </dt>
+                      <dd className="text-sm">{county.effective_date}</dd>
+                    </div>
+                  )}
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Created At
+                    </dt>
+                    <dd className="text-sm">
+                      {new Date(county.created_at).toLocaleDateString()}
+                    </dd>
+                  </div>
+                </dl>
+
+                {county.county_metadata && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h3 className="mb-3 text-sm font-semibold">
+                        Geographic Details
+                      </h3>
+                      <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">
+                            Full Name
+                          </dt>
+                          <dd className="text-sm">
+                            {county.county_metadata.name_lsad}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">
+                            FIPS Code
+                          </dt>
+                          <dd className="font-mono text-sm">
+                            {county.county_metadata.fips_state}
+                            {county.county_metadata.fips_county}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">
+                            GEOID
+                          </dt>
+                          <dd className="font-mono text-sm">
+                            {county.county_metadata.geoid}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">
+                            Land Area
+                          </dt>
+                          <dd className="text-sm">
+                            {county.county_metadata.land_area_km2.toLocaleString()} km²
+                            {" "}
+                            <span className="text-muted-foreground">
+                              ({(county.county_metadata.land_area_km2 * 0.386102).toLocaleString(undefined, { maximumFractionDigits: 1 })} mi²)
+                            </span>
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">
+                            Water Area
+                          </dt>
+                          <dd className="text-sm">
+                            {county.county_metadata.water_area_km2.toLocaleString()} km²
+                            {" "}
+                            <span className="text-muted-foreground">
+                              ({(county.county_metadata.water_area_km2 * 0.386102).toLocaleString(undefined, { maximumFractionDigits: 1 })} mi²)
+                            </span>
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">
+                            Internal Point
+                          </dt>
+                          <dd className="font-mono text-sm">
+                            {county.county_metadata.internal_point_lat},{" "}
+                            {county.county_metadata.internal_point_lon}
+                          </dd>
+                        </div>
+                        {county.county_metadata.cbsa_code && (
+                          <div>
+                            <dt className="text-sm font-medium text-muted-foreground">
+                              CBSA Code
+                            </dt>
+                            <dd className="font-mono text-sm">
+                              {county.county_metadata.cbsa_code}
+                            </dd>
+                          </div>
+                        )}
+                        {county.county_metadata.csa_code && (
+                          <div>
+                            <dt className="text-sm font-medium text-muted-foreground">
+                              CSA Code
+                            </dt>
+                            <dd className="font-mono text-sm">
+                              {county.county_metadata.csa_code}
+                            </dd>
+                          </div>
+                        )}
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">
+                            Functional Status
+                          </dt>
+                          <dd className="text-sm">
+                            {functionalStatusLabels[county.county_metadata.functional_status] ?? county.county_metadata.functional_status}
+                          </dd>
+                        </div>
+                        {county.county_metadata.gnis_code && (
+                          <div>
+                            <dt className="text-sm font-medium text-muted-foreground">
+                              GNIS Code
+                            </dt>
+                            <dd className="font-mono text-sm">
+                              {county.county_metadata.gnis_code}
+                            </dd>
+                          </div>
+                        )}
+                      </dl>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {county.county_metadata && (
+              <CensusProfileCard
+                fipsState={county.county_metadata.fips_state}
+                fipsCounty={county.county_metadata.fips_county}
+                countyName={county.name}
+              />
+            )}
+
+            <Separator />
+
+            {isAuthenticated ? (
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      Voter Data
+                    </CardTitle>
+                    <CardDescription>
+                      Registered voter information for {county.name} County
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Voter data will appear here.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Analysis</CardTitle>
+                    <CardDescription>
+                      Analytical data for {county.name} County
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Analysis data will appear here.
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : (
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-10">
+                  <Lock className="mb-3 h-8 w-8 text-muted-foreground" />
+                  <p className="text-sm font-medium">Sign in to view voter data</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Voter registration data, analysis, and exports require
+                    authentication.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   )
 }
