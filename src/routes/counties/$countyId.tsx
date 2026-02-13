@@ -1,16 +1,14 @@
 import { useState } from "react"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute } from "@tanstack/react-router"
 import { z } from "zod"
 import {
-  ArrowLeft,
   Lock,
   Loader2,
   AlertCircle,
+  ChevronDown,
   ChevronUp,
   Info,
-  Layers,
   MapPin,
-  X,
 } from "lucide-react"
 import {
   Card,
@@ -19,21 +17,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import {
   Drawer,
   DrawerContent,
+  DrawerDescription,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
 } from "@/components/ui/drawer"
 import { CensusProfileCard } from "@/components/CensusProfileCard"
 import { CountyDetailMap } from "@/components/CountyDetailMap"
 import { useCountyBoundary } from "@/hooks/useCountyBoundary"
-import { useBoundaryTypes } from "@/hooks/useBoundaryTypes"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import { useAuthStore } from "@/stores/authStore"
 
@@ -59,11 +53,8 @@ function CountyDetailPage() {
   const { countyId } = Route.useParams()
   const { overlay } = Route.useSearch()
   const selectedType = overlay ?? null
-  const navigate = Route.useNavigate()
   const { data: county, isLoading, isError, error } = useCountyBoundary(countyId)
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  const { data: boundaryTypes, isLoading: isTypesLoading } =
-    useBoundaryTypes()
   const { data: overlayData, isLoading: isOverlayLoading } =
     useBoundaryTypeGeoJSON(selectedType, county?.name ?? null)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -106,102 +97,6 @@ function CountyDetailPage() {
 
   return (
     <div className="relative h-full w-full">
-      {/* Floating toolbar */}
-      <div className="absolute top-4 left-4 right-4 z-[1000] flex flex-wrap items-center gap-3 rounded-lg bg-background/90 px-4 py-2 shadow-md backdrop-blur-sm">
-        <Button variant="ghost" size="sm" asChild>
-          <Link to="/">
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            Back
-          </Link>
-        </Button>
-        <Separator orientation="vertical" className="h-6" />
-        <h1 className="text-lg font-bold">{county.name} County</h1>
-        <Badge variant="secondary">{county.boundary_type}</Badge>
-
-        {county.geometry && (
-          <>
-            <Separator orientation="vertical" className="h-6" />
-            <div className="flex flex-wrap items-center gap-2">
-              <Layers className="h-4 w-4 text-muted-foreground" />
-              {isTypesLoading ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Loading…</span>
-                </div>
-              ) : boundaryTypes && boundaryTypes.length > 0 ? (
-                <>
-                  <ToggleGroup
-                    type="single"
-                    variant="outline"
-                    size="sm"
-                    value={selectedType ?? ""}
-                    onValueChange={(value) =>
-                      navigate({
-                        search: (prev) => ({
-                          ...prev,
-                          overlay: value === "" ? undefined : value,
-                        }),
-                        replace: true,
-                      })
-                    }
-                    className="flex flex-wrap justify-start gap-2"
-                  >
-                    {boundaryTypes.map((type) => (
-                      <ToggleGroupItem
-                        key={type}
-                        value={type}
-                        className="text-xs capitalize bg-neutral-300 hover:bg-neutral-700 hover:text-white data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-                      >
-                        {type.replaceAll("_", " ")}
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
-                  {selectedType && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs bg-neutral-300 hover:bg-neutral-700 hover:text-white"
-                      onClick={() =>
-                        navigate({
-                          search: (prev) => ({
-                            ...prev,
-                            overlay: undefined,
-                          }),
-                          replace: true,
-                        })
-                      }
-                    >
-                      <X className="h-3 w-3" />
-                      Clear
-                    </Button>
-                  )}
-                </>
-              ) : null}
-            </div>
-            {selectedType &&
-              overlayData &&
-              !isOverlayLoading &&
-              overlayData.features.length > 0 && (
-                <p className="w-full text-xs text-muted-foreground">
-                  Showing {overlayData.features.length}{" "}
-                  {selectedType.replaceAll("_", " ")} district
-                  {overlayData.features.length === 1 ? "" : "s"} intersecting{" "}
-                  {county.name} County
-                </p>
-              )}
-            {selectedType &&
-              overlayData &&
-              !isOverlayLoading &&
-              overlayData.features.length === 0 && (
-                <p className="w-full text-xs text-muted-foreground">
-                  No {selectedType.replaceAll("_", " ")} districts found
-                  intersecting {county.name} County
-                </p>
-              )}
-          </>
-        )}
-      </div>
-
       {/* Full-screen map */}
       {county.geometry ? (
         <div className="relative z-0 h-full w-full">
@@ -220,21 +115,23 @@ function CountyDetailPage() {
         </div>
       )}
 
-      {/* Bottom drawer */}
+      {/* Bottom drawer open trigger */}
+      <button
+        type="button"
+        onClick={() => setDrawerOpen(true)}
+        aria-label={`Open ${county.name} County details drawer`}
+        className="absolute bottom-0 left-0 right-0 z-[1000] flex items-center justify-center gap-2 rounded-t-lg bg-background/95 px-4 py-2 text-sm font-medium shadow-[0_-2px_10px_rgba(0,0,0,0.1)] backdrop-blur-sm transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <ChevronUp className="h-4 w-4" />
+        County Details
+      </button>
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerTrigger asChild>
-          <button
-            type="button"
-            aria-label={`Open ${county.name} County details drawer`}
-            className="absolute bottom-0 left-0 right-0 z-[1000] flex items-center justify-center gap-2 rounded-t-lg bg-background/95 px-4 py-2 text-sm font-medium shadow-[0_-2px_10px_rgba(0,0,0,0.1)] backdrop-blur-sm transition-colors hover:bg-accent"
-          >
-            <ChevronUp className="h-4 w-4" />
-            County Details
-          </button>
-        </DrawerTrigger>
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>{county.name} County Details</DrawerTitle>
+            <DrawerDescription>
+              Swipe down to close
+            </DrawerDescription>
           </DrawerHeader>
           <div className="overflow-y-auto px-4 pb-6 max-h-[60vh] md:max-h-[70vh] space-y-6">
             <Card>
@@ -466,6 +363,16 @@ function CountyDetailPage() {
               </Card>
             )}
           </div>
+          {/* Close bar at bottom of drawer — mirrors the open trigger */}
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(false)}
+            aria-label={`Close ${county.name} County details drawer`}
+            className="flex shrink-0 items-center justify-center gap-2 border-t bg-background/95 px-4 py-2 text-sm font-medium transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <ChevronDown className="h-4 w-4" />
+            County Details
+          </button>
         </DrawerContent>
       </Drawer>
     </div>

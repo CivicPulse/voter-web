@@ -1,15 +1,15 @@
 import { useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
-import { AlertCircle, ChevronUp, Loader2 } from "lucide-react"
+import { AlertCircle, ChevronDown, ChevronUp, Loader2 } from "lucide-react"
 import { GeorgiaCountyMap } from "@/components/GeorgiaCountyMap"
 import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
 import { StateCensusProfileCard } from "@/components/StateCensusProfileCard"
 import {
   Drawer,
   DrawerContent,
+  DrawerDescription,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
 } from "@/components/ui/drawer"
 
 export const Route = createFileRoute("/")({
@@ -22,14 +22,6 @@ function Index() {
 
   return (
     <div className="relative h-full w-full">
-      {/* Floating title overlay */}
-      <div className="absolute top-4 left-4 z-[1000] rounded-lg bg-background/90 px-4 py-2 shadow-md backdrop-blur-sm">
-        <h1 className="text-lg font-bold">Voter Web</h1>
-        <p className="text-sm text-muted-foreground">
-          Georgia county boundaries
-        </p>
-      </div>
-
       {/* Full-screen map */}
       <div className="relative z-0 h-full w-full">
         {isLoading && (
@@ -61,25 +53,37 @@ function Index() {
         )}
       </div>
 
-      {/* Bottom drawer */}
+      {/* Bottom drawer open trigger */}
+      <button
+        type="button"
+        onClick={() => setDrawerOpen(true)}
+        aria-label="Open state demographics drawer"
+        className="absolute bottom-0 left-0 right-0 z-[1000] flex items-center justify-center gap-2 rounded-t-lg bg-background/95 px-4 py-2 text-sm font-medium shadow-[0_-2px_10px_rgba(0,0,0,0.1)] backdrop-blur-sm transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <ChevronUp className="h-4 w-4" />
+        State Demographics
+      </button>
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerTrigger asChild>
-          <button
-            type="button"
-            aria-label="Open state demographics drawer"
-            className="absolute bottom-0 left-0 right-0 z-[1000] flex items-center justify-center gap-2 rounded-t-lg bg-background/95 px-4 py-2 text-sm font-medium shadow-[0_-2px_10px_rgba(0,0,0,0.1)] backdrop-blur-sm transition-colors hover:bg-accent"
-          >
-            <ChevronUp className="h-4 w-4" />
-            State Demographics
-          </button>
-        </DrawerTrigger>
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>Georgia State Demographics</DrawerTitle>
+            <DrawerDescription>
+              Swipe down to close
+            </DrawerDescription>
           </DrawerHeader>
           <div className="overflow-y-auto px-4 pb-6 max-h-[60vh] sm:max-h-[70vh]">
             <StateCensusProfileCard fipsState="13" stateName="Georgia" />
           </div>
+          {/* Close bar at bottom of drawer — mirrors the open trigger */}
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(false)}
+            aria-label="Close state demographics drawer"
+            className="flex shrink-0 items-center justify-center gap-2 border-t bg-background/95 px-4 py-2 text-sm font-medium transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <ChevronDown className="h-4 w-4" />
+            State Demographics
+          </button>
         </DrawerContent>
       </Drawer>
     </div>
