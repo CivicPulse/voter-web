@@ -1,17 +1,14 @@
 import { useState } from "react"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute } from "@tanstack/react-router"
 import { z } from "zod"
 import {
-  ArrowLeft,
   Lock,
   Loader2,
   AlertCircle,
   ChevronDown,
   ChevronUp,
   Info,
-  Layers,
   MapPin,
-  X,
 } from "lucide-react"
 import {
   Card,
@@ -20,10 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import {
   Drawer,
   DrawerContent,
@@ -34,7 +28,6 @@ import {
 import { CensusProfileCard } from "@/components/CensusProfileCard"
 import { CountyDetailMap } from "@/components/CountyDetailMap"
 import { useCountyBoundary } from "@/hooks/useCountyBoundary"
-import { useBoundaryTypes } from "@/hooks/useBoundaryTypes"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import { useAuthStore } from "@/stores/authStore"
 
@@ -60,11 +53,8 @@ function CountyDetailPage() {
   const { countyId } = Route.useParams()
   const { overlay } = Route.useSearch()
   const selectedType = overlay ?? null
-  const navigate = Route.useNavigate()
   const { data: county, isLoading, isError, error } = useCountyBoundary(countyId)
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  const { data: boundaryTypes, isLoading: isTypesLoading } =
-    useBoundaryTypes()
   const { data: overlayData, isLoading: isOverlayLoading } =
     useBoundaryTypeGeoJSON(selectedType, county?.name ?? null)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -107,102 +97,6 @@ function CountyDetailPage() {
 
   return (
     <div className="relative h-full w-full">
-      {/* Floating toolbar */}
-      <div className="absolute top-4 left-4 right-4 z-[1000] flex flex-wrap items-center gap-3 rounded-lg bg-background/90 px-4 py-2 shadow-md backdrop-blur-sm">
-        <Button variant="ghost" size="sm" asChild>
-          <Link to="/">
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            Back
-          </Link>
-        </Button>
-        <Separator orientation="vertical" className="h-6" />
-        <h1 className="text-lg font-bold">{county.name} County</h1>
-        <Badge variant="secondary">{county.boundary_type}</Badge>
-
-        {county.geometry && (
-          <>
-            <Separator orientation="vertical" className="h-6" />
-            <div className="flex flex-wrap items-center gap-2">
-              <Layers className="h-4 w-4 text-muted-foreground" />
-              {isTypesLoading ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Loading…</span>
-                </div>
-              ) : boundaryTypes && boundaryTypes.length > 0 ? (
-                <>
-                  <ToggleGroup
-                    type="single"
-                    variant="outline"
-                    size="sm"
-                    value={selectedType ?? ""}
-                    onValueChange={(value) =>
-                      navigate({
-                        search: (prev) => ({
-                          ...prev,
-                          overlay: value === "" ? undefined : value,
-                        }),
-                        replace: true,
-                      })
-                    }
-                    className="flex flex-wrap justify-start gap-2"
-                  >
-                    {boundaryTypes.map((type) => (
-                      <ToggleGroupItem
-                        key={type}
-                        value={type}
-                        className="text-xs capitalize bg-neutral-300 hover:bg-neutral-700 hover:text-white data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-                      >
-                        {type.replaceAll("_", " ")}
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
-                  {selectedType && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs bg-neutral-300 hover:bg-neutral-700 hover:text-white"
-                      onClick={() =>
-                        navigate({
-                          search: (prev) => ({
-                            ...prev,
-                            overlay: undefined,
-                          }),
-                          replace: true,
-                        })
-                      }
-                    >
-                      <X className="h-3 w-3" />
-                      Clear
-                    </Button>
-                  )}
-                </>
-              ) : null}
-            </div>
-            {selectedType &&
-              overlayData &&
-              !isOverlayLoading &&
-              overlayData.features.length > 0 && (
-                <p className="w-full text-xs text-muted-foreground">
-                  Showing {overlayData.features.length}{" "}
-                  {selectedType.replaceAll("_", " ")} district
-                  {overlayData.features.length === 1 ? "" : "s"} intersecting{" "}
-                  {county.name} County
-                </p>
-              )}
-            {selectedType &&
-              overlayData &&
-              !isOverlayLoading &&
-              overlayData.features.length === 0 && (
-                <p className="w-full text-xs text-muted-foreground">
-                  No {selectedType.replaceAll("_", " ")} districts found
-                  intersecting {county.name} County
-                </p>
-              )}
-          </>
-        )}
-      </div>
-
       {/* Full-screen map */}
       {county.geometry ? (
         <div className="relative z-0 h-full w-full">

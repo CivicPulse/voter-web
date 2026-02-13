@@ -22,14 +22,6 @@ function Index() {
 
   return (
     <div className="relative h-full w-full">
-      {/* Floating title overlay */}
-      <div className="absolute top-4 left-4 z-[1000] rounded-lg bg-background/90 px-4 py-2 shadow-md backdrop-blur-sm">
-        <h1 className="text-lg font-bold">Voter Web</h1>
-        <p className="text-sm text-muted-foreground">
-          Georgia county boundaries
-        </p>
-      </div>
-
       {/* Full-screen map */}
       <div className="relative z-0 h-full w-full">
         {isLoading && (
