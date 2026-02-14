@@ -15,11 +15,15 @@
       "mcp__plugin_playwright_playwright__browser_take_screenshot",
       "Bash(git log:*)",
       "mcp__plugin_playwright_playwright__browser_evaluate",
+      "Read(//home/kwhatcher/projects/voter-web/**)",
+      "mcp__playwright__browser_fill_form",
       "Bash(grep:*)",
       "mcp__plugin_playwright_playwright__browser_close",
       "WebFetch(domain:voteapi.kerryhatcher.com)",
       "Bash(git -C /home/kwhatcher/projects/voter-web remote get-url:*)",
-      "Bash(git -C /home/kwhatcher/projects/voter-web log --format='%ae')"
+      "Bash(git -C /home/kwhatcher/projects/voter-web log --format='%ae')",
+      "Bash(git fetch:*)",
+      "Bash(git merge:*)"
     ]
   }
 }
