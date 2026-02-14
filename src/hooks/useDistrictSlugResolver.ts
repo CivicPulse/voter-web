@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { api } from "@/api/client"
+import { fetchStaticGeoJSON } from "@/lib/static-geojson"
 import { slugify } from "@/lib/slugs"
 import type { BoundaryFeatureCollection } from "@/types/boundary"
 
@@ -18,12 +19,16 @@ export function useDistrictSlugResolver(
 
   const { data: boundaries, isLoading } = useQuery<BoundaryFeatureCollection>({
     queryKey: ["boundaries", boundaryType, "geojson"],
-    queryFn: () =>
-      api
+    queryFn: async () => {
+      const cached =
+        await fetchStaticGeoJSON<BoundaryFeatureCollection>(boundaryType)
+      if (cached) return cached
+      return api
         .get("boundaries/geojson", {
           searchParams: { boundary_type: boundaryType },
         })
-        .json<BoundaryFeatureCollection>(),
+        .json<BoundaryFeatureCollection>()
+    },
     staleTime: 1000 * 60 * 60,
     gcTime: 1000 * 60 * 60 * 2,
     enabled,
