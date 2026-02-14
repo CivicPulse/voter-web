@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react"
+import { useCallback, useEffect, useMemo, useRef } from "react"
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
 import type { PathOptions } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
@@ -21,10 +21,19 @@ const DISTRICT_STYLE: PathOptions = {
 const COUNTY_OUTLINE_STYLE: PathOptions = {
   color: "#6b7280",
   weight: 2,
-  fillColor: "#f3f4f6",
-  fillOpacity: 0.05,
+  fillColor: "transparent",
+  fillOpacity: 0,
   opacity: 0.7,
   dashArray: "6 4",
+}
+
+const COUNTY_SELECTED_STYLE: PathOptions = {
+  color: "#7c3aed",
+  weight: 2.5,
+  fillColor: "#8b5cf6",
+  fillOpacity: 0.25,
+  opacity: 0.9,
+  dashArray: undefined,
 }
 
 interface DistrictDetailMapProps {
@@ -62,12 +71,14 @@ function DistrictBoundaryLayer({
 
   const style = useCallback(() => ({ ...DISTRICT_STYLE }), [])
 
-  return <GeoJSON data={geoJsonData} style={style} />
+  return <GeoJSON data={geoJsonData} style={style} interactive={false} />
 }
 
 function CountyOutlinesLayer({
   counties,
 }: Readonly<{ counties: CountyFeatureCollection }>) {
+  const selectedLayerRef = useRef<import("leaflet").Layer | null>(null)
+
   const style = useCallback(() => ({ ...COUNTY_OUTLINE_STYLE }), [])
 
   const onEachFeature = useCallback(
@@ -79,6 +90,28 @@ function CountyOutlinesLayer({
       layer.bindPopup(
         `<div class="p-1"><p class="font-semibold text-sm">${name} County</p></div>`,
       )
+
+      layer.on({
+        click: () => {
+          const path = layer as unknown as import("leaflet").Path
+          // Deselect previous selection
+          if (selectedLayerRef.current && selectedLayerRef.current !== layer) {
+            const prev =
+              selectedLayerRef.current as unknown as import("leaflet").Path
+            prev.setStyle(COUNTY_OUTLINE_STYLE)
+          }
+          // Select this county
+          path.setStyle(COUNTY_SELECTED_STYLE)
+          selectedLayerRef.current = layer
+        },
+        popupclose: () => {
+          if (selectedLayerRef.current === layer) {
+            const path = layer as unknown as import("leaflet").Path
+            path.setStyle(COUNTY_OUTLINE_STYLE)
+            selectedLayerRef.current = null
+          }
+        },
+      })
     },
     [],
   )
@@ -121,10 +154,10 @@ export function DistrictDetailMap({
         {districtGeometry && (
           <FitBoundsToDistrict geometry={districtGeometry} />
         )}
-        {counties && <CountyOutlinesLayer counties={counties} />}
         {districtGeometry && (
           <DistrictBoundaryLayer geometry={districtGeometry} />
         )}
+        {counties && <CountyOutlinesLayer counties={counties} />}
       </MapContainer>
       {isLoading && (
         <div className="pointer-events-none absolute bottom-4 left-4 z-[1000]">
