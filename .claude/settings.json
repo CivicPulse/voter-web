@@ -19,7 +19,7 @@
       "mcp__playwright__browser_fill_form",
       "Bash(grep:*)",
       "mcp__plugin_playwright_playwright__browser_close",
-      "WebFetch(domain:voteapi.kerryhatcher.com)",
+      "WebFetch(domain:voteapi.civpulse.org)",
       "Bash(git -C /home/kwhatcher/projects/voter-web remote get-url:*)",
       "Bash(git -C /home/kwhatcher/projects/voter-web log --format='%ae')",
       "Bash(git fetch:*)",
