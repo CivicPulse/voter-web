@@ -30,3 +30,16 @@ export function countySlugPath(
   }
   return `/counties/${stateAbbrev}/${slugify(countyName)}`
 }
+
+/**
+ * Build a slug-based district URL path.
+ * @param name         e.g. "District 1"
+ * @param boundaryType e.g. "congressional"
+ * @returns e.g. "/districts/congressional/district-1"
+ */
+export function districtSlugPath(
+  name: string,
+  boundaryType: string,
+): string {
+  return `/districts/${slugify(boundaryType)}/${slugify(name)}`
+}

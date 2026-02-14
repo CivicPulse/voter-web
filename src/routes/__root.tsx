@@ -20,6 +20,7 @@ import { LayerBar } from "@/components/LayerBar"
 import { useAuthStore } from "@/stores/authStore"
 import { useCountyBoundary } from "@/hooks/useCountyBoundary"
 import { useCountySlugResolver } from "@/hooks/useCountySlugResolver"
+import { useDistrictSlugResolver } from "@/hooks/useDistrictSlugResolver"
 import { useBoundaryTypes } from "@/hooks/useBoundaryTypes"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import { useStatewideOverlayTypes } from "@/hooks/useStatewideOverlayTypes"
@@ -158,6 +159,14 @@ function RootLayout() {
     from: "/lookup/results",
     shouldThrow: false,
   })
+  const districtIdMatch = useMatch({
+    from: "/districts/$districtId",
+    shouldThrow: false,
+  })
+  const districtSlugMatch = useMatch({
+    from: "/districts/$type/$name",
+    shouldThrow: false,
+  })
 
   // Resolve slug route to UUID when on slug route
   const slugState = countySlugMatch?.params?.state ?? ""
@@ -167,10 +176,24 @@ function RootLayout() {
     slugCounty,
   )
 
+  // Resolve district slug route to UUID when on slug route
+  const districtSlugType = districtSlugMatch?.params?.type ?? ""
+  const districtSlugName = districtSlugMatch?.params?.name ?? ""
+  const { districtId: resolvedDistrictSlugId } = useDistrictSlugResolver(
+    districtSlugType,
+    districtSlugName,
+  )
+
   // County data hooks (enabled guards prevent fetches when not on county route)
   const isOnCountyRoute = !!(countyIdMatch || countySlugMatch)
   const countyId = countyIdMatch?.params?.countyId ?? resolvedSlugId ?? ""
   const { data: county } = useCountyBoundary(countyId)
+
+  // District data hooks
+  const isOnDistrictRoute = !!(districtIdMatch || districtSlugMatch)
+  const districtId =
+    districtIdMatch?.params?.districtId ?? resolvedDistrictSlugId ?? ""
+  const { data: district } = useCountyBoundary(districtId)
 
   const isOnHomePage = !!homeMatch
 
@@ -193,7 +216,10 @@ function RootLayout() {
 
   // Determine header title
   let headerTitle: string | null = null
-  if (isOnCountyRoute && county) {
+  if (isOnDistrictRoute && district) {
+    const typeLabel = district.boundary_type.replaceAll("_", " ")
+    headerTitle = `${district.name} (${typeLabel})`
+  } else if (isOnCountyRoute && county) {
     headerTitle = `${county.name} County`
   } else if (lookupMatch || lookupResultsMatch) {
     headerTitle = "Address Lookup"
