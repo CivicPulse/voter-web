@@ -6,9 +6,16 @@ import {
   useNavigate,
 } from "@tanstack/react-router"
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
-import { useEffect } from "react"
-import { Loader2, LogIn, LogOut, Search, User } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Loader2, LogIn, LogOut, Menu, Search, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetClose,
+} from "@/components/ui/sheet"
 import { LayerBar } from "@/components/LayerBar"
 import { useAuthStore } from "@/stores/authStore"
 import { useCountyBoundary } from "@/hooks/useCountyBoundary"
@@ -16,6 +23,117 @@ import { useCountySlugResolver } from "@/hooks/useCountySlugResolver"
 import { useBoundaryTypes } from "@/hooks/useBoundaryTypes"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import { useStatewideOverlayTypes } from "@/hooks/useStatewideOverlayTypes"
+
+function MobileNav({
+  headerTitle,
+  isAuthenticated,
+  user,
+  onLogout,
+}: {
+  headerTitle: string | null
+  isAuthenticated: boolean
+  user: { username: string; role: string } | null
+  onLogout: () => void
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <nav className="md:hidden border-b px-4 py-2 flex items-center">
+      <Sheet open={open} onOpenChange={setOpen}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="shrink-0"
+          onClick={() => setOpen(true)}
+          aria-label="Open menu"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+
+        <SheetContent side="left" className="w-64">
+          <SheetHeader>
+            <SheetTitle>Menu</SheetTitle>
+          </SheetHeader>
+
+          <div className="flex flex-col gap-1 px-4">
+            <SheetClose asChild>
+              <Link
+                to="/"
+                className="[&.active]:font-bold py-2 text-sm"
+              >
+                Home
+              </Link>
+            </SheetClose>
+            <SheetClose asChild>
+              <Link
+                to="/about"
+                className="[&.active]:font-bold py-2 text-sm"
+              >
+                About
+              </Link>
+            </SheetClose>
+            {isAuthenticated && (
+              <SheetClose asChild>
+                <Link
+                  to="/lookup"
+                  className="[&.active]:font-bold py-2 text-sm flex items-center gap-2"
+                >
+                  <Search className="h-4 w-4" />
+                  Address Lookup
+                </Link>
+              </SheetClose>
+            )}
+          </div>
+
+          <div className="mt-auto border-t px-4 py-4">
+            {isAuthenticated && user ? (
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <User className="h-4 w-4" />
+                  <span>{user.username}</span>
+                  <span className="text-xs uppercase text-muted-foreground/70">
+                    ({user.role})
+                  </span>
+                </div>
+                <SheetClose asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="justify-start"
+                    onClick={onLogout}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </Button>
+                </SheetClose>
+              </div>
+            ) : (
+              <SheetClose asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start"
+                  asChild
+                >
+                  <Link to="/login">
+                    <LogIn className="h-4 w-4" />
+                    Sign In
+                  </Link>
+                </Button>
+              </SheetClose>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {headerTitle && (
+        <h1 className="text-lg font-bold truncate flex-1 text-center pr-10">
+          {headerTitle}
+        </h1>
+      )}
+    </nav>
+  )
+}
 
 function RootLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
@@ -138,8 +256,8 @@ function RootLayout() {
   return (
     <div className="h-svh flex flex-col overflow-hidden bg-background text-foreground">
       <header className="flex-none bg-background z-50">
-        {/* Row 1: Primary nav */}
-        <nav className="border-b px-4 py-2 flex items-center">
+        {/* Row 1: Primary nav — desktop */}
+        <nav className="hidden md:flex border-b px-4 py-2 items-center">
           <div className="flex-1 flex gap-4 min-w-0">
             <Link to="/" className="[&.active]:font-bold shrink-0">
               Home
@@ -189,6 +307,14 @@ function RootLayout() {
             )}
           </div>
         </nav>
+
+        {/* Row 1: Primary nav — mobile */}
+        <MobileNav
+          headerTitle={headerTitle}
+          isAuthenticated={isAuthenticated}
+          user={user}
+          onLogout={handleLogout}
+        />
 
         {/* Row 2: Layer controls (county detail or homepage) */}
         {isOnCountyRoute && county?.geometry && (
