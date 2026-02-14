@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "fetch-geojson": "node scripts/fetch-geojson.mjs",
+    "build": "node scripts/fetch-geojson.mjs; tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "deploy": "bash scripts/deploy.sh"
