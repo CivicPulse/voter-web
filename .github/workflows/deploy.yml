@@ -29,7 +29,7 @@ jobs:
       - run: npm run lint
       - run: npm run build
         env:
-          VITE_API_BASE_URL: https://voteapi.kerryhatcher.com/api/v1
+          VITE_API_BASE_URL: https://voteapi.civpulse.org/api/v1
       - uses: actions/upload-artifact@v4
         with:
           name: dist
