@@ -12,8 +12,10 @@ import { Button } from "@/components/ui/button"
 import { LayerBar } from "@/components/LayerBar"
 import { useAuthStore } from "@/stores/authStore"
 import { useCountyBoundary } from "@/hooks/useCountyBoundary"
+import { useCountySlugResolver } from "@/hooks/useCountySlugResolver"
 import { useBoundaryTypes } from "@/hooks/useBoundaryTypes"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
+import { useStatewideOverlayTypes } from "@/hooks/useStatewideOverlayTypes"
 
 function RootLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
@@ -24,8 +26,12 @@ function RootLayout() {
   const navigate = useNavigate()
 
   // Route detection
-  const countyMatch = useMatch({
+  const countyIdMatch = useMatch({
     from: "/counties/$countyId",
+    shouldThrow: false,
+  })
+  const countySlugMatch = useMatch({
+    from: "/counties/$state/$county",
     shouldThrow: false,
   })
   const homeMatch = useMatch({ from: "/", shouldThrow: false })
@@ -35,22 +41,41 @@ function RootLayout() {
     shouldThrow: false,
   })
 
+  // Resolve slug route to UUID when on slug route
+  const slugState = countySlugMatch?.params?.state ?? ""
+  const slugCounty = countySlugMatch?.params?.county ?? ""
+  const { countyId: resolvedSlugId } = useCountySlugResolver(
+    slugState,
+    slugCounty,
+  )
+
   // County data hooks (enabled guards prevent fetches when not on county route)
-  const countyId = countyMatch?.params?.countyId ?? ""
+  const isOnCountyRoute = !!(countyIdMatch || countySlugMatch)
+  const countyId = countyIdMatch?.params?.countyId ?? resolvedSlugId ?? ""
   const { data: county } = useCountyBoundary(countyId)
 
-  const overlay = (countyMatch?.search as { overlay?: string } | undefined)
+  const isOnHomePage = !!homeMatch
+
+  const countyOverlay =
+    (countyIdMatch?.search as { overlay?: string } | undefined)?.overlay ??
+    (countySlugMatch?.search as { overlay?: string } | undefined)?.overlay
+  const homeOverlay = (homeMatch?.search as { overlay?: string } | undefined)
     ?.overlay
-  const selectedType = overlay ?? null
+  const selectedType = countyOverlay ?? homeOverlay ?? null
 
   const { data: boundaryTypes, isLoading: isTypesLoading } =
     useBoundaryTypes()
+  const { data: statewideTypes, isLoading: isStatewideTypesLoading } =
+    useStatewideOverlayTypes()
   const { data: overlayData, isLoading: isOverlayLoading } =
-    useBoundaryTypeGeoJSON(selectedType, county?.name ?? null)
+    useBoundaryTypeGeoJSON(
+      selectedType,
+      isOnCountyRoute ? (county?.name ?? null) : null,
+    )
 
   // Determine header title
   let headerTitle: string | null = null
-  if (countyMatch && county) {
+  if (isOnCountyRoute && county) {
     headerTitle = `${county.name} County`
   } else if (lookupMatch || lookupResultsMatch) {
     headerTitle = "Address Lookup"
@@ -60,12 +85,34 @@ function RootLayout() {
 
   // Layer bar type change callback
   const handleTypeChange = (type: string | undefined) => {
-    navigate({
-      to: "/counties/$countyId",
-      params: { countyId },
-      search: { overlay: type },
-      replace: true,
-    })
+    if (isOnHomePage) {
+      navigate({
+        to: "/",
+        search: {
+          overlay: type as
+            | "congressional"
+            | "psc"
+            | "state_house"
+            | "state_senate"
+            | undefined,
+        },
+        replace: true,
+      })
+    } else if (countySlugMatch) {
+      navigate({
+        to: "/counties/$state/$county",
+        params: { state: slugState, county: slugCounty },
+        search: { overlay: type },
+        replace: true,
+      })
+    } else {
+      navigate({
+        to: "/counties/$countyId",
+        params: { countyId },
+        search: { overlay: type },
+        replace: true,
+      })
+    }
   }
 
   useEffect(() => {
@@ -96,6 +143,9 @@ function RootLayout() {
           <div className="flex-1 flex gap-4 min-w-0">
             <Link to="/" className="[&.active]:font-bold shrink-0">
               Home
+            </Link>
+            <Link to="/about" className="[&.active]:font-bold shrink-0">
+              About
             </Link>
             {isAuthenticated && (
               <Link
@@ -140,8 +190,8 @@ function RootLayout() {
           </div>
         </nav>
 
-        {/* Row 2: Layer controls (county detail pages only) */}
-        {countyMatch && county?.geometry && (
+        {/* Row 2: Layer controls (county detail or homepage) */}
+        {isOnCountyRoute && county?.geometry && (
           <LayerBar
             boundaryTypes={boundaryTypes}
             isTypesLoading={isTypesLoading}
@@ -153,6 +203,21 @@ function RootLayout() {
                 : null
             }
             countyName={county.name}
+          />
+        )}
+        {isOnHomePage && (
+          <LayerBar
+            boundaryTypes={statewideTypes}
+            isTypesLoading={isStatewideTypesLoading}
+            selectedType={selectedType}
+            onTypeChange={handleTypeChange}
+            overlayFeatureCount={
+              selectedType && overlayData && !isOverlayLoading
+                ? overlayData.features.length
+                : null
+            }
+            countyName="Georgia"
+            statewide
           />
         )}
       </header>

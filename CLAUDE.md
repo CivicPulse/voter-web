@@ -67,7 +67,9 @@ The county detail page (`src/routes/counties/$countyId.tsx`) displays this metad
 
 ## Git Workflow
 
-Feature work, stories, and multi-step changes should be done on a feature branch off `main`. Commit after each logical step so progress is incremental and reviewable. Small changes and quick bug fixes can be made directly on `main`.
+**IMPORTANT:** Always create a feature branch before making any code changes. Never commit directly to `main` unless the user explicitly requests it. Create the branch at the start of work, not after changes are made.
+
+Feature work, stories, and multi-step changes should be done on a feature branch off `main`. Commit after each logical step so progress is incremental and reviewable.
 
 ## UI Verification
 

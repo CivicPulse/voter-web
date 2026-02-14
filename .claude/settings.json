@@ -16,7 +16,12 @@
       "Bash(git log:*)",
       "mcp__plugin_playwright_playwright__browser_evaluate",
       "Read(//home/kwhatcher/projects/voter-web/**)",
-      "mcp__playwright__browser_fill_form"
+      "mcp__playwright__browser_fill_form",
+      "Bash(grep:*)",
+      "mcp__plugin_playwright_playwright__browser_close",
+      "WebFetch(domain:voteapi.kerryhatcher.com)",
+      "Bash(git -C /home/kwhatcher/projects/voter-web remote get-url:*)",
+      "Bash(git -C /home/kwhatcher/projects/voter-web log --format='%ae')"
     ]
   }
 }

@@ -3,11 +3,16 @@ import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
 import { useNavigate } from "@tanstack/react-router"
 import type { Layer, LeafletMouseEvent, PathOptions, LeafletEvent } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
+import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { countySlugPath, slugify } from "@/lib/slugs"
+import { fipsToAbbrev } from "@/lib/states"
+import { OverlayLayer } from "@/components/OverlayLayer"
 import type {
   CountyFeatureCollection,
   CountyProperties,
 } from "@/types/boundaries"
+import type { BoundaryFeatureCollection } from "@/types/boundary"
 
 const GA_CENTER: [number, number] = [32.6791, -83.6233]
 const GA_ZOOM = 7
@@ -29,6 +34,8 @@ const HOVER_STYLE: PathOptions = {
 
 interface GeorgiaCountyMapProps {
   data: CountyFeatureCollection
+  overlayData?: BoundaryFeatureCollection | null
+  isOverlayLoading?: boolean
   className?: string
 }
 
@@ -47,15 +54,19 @@ function CountyGeoJSON({ data }: Readonly<{ data: CountyFeatureCollection }>) {
       if (!container) return
 
       const link = container.querySelector(
-        "[data-county-id]",
+        "[data-county-state]",
       ) as HTMLAnchorElement | null
       if (!link) return
 
       link.addEventListener("click", (event: MouseEvent) => {
         event.preventDefault()
-        const countyId = link.dataset.countyId
-        if (countyId) {
-          navigate({ to: "/counties/$countyId", params: { countyId } })
+        const state = link.dataset.countyState
+        const county = link.dataset.countySlug
+        if (state && county) {
+          navigate({
+            to: "/counties/$state/$county",
+            params: { state, county },
+          })
         }
       })
     }
@@ -74,17 +85,24 @@ function CountyGeoJSON({ data }: Readonly<{ data: CountyFeatureCollection }>) {
       layer: Layer,
     ) => {
       const props = feature.properties
-      const featureId = feature.id ?? ""
+      const slugPath = countySlugPath(props.name, props.boundary_identifier)
+      const stateAbbrev = fipsToAbbrev(props.boundary_identifier.slice(0, 2)) ?? ""
+      const countySlug = slugify(props.name)
+
+      const detailLink = slugPath
+        ? `<a href="${slugPath}"
+             data-county-state="${stateAbbrev}"
+             data-county-slug="${countySlug}"
+             class="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline">
+            View Details &rarr;
+          </a>`
+        : ""
 
       layer.bindPopup(
         `<div class="p-1">
           <p class="font-semibold text-sm">${props.name} County</p>
           <p class="text-xs text-muted-foreground">ID: ${props.boundary_identifier}</p>
-          <a href="/counties/${featureId}"
-             data-county-id="${featureId}"
-             class="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline">
-            View Details &rarr;
-          </a>
+          ${detailLink}
         </div>`,
       )
 
@@ -98,9 +116,17 @@ function CountyGeoJSON({ data }: Readonly<{ data: CountyFeatureCollection }>) {
           const target = e.target
           target.setStyle(DEFAULT_STYLE)
         },
+        dblclick: () => {
+          if (slugPath && stateAbbrev && countySlug) {
+            navigate({
+              to: "/counties/$state/$county",
+              params: { state: stateAbbrev, county: countySlug },
+            })
+          }
+        },
       })
     },
-    [],
+    [navigate],
   )
 
   return (
@@ -113,19 +139,38 @@ function CountyGeoJSON({ data }: Readonly<{ data: CountyFeatureCollection }>) {
   )
 }
 
-export function GeorgiaCountyMap({ data, className }: Readonly<GeorgiaCountyMapProps>) {
+export function GeorgiaCountyMap({
+  data,
+  overlayData,
+  isOverlayLoading,
+  className,
+}: Readonly<GeorgiaCountyMapProps>) {
   return (
-    <MapContainer
-      center={GA_CENTER}
-      zoom={GA_ZOOM}
-      scrollWheelZoom={true}
-      className={cn("h-full w-full rounded-lg border", className)}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <CountyGeoJSON data={data} />
-    </MapContainer>
+    <div className="relative h-full w-full">
+      <MapContainer
+        center={GA_CENTER}
+        zoom={GA_ZOOM}
+        scrollWheelZoom={true}
+        doubleClickZoom={false}
+        className={cn("h-full w-full rounded-lg border", className)}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <CountyGeoJSON data={data} />
+        {overlayData && overlayData.features.length > 0 && (
+          <OverlayLayer data={overlayData} />
+        )}
+      </MapContainer>
+      {isOverlayLoading && (
+        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-background/50">
+          <div className="flex items-center gap-2 rounded-md bg-background px-3 py-2 text-sm text-muted-foreground shadow-sm">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading districts…
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
