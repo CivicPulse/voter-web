@@ -69,6 +69,9 @@ async function main() {
 
   mkdirSync(outputDir, { recursive: true })
 
+  // Cloudflare Pages has a 25 MB file size limit
+  const MAX_FILE_SIZE_MB = 20 // Use 20 MB to leave some safety margin
+
   const results = []
   for (const boundaryType of types) {
     process.stdout.write(`[fetch-geojson] ${boundaryType} ... `)
@@ -83,8 +86,18 @@ async function main() {
       const data = await res.json()
       const featureCount = data.features?.length ?? 0
       const json = JSON.stringify(data)
+      const sizeBytes = Buffer.byteLength(json)
+      const sizeMB = sizeBytes / (1024 * 1024)
+
+      // Skip files that exceed Cloudflare Pages' size limit
+      if (sizeMB > MAX_FILE_SIZE_MB) {
+        console.log(`SKIP (${sizeMB.toFixed(1)} MB exceeds ${MAX_FILE_SIZE_MB} MB limit - will fetch on-demand)`)
+        results.push({ type: boundaryType, status: "skipped_too_large" })
+        continue
+      }
+
       writeFileSync(resolve(outputDir, `${boundaryType}.json`), json)
-      const sizeKB = (Buffer.byteLength(json) / 1024).toFixed(1)
+      const sizeKB = (sizeBytes / 1024).toFixed(1)
       console.log(`${featureCount} features (${sizeKB} KB)`)
       results.push({ type: boundaryType, status: "ok", features: featureCount })
     } catch (err) {
