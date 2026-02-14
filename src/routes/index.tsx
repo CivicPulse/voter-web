@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
 import { z } from "zod"
-import { AlertCircle, ChevronDown, ChevronUp, Loader2 } from "lucide-react"
+import { AlertCircle, ChevronDown, ChevronUp } from "lucide-react"
 import { GeorgiaCountyMap } from "@/components/GeorgiaCountyMap"
 import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
@@ -28,45 +28,37 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { overlay } = Route.useSearch()
-  const { data, isLoading, isError, error } = useCountyBoundaries()
+  const { data, isLoading: isCountiesLoading, isError, error } =
+    useCountyBoundaries()
   const { data: overlayData, isLoading: isOverlayLoading } =
     useBoundaryTypeGeoJSON(overlay ?? null, null)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   return (
     <div className="relative h-full w-full">
-      {/* Full-screen map */}
+      {/* Map renders immediately with tiles; layers appear as data arrives */}
       <div className="relative z-0 h-full w-full">
-        {isLoading && (
-          <div className="flex h-full items-center justify-center bg-muted/50">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              <span>Loading county boundaries…</span>
-            </div>
-          </div>
-        )}
-
-        {isError && (
-          <div className="flex h-full items-center justify-center bg-destructive/10">
-            <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-5 w-5" />
-              <span>
-                Failed to load county data
-                {error instanceof Error ? `: ${error.message}` : ""}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {data && (
-          <GeorgiaCountyMap
-            data={data}
-            overlayData={overlayData}
-            isOverlayLoading={isOverlayLoading}
-            className="rounded-none border-0"
-          />
-        )}
+        <GeorgiaCountyMap
+          data={data ?? null}
+          overlayData={overlayData}
+          isCountiesLoading={isCountiesLoading}
+          isOverlayLoading={isOverlayLoading}
+          className="rounded-none border-0"
+        />
       </div>
+
+      {/* Error overlay on map */}
+      {isError && (
+        <div className="absolute inset-0 z-[500] flex items-center justify-center bg-background/60">
+          <div className="flex items-center gap-2 rounded-md bg-background px-4 py-3 text-destructive shadow-md">
+            <AlertCircle className="h-5 w-5" />
+            <span>
+              Failed to load county data
+              {error instanceof Error ? `: ${error.message}` : ""}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Bottom drawer open trigger */}
       <button

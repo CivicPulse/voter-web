@@ -33,8 +33,9 @@ const HOVER_STYLE: PathOptions = {
 }
 
 interface GeorgiaCountyMapProps {
-  data: CountyFeatureCollection
+  data?: CountyFeatureCollection | null
   overlayData?: BoundaryFeatureCollection | null
+  isCountiesLoading?: boolean
   isOverlayLoading?: boolean
   className?: string
 }
@@ -142,6 +143,7 @@ function CountyGeoJSON({ data }: Readonly<{ data: CountyFeatureCollection }>) {
 export function GeorgiaCountyMap({
   data,
   overlayData,
+  isCountiesLoading,
   isOverlayLoading,
   className,
 }: Readonly<GeorgiaCountyMapProps>) {
@@ -161,6 +163,8 @@ export function GeorgiaCountyMap({
     [navigate],
   )
 
+  const isLoading = isCountiesLoading || isOverlayLoading
+
   return (
     <div className="relative h-full w-full">
       <MapContainer
@@ -174,7 +178,7 @@ export function GeorgiaCountyMap({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <CountyGeoJSON data={data} />
+        {data && <CountyGeoJSON data={data} />}
         {overlayData && overlayData.features.length > 0 && (
           <OverlayLayer
             data={overlayData}
@@ -182,11 +186,13 @@ export function GeorgiaCountyMap({
           />
         )}
       </MapContainer>
-      {isOverlayLoading && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-background/50">
-          <div className="flex items-center gap-2 rounded-md bg-background px-3 py-2 text-sm text-muted-foreground shadow-sm">
+      {isLoading && (
+        <div className="pointer-events-none absolute bottom-4 left-4 z-[1000]">
+          <div className="flex items-center gap-2 rounded-md bg-background/90 px-3 py-2 text-sm text-muted-foreground shadow-sm backdrop-blur-sm">
             <Loader2 className="h-4 w-4 animate-spin" />
-            Loading districts…
+            {isCountiesLoading
+              ? "Loading county boundaries…"
+              : "Loading districts…"}
           </div>
         </div>
       )}

@@ -2,12 +2,10 @@ import { useCallback, useEffect, useMemo } from "react"
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
 import type { PathOptions } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
-import booleanIntersects from "@turf/boolean-intersects"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { geometryToLeafletBounds } from "@/lib/geo"
-import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
-import type { CountyProperties } from "@/types/boundaries"
+import type { CountyFeatureCollection, CountyProperties } from "@/types/boundaries"
 
 const GA_CENTER: [number, number] = [32.6791, -83.6233]
 const GA_ZOOM = 7
@@ -30,7 +28,10 @@ const COUNTY_OUTLINE_STYLE: PathOptions = {
 }
 
 interface DistrictDetailMapProps {
-  districtGeometry: Record<string, unknown>
+  districtGeometry?: Record<string, unknown> | null
+  counties?: CountyFeatureCollection | null
+  isDistrictLoading?: boolean
+  isCountiesLoading?: boolean
   className?: string
 }
 
@@ -65,31 +66,8 @@ function DistrictBoundaryLayer({
 }
 
 function CountyOutlinesLayer({
-  districtGeometry,
-}: Readonly<{ districtGeometry: Record<string, unknown> }>) {
-  const { data: counties } = useCountyBoundaries()
-
-  const overlappingCounties = useMemo(() => {
-    if (!counties) return null
-
-    const districtFeature = {
-      type: "Feature" as const,
-      geometry: districtGeometry as unknown as MultiPolygon | Polygon,
-      properties: {},
-    }
-
-    return {
-      type: "FeatureCollection" as const,
-      features: counties.features.filter((county) => {
-        try {
-          return booleanIntersects(districtFeature, county)
-        } catch {
-          return false
-        }
-      }),
-    }
-  }, [counties, districtGeometry])
-
+  counties,
+}: Readonly<{ counties: CountyFeatureCollection }>) {
   const style = useCallback(() => ({ ...COUNTY_OUTLINE_STYLE }), [])
 
   const onEachFeature = useCallback(
@@ -105,14 +83,14 @@ function CountyOutlinesLayer({
     [],
   )
 
-  if (!overlappingCounties || overlappingCounties.features.length === 0) {
+  if (counties.features.length === 0) {
     return null
   }
 
   return (
     <GeoJSON
-      key={overlappingCounties.features.length}
-      data={overlappingCounties}
+      key={counties.features.length}
+      data={counties}
       style={style}
       onEachFeature={onEachFeature}
     />
@@ -121,9 +99,12 @@ function CountyOutlinesLayer({
 
 export function DistrictDetailMap({
   districtGeometry,
+  counties,
+  isDistrictLoading,
+  isCountiesLoading,
   className,
 }: Readonly<DistrictDetailMapProps>) {
-  const { isLoading: isCountiesLoading } = useCountyBoundaries()
+  const isLoading = isDistrictLoading || isCountiesLoading
 
   return (
     <div className="relative h-full w-full">
@@ -137,15 +118,21 @@ export function DistrictDetailMap({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <FitBoundsToDistrict geometry={districtGeometry} />
-        <CountyOutlinesLayer districtGeometry={districtGeometry} />
-        <DistrictBoundaryLayer geometry={districtGeometry} />
+        {districtGeometry && (
+          <FitBoundsToDistrict geometry={districtGeometry} />
+        )}
+        {counties && <CountyOutlinesLayer counties={counties} />}
+        {districtGeometry && (
+          <DistrictBoundaryLayer geometry={districtGeometry} />
+        )}
       </MapContainer>
-      {isCountiesLoading && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-background/50">
-          <div className="flex items-center gap-2 rounded-md bg-background px-3 py-2 text-sm text-muted-foreground shadow-sm">
+      {isLoading && (
+        <div className="pointer-events-none absolute bottom-4 left-4 z-[1000]">
+          <div className="flex items-center gap-2 rounded-md bg-background/90 px-3 py-2 text-sm text-muted-foreground shadow-sm backdrop-blur-sm">
             <Loader2 className="h-4 w-4 animate-spin" />
-            Loading county outlines…
+            {isDistrictLoading
+              ? "Loading district…"
+              : "Loading county outlines…"}
           </div>
         </div>
       )}
