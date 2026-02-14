@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo } from "react"
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
+import { useNavigate } from "@tanstack/react-router"
 import type { PathOptions } from "leaflet"
 import type { MultiPolygon, Polygon } from "geojson"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { geometryToLeafletBounds } from "@/lib/geo"
+import { districtSlugPath } from "@/lib/slugs"
 import { OverlayLayer } from "@/components/OverlayLayer"
 import type { BoundaryFeatureCollection } from "@/types/boundary"
 
@@ -62,12 +64,29 @@ export function CountyDetailMap({
   isOverlayLoading,
   className,
 }: Readonly<CountyDetailMapProps>) {
+  const navigate = useNavigate()
+
+  const handleDistrictDblClick = useCallback(
+    (_featureId: string, boundaryType: string, name: string) => {
+      const slugPath = districtSlugPath(name, boundaryType)
+      navigate({
+        to: "/districts/$type/$name",
+        params: {
+          type: slugPath.split("/")[2],
+          name: slugPath.split("/")[3],
+        },
+      })
+    },
+    [navigate],
+  )
+
   return (
     <div className="relative h-full w-full">
       <MapContainer
         center={GA_CENTER}
         zoom={GA_ZOOM}
         scrollWheelZoom={true}
+        doubleClickZoom={false}
         className={cn("h-full w-full rounded-lg border", className)}
       >
         <TileLayer
@@ -77,7 +96,10 @@ export function CountyDetailMap({
         <FitBoundsToCounty geometry={countyGeometry} />
         <CountyBoundaryLayer geometry={countyGeometry} />
         {overlayData && overlayData.features.length > 0 && (
-          <OverlayLayer data={overlayData} />
+          <OverlayLayer
+            data={overlayData}
+            onDistrictDblClick={handleDistrictDblClick}
+          />
         )}
       </MapContainer>
       {isOverlayLoading && (

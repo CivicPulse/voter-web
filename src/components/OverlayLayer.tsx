@@ -53,9 +53,19 @@ const OVERLAY_HOVER_STYLE: PathOptions = {
   opacity: 1,
 }
 
+interface OverlayLayerProps {
+  data: BoundaryFeatureCollection
+  onDistrictDblClick?: (
+    featureId: string,
+    boundaryType: string,
+    name: string,
+  ) => void
+}
+
 export function OverlayLayer({
   data,
-}: Readonly<{ data: BoundaryFeatureCollection }>) {
+  onDistrictDblClick,
+}: Readonly<OverlayLayerProps>) {
   const featureIndexMap = useMemo(() => {
     const map = new Map<string, number>()
     data.features.forEach((f, i) => {
@@ -102,9 +112,18 @@ export function OverlayLayer({
         mouseout: (e: LeafletMouseEvent) => {
           e.target.setStyle(defaultStyle)
         },
+        dblclick: () => {
+          if (onDistrictDblClick && feature.id) {
+            onDistrictDblClick(
+              String(feature.id),
+              props.boundary_type,
+              props.name,
+            )
+          }
+        },
       })
     },
-    [featureIndexMap],
+    [featureIndexMap, onDistrictDblClick],
   )
 
   return (

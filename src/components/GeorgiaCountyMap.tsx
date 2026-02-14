@@ -5,7 +5,7 @@ import type { Layer, LeafletMouseEvent, PathOptions, LeafletEvent } from "leafle
 import type { Feature, MultiPolygon, Polygon } from "geojson"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { countySlugPath, slugify } from "@/lib/slugs"
+import { countySlugPath, districtSlugPath, slugify } from "@/lib/slugs"
 import { fipsToAbbrev } from "@/lib/states"
 import { OverlayLayer } from "@/components/OverlayLayer"
 import type {
@@ -145,6 +145,22 @@ export function GeorgiaCountyMap({
   isOverlayLoading,
   className,
 }: Readonly<GeorgiaCountyMapProps>) {
+  const navigate = useNavigate()
+
+  const handleDistrictDblClick = useCallback(
+    (_featureId: string, boundaryType: string, name: string) => {
+      const slugPath = districtSlugPath(name, boundaryType)
+      navigate({
+        to: "/districts/$type/$name",
+        params: {
+          type: slugPath.split("/")[2],
+          name: slugPath.split("/")[3],
+        },
+      })
+    },
+    [navigate],
+  )
+
   return (
     <div className="relative h-full w-full">
       <MapContainer
@@ -160,7 +176,10 @@ export function GeorgiaCountyMap({
         />
         <CountyGeoJSON data={data} />
         {overlayData && overlayData.features.length > 0 && (
-          <OverlayLayer data={overlayData} />
+          <OverlayLayer
+            data={overlayData}
+            onDistrictDblClick={handleDistrictDblClick}
+          />
         )}
       </MapContainer>
       {isOverlayLoading && (
