@@ -44,10 +44,10 @@ export function DistrictCard({ district }: DistrictCardProps) {
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-base">{district.name}</CardTitle>
           <Badge variant="secondary" className="shrink-0">
             {label}
           </Badge>
+          <CardTitle className="text-base text-right">{district.name}</CardTitle>
         </div>
       </CardHeader>
       {metadataEntries.length > 0 && (

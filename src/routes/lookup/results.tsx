@@ -204,22 +204,15 @@ function LookupResultsPage() {
           No districts found for this location.
         </div>
       ) : (
-        <div className="space-y-6">
-          {groups.map((group) => (
-            <section key={group.boundaryType} className="space-y-3">
-              <h2 className="text-sm font-medium text-muted-foreground">
-                {group.label}
-              </h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {group.districts.map((district) => (
-                  <DistrictCard
-                    key={district.boundary_id}
-                    district={district}
-                  />
-                ))}
-              </div>
-            </section>
-          ))}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {groups.flatMap((group) =>
+            group.districts.map((district) => (
+              <DistrictCard
+                key={district.boundary_id}
+                district={district}
+              />
+            )),
+          )}
         </div>
       )}
     </div>
