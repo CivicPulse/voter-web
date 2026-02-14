@@ -1,1 +1,5 @@
+# Don't redirect static GeoJSON files
+/geojson/*  200
+
+# SPA fallback for everything else
 /*  /index.html  200
