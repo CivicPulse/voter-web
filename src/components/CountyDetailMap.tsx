@@ -107,7 +107,7 @@ export function CountyDetailMap({
         )}
       </MapContainer>
       {isLoading && (
-        <div className="pointer-events-none absolute bottom-4 left-4 z-[1000]">
+        <div className="pointer-events-none absolute left-1/2 top-3 z-[1000] -translate-x-1/2">
           <div className="flex items-center gap-2 rounded-md bg-background/90 px-3 py-2 text-sm text-muted-foreground shadow-sm backdrop-blur-sm">
             <Loader2 className="h-4 w-4 animate-spin" />
             {isCountyLoading ? "Loading county…" : "Loading districts…"}
