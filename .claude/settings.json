@@ -17,7 +17,9 @@
       "mcp__plugin_playwright_playwright__browser_evaluate",
       "Bash(grep:*)",
       "mcp__plugin_playwright_playwright__browser_close",
-      "WebFetch(domain:voteapi.kerryhatcher.com)"
+      "WebFetch(domain:voteapi.kerryhatcher.com)",
+      "Bash(git -C /home/kwhatcher/projects/voter-web remote get-url:*)",
+      "Bash(git -C /home/kwhatcher/projects/voter-web log --format='%ae')"
     ]
   }
 }
