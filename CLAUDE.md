@@ -46,6 +46,32 @@ Requires Node.js LTS (use `nvm use` — reads `.nvmrc`).
 - **Environment variables** must be prefixed with `VITE_` to be exposed to the client.
 - `src/routeTree.gen.ts` is ignored by ESLint and marked read-only in VSCode.
 
+## Static Assets & Deployment
+
+**Build-time GeoJSON caching:** The `npm run build` command runs `scripts/fetch-geojson.mjs` before the Vite build. This script fetches boundary GeoJSON data from the API and saves it to `public/geojson/` as static files for fast load times and offline resilience.
+
+**SPA routing with `_redirects`:** The app is deployed as an SPA using `public/_redirects` (Cloudflare Pages / Netlify format). This file controls how the hosting platform routes requests:
+
+```
+# Don't redirect static GeoJSON files
+/geojson/*  200
+
+# SPA fallback for everything else
+/*  /index.html  200
+```
+
+**IMPORTANT:** When adding new static assets (JSON, images, fonts, etc.) to `public/`, ensure they are **excluded from the catch-all redirect** by adding specific rules **before** the `/*` rule. Rules are processed top-to-bottom, so more specific paths must come first.
+
+Example for adding other static content:
+```
+/data/*     200
+/fonts/*    200
+/geojson/*  200
+/*          /index.html  200
+```
+
+Without these exclusions, the SPA catch-all will serve `index.html` (HTML content) instead of the actual static files, causing the browser to receive the wrong content type.
+
 ## Backend API
 
 The voter-api uses JWT auth (access + refresh tokens), role-based access (admin/analyst/viewer), and async job patterns (returns 202 Accepted, poll for status). Key resource endpoints: `/voters`, `/boundaries`, `/imports`, `/geocoding`, `/analysis`, `/exports`.
