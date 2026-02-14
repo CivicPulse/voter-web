@@ -16,6 +16,16 @@ voter-web is a React SPA frontend for the [voter-api](https://github.com/CivicPu
 
 Requires Node.js LTS (use `nvm use` — reads `.nvmrc`).
 
+## Environment Setup
+
+Copy `.env.example` to `.env` before first run:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` to configure the API base URL if needed (defaults to `http://localhost:8000/api/v1`).
+
 ## Architecture
 
 **Stack:** React 19, TypeScript, Vite 7, Tailwind CSS v4, shadcn/ui (new-york style, neutral base color)
@@ -34,7 +44,11 @@ Requires Node.js LTS (use `nvm use` — reads `.nvmrc`).
 
 **Maps:** React-Leaflet + Leaflet for geospatial visualization.
 
+**Geospatial utilities:** Turf.js (`@turf/bbox`, `@turf/boolean-intersects`, `@turf/helpers`) for geometric operations.
+
 **Charts:** Recharts.
+
+**Drawer component:** vaul for mobile-friendly drawer UI.
 
 ## Key Conventions
 
@@ -45,12 +59,27 @@ Requires Node.js LTS (use `nvm use` — reads `.nvmrc`).
 - **Route files** must export `Route` using `createFileRoute()` or `createRootRoute()`.
 - **Environment variables** must be prefixed with `VITE_` to be exposed to the client.
 - `src/routeTree.gen.ts` is ignored by ESLint and marked read-only in VSCode.
+- **Map visualization:** District overlays use a colorblind-friendly color palette. Double-click on a district to navigate to its detail page.
 
-## Static Assets & Deployment
+## Static Assets, Build & Deployment
 
-**Build-time GeoJSON caching:** The `npm run build` command runs `scripts/fetch-geojson.mjs` before the Vite build. This script fetches boundary GeoJSON data from the API and saves it to `public/geojson/` as static files for fast load times and offline resilience.
+### Build-time GeoJSON Caching
 
-**SPA routing with `_redirects`:** The app is deployed as an SPA using `public/_redirects` (Cloudflare Pages / Netlify format). This file controls how the hosting platform routes requests:
+The `npm run build` command runs `scripts/fetch-geojson.mjs` before the Vite build. This script fetches boundary GeoJSON data from the API and saves it to `public/geojson/` as static files for fast load times and offline resilience.
+
+### Deployment
+
+Deployments are handled automatically by GitHub Actions (`.github/workflows/deploy.yml`):
+
+- **Production:** Pushes to `main` deploy to Cloudflare Pages at `https://vote.kerryhatcher.com/`
+- **Preview:** Pull requests get automatic preview deployments with URLs posted as PR comments
+- **Manual:** `npx wrangler pages deploy dist/ --project-name=voter-web` (requires `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`)
+
+The `npm run deploy` script exists but is deprecated in favor of GitHub Actions.
+
+### SPA Routing
+
+The app is deployed as an SPA using `public/_redirects` (Cloudflare Pages / Netlify format). This file controls how the hosting platform routes requests:
 
 ```
 # Don't redirect static GeoJSON files
@@ -71,6 +100,10 @@ Example for adding other static content:
 ```
 
 Without these exclusions, the SPA catch-all will serve `index.html` (HTML content) instead of the actual static files, causing the browser to receive the wrong content type.
+
+## Testing
+
+No automated test suite is currently configured. The project uses Playwright as a dev dependency for UI verification during development (see UI Verification section below), but automated tests have not been set up.
 
 ## Backend API
 
