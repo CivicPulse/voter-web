@@ -50,12 +50,12 @@ function MobileNav({
           <Menu className="h-5 w-5" />
         </Button>
 
-        <SheetContent side="left" className="w-64">
-          <SheetHeader>
+        <SheetContent side="left" className="w-64 flex flex-col gap-0 p-0">
+          <SheetHeader className="p-4 pb-2">
             <SheetTitle>Menu</SheetTitle>
           </SheetHeader>
 
-          <div className="flex flex-col gap-1 px-4">
+          <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-1 px-4 py-2">
             <SheetClose asChild>
               <Link
                 to="/"
@@ -85,7 +85,7 @@ function MobileNav({
             )}
           </div>
 
-          <div className="mt-auto border-t px-4 py-4">
+          <div className="shrink-0 border-t px-4 py-4">
             {isAuthenticated && user ? (
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
