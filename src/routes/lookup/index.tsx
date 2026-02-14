@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useState } from "react"
+import { HTTPError } from "ky"
 import { Search, LocateFixed, Loader2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { requireAuth } from "@/lib/auth-guards"
-import { verifyAddress, geocodeAddress } from "@/api/lookup"
+import { verifyAddress } from "@/api/lookup"
 import type { AddressSuggestion } from "@/types/lookup"
 
 export const Route = createFileRoute("/lookup/")({
@@ -32,12 +33,25 @@ const addressSchema = z.object({
 
 type AddressFormData = z.infer<typeof addressSchema>
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof HTTPError) {
+    switch (error.response.status) {
+      case 404:
+        return "Address not found. Please check your input and try again."
+      case 422:
+        return "Invalid address format. Please enter a valid address."
+      case 502:
+        return "The geocoding service is temporarily unavailable. Please try again in a moment."
+    }
+  }
+  return "Failed to verify address. Please try again."
+}
+
 function LookupPage() {
   const navigate = useNavigate()
   const [geoError, setGeoError] = useState<string | null>(null)
   const [isLocating, setIsLocating] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
-  const [isGeocoding, setIsGeocoding] = useState(false)
   const [suggestions, setSuggestions] = useState<AddressSuggestion[] | null>(
     null,
   )
@@ -51,23 +65,15 @@ function LookupPage() {
     resolver: zodResolver(addressSchema),
   })
 
-  const geocodeAndNavigate = async (address: string) => {
-    setIsGeocoding(true)
-    setApiError(null)
-    try {
-      const result = await geocodeAddress(address)
-      navigate({
-        to: "/lookup/results",
-        search: {
-          lat: result.latitude,
-          lng: result.longitude,
-          address: result.formatted_address,
-        },
-      })
-    } catch {
-      setApiError("Failed to geocode address. Please try again.")
-      setIsGeocoding(false)
-    }
+  const navigateToResults = (suggestion: AddressSuggestion) => {
+    navigate({
+      to: "/lookup/results",
+      search: {
+        lat: suggestion.latitude,
+        lng: suggestion.longitude,
+        address: suggestion.address,
+      },
+    })
   }
 
   const onSubmit = async (data: AddressFormData) => {
@@ -86,21 +92,21 @@ function LookupPage() {
 
       if (result.suggestions.length === 1) {
         setIsVerifying(false)
-        await geocodeAndNavigate(result.suggestions[0].formatted_address)
+        navigateToResults(result.suggestions[0])
         return
       }
 
       setSuggestions(result.suggestions)
       setIsVerifying(false)
-    } catch {
-      setApiError("Failed to verify address. Please try again.")
+    } catch (error) {
+      setApiError(getErrorMessage(error))
       setIsVerifying(false)
     }
   }
 
-  const handleSelectSuggestion = async (suggestion: AddressSuggestion) => {
+  const handleSelectSuggestion = (suggestion: AddressSuggestion) => {
     setSuggestions(null)
-    await geocodeAndNavigate(suggestion.formatted_address)
+    navigateToResults(suggestion)
   }
 
   const handleUseMyLocation = () => {
@@ -150,8 +156,6 @@ function LookupPage() {
     )
   }
 
-  const isProcessing = isVerifying || isGeocoding
-
   return (
     <div className="flex h-full items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -173,7 +177,7 @@ function LookupPage() {
                 type="text"
                 placeholder="123 Main St, Atlanta, GA 30303"
                 aria-invalid={!!errors.address}
-                disabled={isProcessing}
+                disabled={isVerifying}
                 {...register("address")}
               />
               {errors.address && (
@@ -186,12 +190,12 @@ function LookupPage() {
             <Button
               type="submit"
               className="w-full"
-              disabled={isProcessing}
+              disabled={isVerifying}
             >
-              {isProcessing ? (
+              {isVerifying ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  {isVerifying ? "Verifying address..." : "Geocoding..."}
+                  Verifying address...
                 </>
               ) : (
                 <>
@@ -210,12 +214,12 @@ function LookupPage() {
               <div className="space-y-1">
                 {suggestions.map((suggestion) => (
                   <button
-                    key={suggestion.formatted_address}
+                    key={suggestion.address}
                     type="button"
                     className="w-full rounded-md border px-3 py-2 text-left text-sm hover:bg-accent transition-colors"
                     onClick={() => handleSelectSuggestion(suggestion)}
                   >
-                    {suggestion.formatted_address}
+                    {suggestion.address}
                   </button>
                 ))}
               </div>
@@ -242,7 +246,7 @@ function LookupPage() {
             variant="outline"
             className="w-full"
             onClick={handleUseMyLocation}
-            disabled={isLocating || isProcessing}
+            disabled={isLocating || isVerifying}
           >
             {isLocating ? (
               <>

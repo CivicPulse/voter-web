@@ -9,8 +9,10 @@ import type { LookupDistrict } from "@/types/lookup"
 
 const boundaryTypeLabels: Record<string, string> = {
   precinct: "Voting Precinct",
+  county_precinct: "Voting Precinct",
   county: "County",
   commission_district: "Commission District",
+  congressional: "Congressional District",
   congressional_district: "Congressional District",
   state_senate: "State Senate District",
   state_house: "State House District",
