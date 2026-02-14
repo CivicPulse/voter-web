@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CountiesCountyIdRouteImport } from './routes/counties/$countyId'
 import { Route as CountiesStateCountyRouteImport } from './routes/counties/$state/$county'
@@ -17,6 +18,11 @@ import { Route as CountiesStateCountyRouteImport } from './routes/counties/$stat
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -37,12 +43,14 @@ const CountiesStateCountyRoute = CountiesStateCountyRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/counties/$state/$county': typeof CountiesStateCountyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/counties/$state/$county': typeof CountiesStateCountyRoute
@@ -50,18 +58,30 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/counties/$state/$county': typeof CountiesStateCountyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/counties/$countyId' | '/counties/$state/$county'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/login'
+    | '/counties/$countyId'
+    | '/counties/$state/$county'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/counties/$countyId' | '/counties/$state/$county'
+  to:
+    | '/'
+    | '/about'
+    | '/login'
+    | '/counties/$countyId'
+    | '/counties/$state/$county'
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/login'
     | '/counties/$countyId'
     | '/counties/$state/$county'
@@ -69,6 +89,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   LoginRoute: typeof LoginRoute
   CountiesCountyIdRoute: typeof CountiesCountyIdRoute
   CountiesStateCountyRoute: typeof CountiesStateCountyRoute
@@ -81,6 +102,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -109,6 +137,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   LoginRoute: LoginRoute,
   CountiesCountyIdRoute: CountiesCountyIdRoute,
   CountiesStateCountyRoute: CountiesStateCountyRoute,

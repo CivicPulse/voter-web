@@ -137,6 +137,9 @@ function RootLayout() {
             <Link to="/" className="[&.active]:font-bold shrink-0">
               Home
             </Link>
+            <Link to="/about" className="[&.active]:font-bold shrink-0">
+              About
+            </Link>
           </div>
 
           {headerTitle && (
