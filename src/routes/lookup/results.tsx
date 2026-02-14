@@ -29,19 +29,60 @@ const districtSortOrder: Record<string, number> = {
   county_precinct: 0,
   county: 1,
   commission_district: 2,
+  county_commission: 2,
   congressional: 3,
   congressional_district: 3,
   state_senate: 4,
   state_house: 5,
   school_district: 6,
+  school_board: 6,
+  psc: 7,
 }
 
-function sortDistricts(districts: LookupDistrict[]): LookupDistrict[] {
-  return [...districts].sort((a, b) => {
+const boundaryTypeLabels: Record<string, string> = {
+  precinct: "Voting Precincts",
+  county_precinct: "Voting Precincts",
+  county: "Counties",
+  commission_district: "Commission Districts",
+  county_commission: "County Commission Districts",
+  congressional: "Congressional Districts",
+  congressional_district: "Congressional Districts",
+  state_senate: "State Senate Districts",
+  state_house: "State House Districts",
+  school_district: "School Districts",
+  school_board: "School Board Districts",
+  psc: "Public Service Commission Districts",
+}
+
+interface DistrictGroup {
+  boundaryType: string
+  label: string
+  districts: LookupDistrict[]
+}
+
+function groupDistricts(districts: LookupDistrict[]): DistrictGroup[] {
+  const sorted = [...districts].sort((a, b) => {
     const orderA = districtSortOrder[a.boundary_type] ?? 99
     const orderB = districtSortOrder[b.boundary_type] ?? 99
     return orderA - orderB
   })
+
+  const groups: DistrictGroup[] = []
+  for (const district of sorted) {
+    const last = groups.at(-1)
+    if (last?.boundaryType === district.boundary_type) {
+      last.districts.push(district)
+    } else {
+      groups.push({
+        boundaryType: district.boundary_type,
+        label:
+          boundaryTypeLabels[district.boundary_type] ??
+          district.boundary_type,
+        districts: [district],
+      })
+    }
+  }
+  return groups
 }
 
 function isProviderUnavailable(error: Error | null): boolean {
@@ -132,7 +173,8 @@ function LookupResultsPage() {
     )
   }
 
-  const sortedDistricts = sortDistricts(data?.districts ?? [])
+  const groups = groupDistricts(data?.districts ?? [])
+  const totalDistricts = groups.reduce((sum, g) => sum + g.districts.length, 0)
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-4">
@@ -145,8 +187,8 @@ function LookupResultsPage() {
             </div>
           )}
           <p className="text-sm text-muted-foreground">
-            {sortedDistricts.length}{" "}
-            {sortedDistricts.length === 1 ? "district" : "districts"} found
+            {totalDistricts}{" "}
+            {totalDistricts === 1 ? "district" : "districts"} found
           </p>
         </div>
         <Button variant="outline" size="sm" asChild>
@@ -157,17 +199,26 @@ function LookupResultsPage() {
         </Button>
       </div>
 
-      {sortedDistricts.length === 0 ? (
+      {groups.length === 0 ? (
         <div className="rounded-md border border-dashed p-8 text-center text-muted-foreground">
           No districts found for this location.
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {sortedDistricts.map((district) => (
-            <DistrictCard
-              key={district.boundary_id}
-              district={district}
-            />
+        <div className="space-y-6">
+          {groups.map((group) => (
+            <section key={group.boundaryType} className="space-y-3">
+              <h2 className="text-sm font-medium text-muted-foreground">
+                {group.label}
+              </h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {group.districts.map((district) => (
+                  <DistrictCard
+                    key={district.boundary_id}
+                    district={district}
+                  />
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       )}
