@@ -84,7 +84,7 @@ if [ "$FAIL_COUNT" -gt 0 ]; then
   exit 1
 fi
 echo "  Bucket: $BUCKET"
-echo "  URL: https://vote.kerryhatcher.com/"
+echo "  URL: https://vote.civpulse.org/"
 echo ""
 echo "  ** Remember to purge the Cloudflare cache after deploying **"
-echo "  Dashboard: kerryhatcher.com > Caching > Configuration > Purge Everything"
+echo "  Dashboard: civpulse.org > Caching > Configuration > Purge Everything"

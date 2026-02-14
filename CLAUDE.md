@@ -71,7 +71,7 @@ The `npm run build` command runs `scripts/fetch-geojson.mjs` before the Vite bui
 
 Deployments are handled automatically by GitHub Actions (`.github/workflows/deploy.yml`):
 
-- **Production:** Pushes to `main` deploy to Cloudflare Pages at `https://vote.kerryhatcher.com/`
+- **Production:** Pushes to `main` deploy to Cloudflare Pages at `https://vote.civpulse.org/`
 - **Preview:** Pull requests get automatic preview deployments with URLs posted as PR comments
 - **Manual:** `npx wrangler pages deploy dist/ --project-name=voter-web` (requires `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`)
 
