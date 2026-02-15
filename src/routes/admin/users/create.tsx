@@ -74,7 +74,7 @@ function CreateUserPage() {
 
   const submitUser = (data: CreateUserFormValues) => {
     // Remove confirmPassword before sending to API
-    const { confirmPassword, ...userData } = data
+    const { confirmPassword: _confirmPassword, ...userData } = data
 
     createUserMutation.mutate(userData, {
       onSuccess: () => {

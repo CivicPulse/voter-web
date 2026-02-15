@@ -11,9 +11,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Users, Plus, Loader2 } from "lucide-react"
+import { Users, Plus } from "lucide-react"
 import type { AdminUser } from "@/types/admin"
 import { AdminErrorBoundary } from "@/components/admin-error-boundary"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export const Route = createFileRoute("/admin/users/")({
   component: () => (
@@ -28,8 +29,28 @@ function UserManagementPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-9 w-64 mb-2" />
+            <Skeleton className="h-5 w-96" />
+          </div>
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <div className="border rounded-lg p-6">
+          <div className="space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-6 w-20" />
+                <Skeleton className="h-6 w-28" />
+                <Skeleton className="h-6 w-28" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     )
   }

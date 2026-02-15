@@ -115,7 +115,7 @@ export interface CreateUserRequest {
  * Response from user creation endpoint.
  * Returns the created user without password field.
  */
-export interface CreateUserResponse extends AdminUser {}
+export type CreateUserResponse = AdminUser
 
 /**
  * Response from user list endpoint.
@@ -408,7 +408,7 @@ export interface ExportListResponse {
  * Error response when user lacks required permissions.
  * Returned with HTTP 403 Forbidden status.
  */
-export interface PermissionError {
+export interface PermissionErrorResponse {
   /** Error type identifier */
   error: "permission_denied" | "insufficient_role"
   /** Human-readable error message */
@@ -423,7 +423,7 @@ export interface PermissionError {
  * Error response when authentication token is invalid or expired.
  * Returned with HTTP 401 Unauthorized status.
  */
-export interface AuthenticationError {
+export interface AuthenticationErrorResponse {
   /** Error type identifier */
   error: "unauthorized" | "token_expired" | "invalid_token"
   /** Human-readable error message */
