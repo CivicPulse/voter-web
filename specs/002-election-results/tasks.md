@@ -28,10 +28,10 @@
 
 **Purpose**: Create TypeScript types, API client, and test utilities that all user stories depend on
 
-- [ ] T001 Create all TypeScript types, constants, and utility functions in `src/types/elections.ts` per data-model.md (Election, ElectionEvent, CandidateResult, VoteMethodResult, CountyResult, ElectionResultsResponse, PaginatedElectionListResponse, admin request/response types, GeoJSON types, filter/UI state types, PARTY_COLORS, utility functions)
-- [ ] T002 Create election API client functions (public + admin) in `src/lib/api/elections.ts` per contracts/elections-api.md (getElections, getElectionDetail, getElectionResults, getElectionGeoJSON, getPrecinctGeoJSON, createElection, updateElection, refreshElection) using existing `ky` client pattern from `src/lib/api/admin.ts`
-- [ ] T003 [P] Create custom test render wrapper with QueryClientProvider and RouterProvider in `src/test/render.tsx` per research.md §4
-- [ ] T004 [P] Create election mock data factories for all types in `src/test/mocks/elections.ts` (mock Election, ElectionEvent, CandidateResult, CountyResult, ElectionResultsResponse, GeoJSON features)
+- [x] T001 Create all TypeScript types, constants, and utility functions in `src/types/elections.ts` per data-model.md (Election, ElectionEvent, CandidateResult, VoteMethodResult, CountyResult, ElectionResultsResponse, PaginatedElectionListResponse, admin request/response types, GeoJSON types, filter/UI state types, PARTY_COLORS, utility functions)
+- [x] T002 Create election API client functions (public + admin) in `src/lib/api/elections.ts` per contracts/elections-api.md (getElections, getElectionDetail, getElectionResults, getElectionGeoJSON, getPrecinctGeoJSON, createElection, updateElection, refreshElection) using existing `ky` client pattern from `src/lib/api/admin.ts`
+- [x] T003 [P] Create custom test render wrapper with QueryClientProvider and RouterProvider in `src/test/render.tsx` per research.md §4
+- [x] T004 [P] Create election mock data factories for all types in `src/test/mocks/elections.ts` (mock Election, ElectionEvent, CandidateResult, CountyResult, ElectionResultsResponse, GeoJSON features)
 
 ---
 
