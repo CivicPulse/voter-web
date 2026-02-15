@@ -124,31 +124,31 @@ All paths relative to repository root (`/home/kwhatcher/projects/civicpulse/vote
 
 #### User Management (US2.1)
 
-- [ ] T028 [P] [US2] Create Zod schema for user creation form in `src/lib/schemas/user-form.ts` with fields: username, email, password, confirmPassword (must match), role, is_active (default true)
-- [ ] T029 [P] [US2] Create `useAdminUsers` hook in `src/lib/hooks/use-admin-users.ts` using TanStack Query to fetch user list (GET /api/v1/users) and create user (POST /api/v1/users)
-- [ ] T030 [US2] Implement user list page in `src/routes/admin/users/index.tsx` with empty state component (message: "No users yet. Create your first user to get started", action: "Create User" button) OR data table showing all users (id, username, email, role, is_active, created_at, last_login_at)
-- [ ] T031 [US2] Create user creation page in `src/routes/admin/users/create.tsx` with React Hook Form + Zod validation, form fields (username, email, password, confirmPassword, role select, is_active checkbox)
-- [ ] T032 [US2] Add confirmation dialog to user creation form (triggered before submit if role is 'admin' or 'analyst') showing "Creating user with elevated role: [role]. Continue?" with Cancel/Confirm buttons
-- [ ] T033 [US2] Wire up user creation form submission to `useAdminUsers.createUser()` mutation, show success toast, redirect to user list page on success
+- [X] T028 [P] [US2] Create Zod schema for user creation form in `src/lib/schemas/user-form.ts` with fields: username, email, password, confirmPassword (must match), role, is_active
+- [X] T029 [P] [US2] Create `useAdminUsers` hook in `src/lib/hooks/use-admin-users.ts` using TanStack Query to fetch user list (GET /api/v1/users) and create user (POST /api/v1/users)
+- [X] T030 [US2] Implement user list page in `src/routes/admin/users/index.tsx` with empty state component OR data table showing all users (id, username, email, role, is_active, created_at, last_login_at)
+- [X] T031 [US2] Create user creation page in `src/routes/admin/users/create.tsx` with React Hook Form + Zod validation, form fields (username, email, password, confirmPassword, role select, is_active checkbox)
+- [X] T032 [US2] Add confirmation dialog to user creation form (triggered before submit if role is 'admin' or 'analyst') showing "Creating user with elevated role: [role]. Continue?" with Cancel/Confirm buttons
+- [X] T033 [US2] Wire up user creation form submission to `useCreateUser()` mutation, redirect to user list page on success
 
 #### Import Operations (US2.2)
 
-- [ ] T034 [P] [US2] Create `useImportJobs` hook in `src/lib/hooks/use-import-jobs.ts` using TanStack Query with polling (refetchInterval: 3000ms when any job is active, disable when all terminal)
-- [ ] T035 [P] [US2] Create import job table component in `src/routes/admin/imports/_components/import-job-table.tsx` with columns: job ID, filename, import_type, status (badge with color), start time, completion/error time, error message, actions (retry button if failed)
-- [ ] T036 [US2] Create import upload dialog component in `src/routes/admin/imports/_components/import-upload-dialog.tsx` with file input, type selection (voter/boundary), file validation on change (call `file-validation.ts` utils), confirmation step showing file details (name, size, type), Cancel/Upload buttons
-- [ ] T037 [US2] Create import retry dialog component in `src/routes/admin/imports/_components/import-retry-dialog.tsx` similar to upload dialog but pre-populates type from failed job, allows new file upload
-- [ ] T038 [US2] Implement imports list page in `src/routes/admin/imports/index.tsx` with empty state (message: "No import jobs yet. Upload voter or boundary data to get started", action: "Upload Import" button) OR import job table with auto-polling via `useImportJobs` hook
-- [ ] T039 [US2] Wire up import upload dialog to call `createVoterImport()` or `createBoundaryImport()` based on type, show success toast, close dialog, trigger refetch of job list
-- [ ] T040 [US2] Wire up retry dialog to create new import job with corrected file (same flow as upload)
+- [X] T034 [P] [US2] Create `useImportJobs` hook in `src/lib/hooks/use-import-jobs.ts` using TanStack Query with polling (refetchInterval: 3000ms when any job is active, disable when all terminal)
+- [X] T035 [P] [US2] Create import job table component in `src/routes/admin/imports/_components/import-job-table.tsx` with columns: job ID, filename, import_type, status (badge with color), start time, completion/error time, error message, actions (retry button if failed)
+- [X] T036 [US2] Create import upload dialog component in `src/routes/admin/imports/_components/import-upload-dialog.tsx` with file input, type selection (voter/boundary), file validation on change, confirmation step showing file details
+- [X] T037 [US2] Create import retry dialog component in `src/routes/admin/imports/_components/import-retry-dialog.tsx` - pre-populates type from failed job, allows new file upload
+- [X] T038 [US2] Implement imports list page in `src/routes/admin/imports/index.tsx` with empty state OR import job table with auto-polling via `useImportJobs` hook
+- [X] T039 [US2] Wire up import upload dialog to call `createVoterImport()` or `createBoundaryImport()` based on type, close dialog, trigger refetch of job list
+- [X] T040 [US2] Wire up retry dialog to create new import job with corrected file (same flow as upload)
 
 #### Export Operations (US2.3)
 
-- [ ] T041 [P] [US2] Create `useExportJobs` hook in `src/lib/hooks/use-export-jobs.ts` using TanStack Query with polling (refetchInterval: 3000ms when any job is active, disable when all terminal)
-- [ ] T042 [P] [US2] Create export job table component in `src/routes/admin/exports/_components/export-job-table.tsx` with columns: job ID, export_type, status (badge with color), start time, completion/error time, error message, actions (download button if completed)
-- [ ] T043 [US2] Create export request dialog component in `src/routes/admin/exports/_components/export-request-dialog.tsx` with export type selection (voters/boundaries/full_database), optional filters input (JSON or form fields), Create Export button
-- [ ] T044 [US2] Implement exports list page in `src/routes/admin/exports/index.tsx` with empty state (message: "No export jobs yet. Request a data export to get started", action: "Create Export" button) OR export job table with auto-polling via `useExportJobs` hook
-- [ ] T045 [US2] Wire up export request dialog to call `createExport()`, show success toast, close dialog, trigger refetch of job list
-- [ ] T046 [US2] Wire up download button in export job table to fetch download URL from completed export job and trigger browser download
+- [X] T041 [P] [US2] Create `useExportJobs` hook in `src/lib/hooks/use-export-jobs.ts` using TanStack Query with polling (refetchInterval: 3000ms when any job is active, disable when all terminal)
+- [X] T042 [P] [US2] Create export job table component in `src/routes/admin/exports/_components/export-job-table.tsx` with columns: job ID, export_type, status (badge with color), start time, completion/error time, error message, actions (download button if completed)
+- [X] T043 [US2] Create export request dialog component in `src/routes/admin/exports/_components/export-request-dialog.tsx` with export type selection (voters/boundaries/full_database), Create Export button
+- [X] T044 [US2] Implement exports list page in `src/routes/admin/exports/index.tsx` with empty state OR export job table with auto-polling via `useExportJobs` hook
+- [X] T045 [US2] Wire up export request dialog to call `createExport()`, close dialog, trigger refetch of job list
+- [X] T046 [US2] Wire up download button in export job table to fetch download URL from completed export job and trigger browser download
 
 #### Cross-Feature Integration
 

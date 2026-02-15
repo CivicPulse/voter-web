@@ -23,6 +23,7 @@ import { Route as AdminImportsIndexRouteImport } from './routes/admin/imports/in
 import { Route as AdminExportsIndexRouteImport } from './routes/admin/exports/index'
 import { Route as DistrictsTypeNameRouteImport } from './routes/districts/$type/$name'
 import { Route as CountiesStateCountyRouteImport } from './routes/counties/$state/$county'
+import { Route as AdminUsersCreateRouteImport } from './routes/admin/users/create'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -94,6 +95,11 @@ const CountiesStateCountyRoute = CountiesStateCountyRouteImport.update({
   path: '/counties/$state/$county',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsersCreateRoute = AdminUsersCreateRouteImport.update({
+  id: '/users/create',
+  path: '/users/create',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/lookup/results': typeof LookupResultsRoute
   '/admin/': typeof AdminIndexRoute
   '/lookup/': typeof LookupIndexRoute
+  '/admin/users/create': typeof AdminUsersCreateRoute
   '/counties/$state/$county': typeof CountiesStateCountyRoute
   '/districts/$type/$name': typeof DistrictsTypeNameRoute
   '/admin/exports/': typeof AdminExportsIndexRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/lookup/results': typeof LookupResultsRoute
   '/admin': typeof AdminIndexRoute
   '/lookup': typeof LookupIndexRoute
+  '/admin/users/create': typeof AdminUsersCreateRoute
   '/counties/$state/$county': typeof CountiesStateCountyRoute
   '/districts/$type/$name': typeof DistrictsTypeNameRoute
   '/admin/exports': typeof AdminExportsIndexRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/lookup/results': typeof LookupResultsRoute
   '/admin/': typeof AdminIndexRoute
   '/lookup/': typeof LookupIndexRoute
+  '/admin/users/create': typeof AdminUsersCreateRoute
   '/counties/$state/$county': typeof CountiesStateCountyRoute
   '/districts/$type/$name': typeof DistrictsTypeNameRoute
   '/admin/exports/': typeof AdminExportsIndexRoute
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/lookup/results'
     | '/admin/'
     | '/lookup/'
+    | '/admin/users/create'
     | '/counties/$state/$county'
     | '/districts/$type/$name'
     | '/admin/exports/'
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/lookup/results'
     | '/admin'
     | '/lookup'
+    | '/admin/users/create'
     | '/counties/$state/$county'
     | '/districts/$type/$name'
     | '/admin/exports'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/lookup/results'
     | '/admin/'
     | '/lookup/'
+    | '/admin/users/create'
     | '/counties/$state/$county'
     | '/districts/$type/$name'
     | '/admin/exports/'
@@ -306,11 +318,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CountiesStateCountyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/users/create': {
+      id: '/admin/users/create'
+      path: '/users/create'
+      fullPath: '/admin/users/create'
+      preLoaderRoute: typeof AdminUsersCreateRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminUsersCreateRoute: typeof AdminUsersCreateRoute
   AdminExportsIndexRoute: typeof AdminExportsIndexRoute
   AdminImportsIndexRoute: typeof AdminImportsIndexRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
@@ -318,6 +338,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
+  AdminUsersCreateRoute: AdminUsersCreateRoute,
   AdminExportsIndexRoute: AdminExportsIndexRoute,
   AdminImportsIndexRoute: AdminImportsIndexRoute,
   AdminUsersIndexRoute: AdminUsersIndexRoute,
