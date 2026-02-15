@@ -190,14 +190,14 @@
 
 **Purpose**: Error handling, empty states, responsiveness, and build verification across all user stories
 
-- [ ] T048 [P] Add empty state handling across election pages — no results yet, no elections match filters, no precinct boundaries available, zero precincts participating per edge cases in spec.md
-- [ ] T049 [P] Add mobile responsive layout adjustments for election map and drawer components per SC-008
-- [ ] T050 Add error boundary for election routes in `src/routes/elections.tsx` with graceful fallback UI per FR-016
-- [ ] T051 [P] Write API client unit tests for all election API functions in `tests/lib/api/elections.test.ts`
-- [ ] T052 Run ESLint (`npm run lint`) and fix all linting issues across new election files
-- [ ] T053 Run TypeScript build (`npm run build`) and verify all routes generate correctly with no errors
-- [ ] T054 Run quickstart.md validation — verify dev server starts, all new routes are accessible, and key navigation flows work
-- [ ] T061 Run full test suite with coverage verification (`npm run test:coverage`) and confirm 95% line/branch/function/statement thresholds pass per Constitution Principle III
+- [x] T048 [P] Add empty state handling across election pages — no results yet, no elections match filters, no precinct boundaries available, zero precincts participating per edge cases in spec.md
+- [x] T049 [P] Add mobile responsive layout adjustments for election map and drawer components per SC-008
+- [x] T050 Add error boundary for election routes in `src/routes/elections.tsx` with graceful fallback UI per FR-016
+- [x] T051 [P] Write API client unit tests for all election API functions in `tests/lib/api/elections.test.ts`
+- [x] T052 Run ESLint (`npm run lint`) and fix all linting issues across new election files
+- [x] T053 Run TypeScript build (`npm run build`) and verify all routes generate correctly with no errors
+- [x] T054 Run quickstart.md validation — verify dev server starts, all new routes are accessible, and key navigation flows work
+- [x] T061 Run full test suite with coverage verification (`npm run test:coverage`) and confirm 95% line/branch/function/statement thresholds pass per Constitution Principle III
 
 ---
 

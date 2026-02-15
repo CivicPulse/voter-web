@@ -1,5 +1,6 @@
 import { api } from "@/api/client"
 import type {
+  Election,
   PaginatedElectionListResponse,
   ElectionDetailResponse,
   ElectionResultsResponse,
@@ -14,6 +15,17 @@ import type {
 // ============================================================================
 // Public Endpoints (No Authentication Required)
 // ============================================================================
+
+/** Raw API response shape from GET /elections */
+interface RawElectionListResponse {
+  items: Election[]
+  pagination: {
+    total: number
+    page: number
+    page_size: number
+    total_pages: number
+  }
+}
 
 /** List elections with optional filters and pagination */
 export async function getElections(
@@ -40,9 +52,14 @@ export async function getElections(
     searchParams.page_size = String(params.page_size)
   }
 
-  return api
+  const raw = await api
     .get("elections", { searchParams })
-    .json<PaginatedElectionListResponse>()
+    .json<RawElectionListResponse>()
+
+  return {
+    elections: raw.items,
+    ...raw.pagination,
+  }
 }
 
 /** Get a single election's detail */

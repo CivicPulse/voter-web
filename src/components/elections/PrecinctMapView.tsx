@@ -195,7 +195,7 @@ export function PrecinctMapView({
       </div>
 
       {/* Map */}
-      <div className="relative h-[500px] md:h-[600px] rounded-lg overflow-hidden">
+      <div className="relative h-[350px] sm:h-[500px] md:h-[600px] rounded-lg overflow-hidden">
         <MapContainer
           center={GA_CENTER}
           zoom={GA_ZOOM}

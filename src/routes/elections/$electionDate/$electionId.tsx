@@ -78,7 +78,7 @@ function RaceResultsPage() {
   const hasCountyGeoJSON = geoJSON && geoJSON.features.length > 0
 
   return (
-    <div className="container mx-auto p-6 max-w-5xl">
+    <div className="container mx-auto px-4 py-4 sm:p-6 max-w-5xl">
       {/* Header */}
       <div className="mb-4">
         <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -91,7 +91,7 @@ function RaceResultsPage() {
         <LiveStatusIndicator
           status={election.status}
           lastRefreshedAt={election.last_refreshed_at}
-          refreshIntervalSeconds={election.refresh_interval_seconds}
+          refreshIntervalSeconds={election.refresh_interval_seconds ?? 120}
         />
       </div>
 
@@ -131,7 +131,7 @@ function RaceResultsPage() {
       )}
 
       {mapView === "county" && hasCountyGeoJSON && (
-        <div className="relative h-[500px] md:h-[600px] rounded-lg overflow-hidden">
+        <div className="relative h-[350px] sm:h-[500px] md:h-[600px] rounded-lg overflow-hidden">
           <div className="relative z-0 h-full w-full">
             <ElectionResultsMap
               geoJSON={geoJSON}

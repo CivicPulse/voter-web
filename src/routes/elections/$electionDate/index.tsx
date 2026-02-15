@@ -20,7 +20,7 @@ function RaceListPage() {
   )
 
   return (
-    <div className="container mx-auto p-6 max-w-3xl">
+    <div className="container mx-auto px-4 py-4 sm:p-6 max-w-3xl">
       <div className="flex items-center gap-3 mb-2">
         <Vote className="h-6 w-6" />
         <h1 className="text-2xl font-bold">{formattedDate}</h1>

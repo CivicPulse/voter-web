@@ -20,19 +20,28 @@ export type ElectionType = "general" | "primary" | "special" | "runoff"
 /** Election lifecycle status */
 export type ElectionStatus = "active" | "finalized"
 
-/** An election record from the API — represents a single race/contest */
+/** An election record from the API — represents a single race/contest.
+ *  The list endpoint returns a subset of fields; detail-only fields are optional. */
 export interface Election {
   id: string
   name: string
   election_date: string
   election_type: ElectionType
   district: string
-  data_source_url: string
   status: ElectionStatus
   last_refreshed_at: string | null
-  refresh_interval_seconds: number
-  created_at: string
-  updated_at: string
+  /** Only present on list endpoint */
+  precincts_reporting?: number | null
+  /** Only present on list endpoint */
+  precincts_participating?: number | null
+  /** Only present on detail endpoint */
+  data_source_url?: string
+  /** Only present on detail endpoint */
+  refresh_interval_seconds?: number
+  /** Only present on detail endpoint */
+  created_at?: string
+  /** Only present on detail endpoint */
+  updated_at?: string
 }
 
 /**
