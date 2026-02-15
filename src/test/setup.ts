@@ -23,6 +23,23 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 })
 
+// Mock pointer capture for vaul drawer in jsdom
+Element.prototype.setPointerCapture = vi.fn()
+Element.prototype.releasePointerCapture = vi.fn()
+
+// Mock getComputedStyle for vaul drawer transform handling
+const originalGetComputedStyle = globalThis.getComputedStyle
+globalThis.getComputedStyle = (elt: Element, pseudoElt?: string | null) => {
+  const style = originalGetComputedStyle(elt, pseudoElt)
+  if (!style.transform) {
+    Object.defineProperty(style, 'transform', {
+      value: 'none',
+      writable: true,
+    })
+  }
+  return style
+}
+
 // Mock IntersectionObserver for components that use it
 globalThis.IntersectionObserver = class IntersectionObserver {
   constructor() {}

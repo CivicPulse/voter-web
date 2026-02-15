@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react"
 import { useRaceResults } from "@/lib/hooks/use-race-results"
 import { useCountyResultsGeoJSON } from "@/lib/hooks/use-race-geojson"
 import { ElectionResultsMap } from "@/components/elections/ElectionResultsMap"
+import { ElectionResultsDrawer } from "@/components/elections/ElectionResultsDrawer"
 import { MapLayerSelector } from "@/components/elections/MapLayerSelector"
 import { CertificationBadge } from "@/components/elections/CertificationBadge"
 import type { MapDataLayer } from "@/types/elections"
@@ -32,6 +33,7 @@ function RaceResultsPage() {
 
   const [activeLayer, setActiveLayer] = useState<MapDataLayer>("leading_candidate")
   const [selectedCounty, setSelectedCounty] = useState<string | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   const isLoading = raceLoading || geoLoading
 
@@ -51,7 +53,12 @@ function RaceResultsPage() {
     )
   }
 
-  const { election } = raceData
+  const { election, results } = raceData
+
+  const handleCountyClick = (countyName: string) => {
+    setSelectedCounty(countyName)
+    setDrawerOpen(true)
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-5xl">
@@ -74,14 +81,24 @@ function RaceResultsPage() {
         />
       </div>
 
-      {/* Map */}
+      {/* Map + Drawer */}
       {geoJSON && geoJSON.features.length > 0 ? (
-        <div className="h-[500px] md:h-[600px] rounded-lg overflow-hidden">
-          <ElectionResultsMap
-            geoJSON={geoJSON}
-            activeLayer={activeLayer}
+        <div className="relative h-[500px] md:h-[600px] rounded-lg overflow-hidden">
+          <div className="relative z-0 h-full w-full">
+            <ElectionResultsMap
+              geoJSON={geoJSON}
+              activeLayer={activeLayer}
+              selectedCounty={selectedCounty}
+              onCountyClick={handleCountyClick}
+            />
+          </div>
+
+          <ElectionResultsDrawer
+            open={drawerOpen}
+            onOpenChange={setDrawerOpen}
+            results={results}
             selectedCounty={selectedCounty}
-            onCountyClick={setSelectedCounty}
+            onClearCounty={() => setSelectedCounty(null)}
           />
         </div>
       ) : (

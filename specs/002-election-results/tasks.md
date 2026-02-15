@@ -104,13 +104,13 @@
 
 ### Implementation for User Story 3
 
-- [ ] T026 [P] [US3] Create candidate result row component with name, party, vote count, percentage bar, and collapsible vote method breakdown section in `src/components/elections/CandidateResultRow.tsx` per FR-008/FR-009
-- [ ] T027 [P] [US3] Create county results panel showing county name, precincts reporting/participating, and per-candidate results in `src/components/elections/CountyResultsPanel.tsx` per FR-010
-- [ ] T028 [US3] Create election results drawer (vaul) with trigger button, race-wide summary view, and county-specific view following existing demographics drawer pattern in `src/components/elections/ElectionResultsDrawer.tsx` per FR-007/FR-008
-- [ ] T029 [US3] Integrate drawer with race results page — wire county map click to update drawer with county-specific results, show race-wide summary by default in `src/routes/elections/$electionDate/$electionId.tsx` per FR-010
-- [ ] T030 [P] [US3] Write component tests for CandidateResultRow (rendering, vote method expand/collapse) in `tests/components/elections/CandidateResultRow.test.tsx`
-- [ ] T057 [P] [US3] Write component tests for ElectionResultsDrawer (trigger, race-wide view, county-specific view toggle) in `tests/components/elections/ElectionResultsDrawer.test.tsx`
-- [ ] T058 [P] [US3] Write component tests for CountyResultsPanel (county data rendering, candidate rows) in `tests/components/elections/CountyResultsPanel.test.tsx`
+- [x] T026 [P] [US3] Create candidate result row component with name, party, vote count, percentage bar, and collapsible vote method breakdown section in `src/components/elections/CandidateResultRow.tsx` per FR-008/FR-009
+- [x] T027 [P] [US3] Create county results panel showing county name, precincts reporting/participating, and per-candidate results in `src/components/elections/CountyResultsPanel.tsx` per FR-010
+- [x] T028 [US3] Create election results drawer (vaul) with trigger button, race-wide summary view, and county-specific view following existing demographics drawer pattern in `src/components/elections/ElectionResultsDrawer.tsx` per FR-007/FR-008
+- [x] T029 [US3] Integrate drawer with race results page — wire county map click to update drawer with county-specific results, show race-wide summary by default in `src/routes/elections/$electionDate/$electionId.tsx` per FR-010
+- [x] T030 [P] [US3] Write component tests for CandidateResultRow (rendering, vote method expand/collapse) in `tests/components/elections/CandidateResultRow.test.tsx`
+- [x] T057 [P] [US3] Write component tests for ElectionResultsDrawer (trigger, race-wide view, county-specific view toggle) in `tests/components/elections/ElectionResultsDrawer.test.tsx`
+- [x] T058 [P] [US3] Write component tests for CountyResultsPanel (county data rendering, candidate rows) in `tests/components/elections/CountyResultsPanel.test.tsx`
 
 **Checkpoint**: Users can view complete race results in the drawer with expandable vote method breakdowns and county-specific drill-down. The core P1 experience (browse → map → drawer) is complete.
 
