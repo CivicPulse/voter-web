@@ -2,9 +2,9 @@ import { useState, useCallback, useMemo, useEffect } from "react"
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
 import type { Layer, PathOptions } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
-import bbox from "@turf/bbox"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { safeBbox, featuresWithGeometry } from "@/lib/geo"
 import { getPartyColor, getLeadingCandidate } from "@/types/elections"
 import type {
   PrecinctResultFeatureCollection,
@@ -42,8 +42,9 @@ function FitBoundsToPrecincts({
   const map = useMap()
 
   useEffect(() => {
-    if (geoJSON.features.length === 0) return
-    const [west, south, east, north] = bbox(geoJSON)
+    const bounds = safeBbox(geoJSON)
+    if (!bounds) return
+    const [west, south, east, north] = bounds
     map.fitBounds(
       [
         [south, west],
@@ -61,6 +62,11 @@ function PrecinctLayer({
 }: {
   geoJSON: PrecinctResultFeatureCollection
 }) {
+  const filteredGeoJSON = useMemo(
+    () => featuresWithGeometry(geoJSON),
+    [geoJSON],
+  )
+
   const style = useCallback(
     (feature?: Feature<Polygon | MultiPolygon, PrecinctResultGeoProperties>) => {
       if (!feature) return {}
@@ -69,13 +75,13 @@ function PrecinctLayer({
       let fillColor: string
       const fillOpacity = 0.6
 
-      if (!props.is_reported) {
-        fillColor = "#e5e7eb"
-      } else {
+      if (props.reporting_status === "Reported") {
         const leader = getLeadingCandidate(props.candidates)
         fillColor = leader
           ? getPartyColor(leader.political_party).fill
           : "#9ca3af"
+      } else {
+        fillColor = "#e5e7eb"
       }
 
       return {
@@ -95,8 +101,9 @@ function PrecinctLayer({
       layer: Layer,
     ) => {
       const props = feature.properties
+      const isReported = props.reporting_status === "Reported"
 
-      const candidateLines = props.is_reported
+      const candidateLines = isReported
         ? props.candidates
             .slice()
             .sort((a, b) => b.vote_count - a.vote_count)
@@ -111,7 +118,7 @@ function PrecinctLayer({
       layer.bindTooltip(
         `<div class="text-sm">
           <div class="font-semibold">${props.precinct_name}</div>
-          <div class="text-muted-foreground">${props.county_name}</div>
+          <div class="text-muted-foreground">${props.county}</div>
           ${candidateLines}
         </div>`,
         { sticky: true },
@@ -139,7 +146,7 @@ function PrecinctLayer({
 
   return (
     <GeoJSON
-      data={geoJSON}
+      data={filteredGeoJSON}
       style={style as (feature?: Feature) => PathOptions}
       onEachFeature={
         onEachFeature as (feature: Feature, layer: Layer) => void
@@ -165,6 +172,11 @@ export function PrecinctMapView({
   const sortedCounties = useMemo(
     () => [...countyNames].sort((a, b) => a.localeCompare(b)),
     [countyNames],
+  )
+
+  const hasRenderableFeatures = useMemo(
+    () => geoJSON && featuresWithGeometry(geoJSON).features.length > 0,
+    [geoJSON],
   )
 
   return (
@@ -206,7 +218,7 @@ export function PrecinctMapView({
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          {geoJSON && geoJSON.features.length > 0 ? (
+          {hasRenderableFeatures && geoJSON ? (
             <>
               <FitBoundsToPrecincts geoJSON={geoJSON} />
               <PrecinctLayer geoJSON={geoJSON} />
@@ -215,7 +227,7 @@ export function PrecinctMapView({
         </MapContainer>
 
         {/* Empty state overlay */}
-        {!isLoading && (!geoJSON || geoJSON.features.length === 0) && (
+        {!isLoading && !hasRenderableFeatures && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-lg">
             <p className="text-muted-foreground text-sm">
               Precinct boundaries are not available for this election.

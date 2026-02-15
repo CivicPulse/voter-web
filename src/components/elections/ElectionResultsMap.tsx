@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo } from "react"
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
 import type { Layer, PathOptions } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
-import bbox from "@turf/bbox"
 import { cn } from "@/lib/utils"
+import { safeBbox } from "@/lib/geo"
 import {
   getPartyColor,
   getReportingPercentage,
@@ -41,8 +41,9 @@ function FitBoundsToGeoJSON({ geoJSON }: { geoJSON: CountyResultFeatureCollectio
   const map = useMap()
 
   useEffect(() => {
-    if (geoJSON.features.length === 0) return
-    const [west, south, east, north] = bbox(geoJSON)
+    const bounds = safeBbox(geoJSON)
+    if (!bounds) return
+    const [west, south, east, north] = bounds
     map.fitBounds(
       [
         [south, west],

@@ -65,7 +65,7 @@ export interface CandidateResult {
   id: string
   name: string
   political_party: string
-  ballot_order: number
+  ballot_order?: number
   vote_count: number
   group_results: VoteMethodResult[]
 }
@@ -177,10 +177,9 @@ export type CountyResultFeatureCollection = FeatureCollection<
 export interface PrecinctResultGeoProperties {
   precinct_id: string
   precinct_name: string
-  county_name: string
-  is_reported: boolean
+  county: string
+  reporting_status: string
   candidates: CandidateResult[]
-  total_votes: number
 }
 
 /** Precinct-level election results GeoJSON */
