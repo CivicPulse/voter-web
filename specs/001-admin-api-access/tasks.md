@@ -174,14 +174,14 @@ All paths relative to repository root (`/home/kwhatcher/projects/civicpulse/vote
 
 ### Implementation for User Story 3
 
-- [ ] T053 [P] [US3] Create permission error component in `src/components/permission-error.tsx` that displays clear error message based on error type (session expired → "Your session has expired. Please log in again", permission denied → "You don't have permission to access this feature")
-- [ ] T054 [US3] Add error interceptor to admin API client in `src/lib/api/admin.ts` to detect 401 (unauthorized) and 403 (permission denied) responses and throw structured errors (`AuthenticationError`, `PermissionError` from `src/types/admin.ts`)
-- [ ] T055 [US3] Update `useUserRole` hook in `src/lib/hooks/use-user-role.ts` to clear role and redirect to login on 401 errors, clear role and hide admin UI on 403 errors
-- [ ] T056 [US3] Update admin route layout in `src/routes/admin.tsx` to catch permission errors and display permission error component with appropriate action buttons (Login / Go Home)
-- [ ] T057 [US3] Add error boundaries to all admin pages (user management, imports, exports) to catch and display permission errors gracefully without crashing the app
-- [ ] T058 [US3] Handle role change detection: if `useUserRole` hook detects role changed from admin/analyst to viewer, hide admin nav items and redirect away from admin pages
-- [ ] T059 [US3] Update all admin hooks (`useAdminUsers`, `useImportJobs`, `useExportJobs`) to handle 401/403 errors and show user-friendly error messages via toast notifications
-- [ ] T059a [US3] Add network error handling to polling hooks (`useImportJobs`, `useExportJobs`) - when polling fails due to network errors (timeout, connection refused, etc.), show non-intrusive toast notification, continue displaying last known job status, and automatically retry on next polling interval without disrupting user experience
+- [X] T053 [P] [US3] Create permission error component in `src/components/permission-error.tsx` that displays clear error message based on error type (session expired → "Your session has expired. Please log in again", permission denied → "You don't have permission to access this feature")
+- [X] T054 [US3] Add error interceptor to admin API client in `src/api/client.ts` to detect 401 (unauthorized) and 403 (permission denied) responses and throw structured errors (`AuthenticationError`, `PermissionError` from `src/types/admin.ts`)
+- [X] T055 [US3] Update `useUserRole` hook in `src/lib/hooks/use-user-role.ts` to clear role and redirect to login on 401 errors, clear role and hide admin UI on 403 errors
+- [X] T056 [US3] Update admin route layout in `src/routes/admin.tsx` to catch permission errors and display permission error component with appropriate action buttons (Login / Go Home)
+- [X] T057 [US3] Add error boundaries to all admin pages (user management, imports, exports) to catch and display permission errors gracefully without crashing the app
+- [X] T058 [US3] Handle role change detection: if `useUserRole` hook detects role changed from admin/analyst to viewer, hide admin nav items and redirect away from admin pages (handled automatically via useUserRole + Zustand store updates)
+- [X] T059 [US3] Update all admin hooks (`useAdminUsers`, `useImportJobs`, `useExportJobs`) to handle 401/403 errors and show user-friendly error messages via toast notifications
+- [X] T059a [US3] Add network error handling to polling hooks (`useImportJobs`, `useExportJobs`) - when polling fails due to network errors (timeout, connection refused, etc.), show non-intrusive toast notification, continue displaying last known job status, and automatically retry on next polling interval without disrupting user experience
 - [ ] T060 [US3] UI verification: Simulate session expiration (clear localStorage token) → attempt admin operation → verify error message and login prompt using Playwright MCP tools
 - [ ] T061 [US3] UI verification: Simulate permission denied (mock 403 response) → verify error message and admin UI hidden using Playwright MCP tools
 - [ ] T061a [US3] UI verification: Simulate network error during polling (disconnect network or throttle to force timeout) → verify toast notification appears, last job status remains visible, and polling resumes when network recovers using Playwright MCP tools
