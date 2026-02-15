@@ -27,7 +27,8 @@
       "Bash(bash:*)",
       "Bash(git -C /home/kwhatcher/projects/voter-web rev-parse --git-dir)",
       "Bash(npm test:*)",
-      "Bash(node_modules/.bin/vitest run:*)"
+      "Bash(node_modules/.bin/vitest run:*)",
+      "Bash(npx vitest:*)"
     ]
   }
 }
