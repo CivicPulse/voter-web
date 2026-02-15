@@ -74,6 +74,7 @@ function CreateUserPage() {
 
   const submitUser = (data: CreateUserFormValues) => {
     // Remove confirmPassword before sending to API
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword: _confirmPassword, ...userData } = data
 
     createUserMutation.mutate(userData, {
