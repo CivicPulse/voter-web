@@ -8,12 +8,14 @@ import type {
   LoginCredentials,
   TokenResponse,
   UserProfile,
+  UserRole,
 } from "@/types/auth"
 
 interface AuthState {
   accessToken: string | null
   refreshToken: string | null
   user: UserProfile | null
+  userRole: UserRole | null
   isAuthenticated: boolean
   isInitialized: boolean
 
@@ -23,6 +25,7 @@ interface AuthState {
   fetchUser: () => Promise<void>
   initialize: () => Promise<void>
   setTokens: (tokens: TokenResponse) => void
+  setUserRole: (role: UserRole | null) => void
   checkAuth: () => void
 }
 
@@ -30,6 +33,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: localStorage.getItem("access_token"),
   refreshToken: localStorage.getItem("refresh_token"),
   user: null,
+  userRole: null,
   isAuthenticated: !!localStorage.getItem("access_token"),
   isInitialized: false,
 
@@ -58,6 +62,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       accessToken: null,
       refreshToken: null,
       user: null,
+      userRole: null,
       isAuthenticated: false,
     })
   },
@@ -74,7 +79,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   fetchUser: async () => {
     const user = await getMe()
-    set({ user })
+    set({ user, userRole: user.role })
+  },
+
+  setUserRole: (role: UserRole | null) => {
+    set({ userRole: role })
   },
 
   setTokens: (tokens: TokenResponse) => {

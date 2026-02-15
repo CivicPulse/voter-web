@@ -24,17 +24,22 @@ import { useDistrictSlugResolver } from "@/hooks/useDistrictSlugResolver"
 import { useBoundaryTypes } from "@/hooks/useBoundaryTypes"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import { useStatewideOverlayTypes } from "@/hooks/useStatewideOverlayTypes"
+import { useUserRole } from "@/lib/hooks/use-user-role"
+import { AdminNavMenu, AdminNavLinks } from "@/components/admin-nav-menu"
+import { Toaster } from "@/components/ui/sonner"
 
 function MobileNav({
   headerTitle,
   isAuthenticated,
   user,
   onLogout,
+  isAdmin,
 }: {
   headerTitle: string | null
   isAuthenticated: boolean
   user: { username: string; role: string } | null
   onLogout: () => void
+  isAdmin: boolean
 }) {
   const [open, setOpen] = useState(false)
 
@@ -83,6 +88,12 @@ function MobileNav({
                   Address Lookup
                 </Link>
               </SheetClose>
+            )}
+
+            {isAdmin && (
+              <div className="pt-2 border-t mt-2">
+                <AdminNavLinks onLinkClick={() => setOpen(false)} />
+              </div>
             )}
           </div>
 
@@ -143,6 +154,10 @@ function RootLayout() {
   const initialize = useAuthStore((state) => state.initialize)
   const logout = useAuthStore((state) => state.logout)
   const navigate = useNavigate()
+
+  // Admin role check for navigation
+  const { data: userProfile } = useUserRole()
+  const isAdmin = userProfile?.role === "admin" || userProfile?.role === "analyst"
 
   // Route detection
   const countyIdMatch = useMatch({
@@ -300,6 +315,7 @@ function RootLayout() {
                 <Search className="h-4 w-4" />
               </Link>
             )}
+            {isAdmin && <AdminNavMenu />}
           </div>
 
           {headerTitle && (
@@ -340,6 +356,7 @@ function RootLayout() {
           isAuthenticated={isAuthenticated}
           user={user}
           onLogout={handleLogout}
+          isAdmin={isAdmin}
         />
 
         {/* Row 2: Layer controls (county detail or homepage) */}
@@ -376,6 +393,7 @@ function RootLayout() {
       <main className="flex-1 min-h-0 overflow-auto">
         <Outlet />
       </main>
+      <Toaster />
       <TanStackRouterDevtools />
     </div>
   )
