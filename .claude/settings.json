@@ -29,6 +29,9 @@
       "Bash(npm test:*)",
       "Bash(node_modules/.bin/vitest run:*)",
       "Bash(npx vitest:*)"
+    ],
+    "additionalDirectories": [
+      "/home/kwhatcher/projects/voter-web/src/routes/elections/$electionDate"
     ]
   }
 }
