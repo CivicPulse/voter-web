@@ -24,7 +24,9 @@
       "Bash(git -C /home/kwhatcher/projects/voter-web log --format='%ae')",
       "Bash(git fetch:*)",
       "Bash(git merge:*)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(git -C /home/kwhatcher/projects/voter-web rev-parse --git-dir)",
+      "Bash(npm test:*)"
     ]
   }
 }
