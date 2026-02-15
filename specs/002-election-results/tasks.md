@@ -41,11 +41,11 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 Add "Elections" top-level nav item visible to all users (authenticated and unauthenticated) linking to `/elections` in `src/routes/__root.tsx`
-- [ ] T006 [P] Create elections layout route with shared layout structure in `src/routes/elections.tsx`
-- [ ] T007 [P] Create client-side election filter state hook (ElectionFilters + RaceFilters) using Zustand in `src/lib/hooks/use-election-filters.ts`
-- [ ] T008 [P] Add "Elections" item to admin sidebar navigation in `src/routes/admin.tsx`
-- [ ] T060 [P] Write unit tests for election filter state hook (filter updates, reset) in `tests/lib/hooks/use-election-filters.test.ts`
+- [x] T005 Add "Elections" top-level nav item visible to all users (authenticated and unauthenticated) linking to `/elections` in `src/routes/__root.tsx`
+- [x] T006 [P] Create elections layout route with shared layout structure in `src/routes/elections.tsx`
+- [x] T007 [P] Create client-side election filter state hook (ElectionFilters + RaceFilters) using Zustand in `src/lib/hooks/use-election-filters.ts`
+- [x] T008 [P] Add "Elections" item to admin sidebar navigation in `src/routes/admin.tsx`
+- [x] T060 [P] Write unit tests for election filter state hook (filter updates, reset) in `tests/lib/hooks/use-election-filters.test.ts`
 
 **Checkpoint**: Foundation ready — navigation links exist, layout routes created, filter state available. User story implementation can now begin.
 
