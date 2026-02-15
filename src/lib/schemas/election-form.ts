@@ -1,0 +1,25 @@
+import { z } from "zod"
+
+export const createElectionSchema = z.object({
+  name: z
+    .string()
+    .min(3, "Name must be at least 3 characters")
+    .max(200, "Name must not exceed 200 characters"),
+  election_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be a valid date (YYYY-MM-DD)"),
+  election_type: z.enum(["general", "primary", "special", "runoff"], {
+    message: "Please select an election type",
+  }),
+  district: z
+    .string()
+    .min(1, "District is required")
+    .max(200, "District must not exceed 200 characters"),
+  data_source_url: z.string().url("Must be a valid URL"),
+  refresh_interval_seconds: z
+    .number({ coerce: true })
+    .int("Must be a whole number")
+    .min(60, "Minimum refresh interval is 60 seconds"),
+})
+
+export type ElectionFormValues = z.infer<typeof createElectionSchema>

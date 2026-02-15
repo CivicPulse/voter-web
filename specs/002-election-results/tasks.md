@@ -158,13 +158,13 @@
 
 ### Implementation for User Story 6
 
-- [ ] T038 [US6] Create admin elections CRUD hooks (useAdminElections list query, useCreateElection mutation, useUpdateElection mutation, useRefreshElection mutation) with toast notifications and query invalidation in `src/lib/hooks/use-admin-elections.ts` following pattern in existing admin hooks
-- [ ] T039 [P] [US6] Create election form component with React Hook Form + Zod validation (name, election_date, election_type dropdown, district, data_source_url, refresh_interval_seconds with min 60) in `src/routes/admin/elections/_components/election-form.tsx` per FR-018/FR-019
-- [ ] T040 [P] [US6] Create election two-step confirmation dialog displaying election details for review before submission in `src/routes/admin/elections/_components/election-confirm-dialog.tsx` per FR-020
-- [ ] T041 [P] [US6] Create admin elections data table showing name, date, type, status, last refresh, reporting progress with sortable columns in `src/routes/admin/elections/_components/election-table.tsx` per FR-017
-- [ ] T042 [US6] Implement admin elections list page at `/admin/elections` with data table and "Create Election" button in `src/routes/admin/elections/index.tsx` per FR-017/FR-025
-- [ ] T043 [US6] Implement admin create election page at `/admin/elections/create` with form, validation, and confirmation dialog in `src/routes/admin/elections/create.tsx` per FR-018/FR-019/FR-020/FR-026
-- [ ] T044 [P] [US6] Write unit tests for admin elections hooks (list query, create mutation, error handling) in `tests/lib/hooks/use-admin-elections.test.ts`
+- [x] T038 [US6] Create admin elections CRUD hooks (useAdminElections list query, useCreateElection mutation, useUpdateElection mutation, useRefreshElection mutation) with toast notifications and query invalidation in `src/lib/hooks/use-admin-elections.ts` following pattern in existing admin hooks
+- [x] T039 [P] [US6] Create election form component with React Hook Form + Zod validation (name, election_date, election_type dropdown, district, data_source_url, refresh_interval_seconds with min 60) in `src/routes/admin/elections/_components/election-form.tsx` per FR-018/FR-019
+- [x] T040 [P] [US6] Create election two-step confirmation dialog displaying election details for review before submission in `src/routes/admin/elections/_components/election-confirm-dialog.tsx` per FR-020
+- [x] T041 [P] [US6] Create admin elections data table showing name, date, type, status, last refresh, reporting progress with sortable columns in `src/routes/admin/elections/_components/election-table.tsx` per FR-017
+- [x] T042 [US6] Implement admin elections list page at `/admin/elections` with data table and "Create Election" button in `src/routes/admin/elections/index.tsx` per FR-017/FR-025
+- [x] T043 [US6] Implement admin create election page at `/admin/elections/create` with form, validation, and confirmation dialog in `src/routes/admin/elections/create.tsx` per FR-018/FR-019/FR-020/FR-026
+- [x] T044 [P] [US6] Write unit tests for admin elections hooks (list query, create mutation, error handling) in `tests/lib/hooks/use-admin-elections.test.ts`
 
 **Checkpoint**: Admin users can view and create elections with full validation and confirmation. Admin election management is operational.
 
