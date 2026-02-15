@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useCreateUser } from "@/lib/hooks/use-admin-users"
 import { createUserSchema, type CreateUserFormValues } from "@/lib/schemas/user-form"
+import { AdminErrorBoundary } from "@/components/admin-error-boundary"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -35,7 +36,11 @@ import { ArrowLeft, AlertCircle } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 
 export const Route = createFileRoute("/admin/users/create")({
-  component: CreateUserPage,
+  component: () => (
+    <AdminErrorBoundary>
+      <CreateUserPage />
+    </AdminErrorBoundary>
+  ),
 })
 
 function CreateUserPage() {

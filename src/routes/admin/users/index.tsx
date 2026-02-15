@@ -13,9 +13,14 @@ import {
 } from "@/components/ui/table"
 import { Users, Plus, Loader2 } from "lucide-react"
 import type { AdminUser } from "@/types/admin"
+import { AdminErrorBoundary } from "@/components/admin-error-boundary"
 
 export const Route = createFileRoute("/admin/users/")({
-  component: UserManagementPage,
+  component: () => (
+    <AdminErrorBoundary>
+      <UserManagementPage />
+    </AdminErrorBoundary>
+  ),
 })
 
 function UserManagementPage() {

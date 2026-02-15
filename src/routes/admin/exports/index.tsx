@@ -6,9 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Download, Loader2 } from "lucide-react"
 import { ExportJobTable } from "./_components/export-job-table"
 import { ExportRequestDialog } from "./_components/export-request-dialog"
+import { AdminErrorBoundary } from "@/components/admin-error-boundary"
 
 export const Route = createFileRoute("/admin/exports/")({
-  component: ExportsPage,
+  component: () => (
+    <AdminErrorBoundary>
+      <ExportsPage />
+    </AdminErrorBoundary>
+  ),
 })
 
 function ExportsPage() {

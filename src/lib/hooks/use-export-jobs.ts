@@ -5,13 +5,20 @@ import {
   createExport,
   downloadExport,
 } from "@/lib/api/admin"
-import { isActiveJob } from "@/types/admin"
+import {
+  isActiveJob,
+  AuthenticationError,
+  PermissionError,
+  NetworkError,
+} from "@/types/admin"
 import type { CreateExportRequest } from "@/types/admin"
+import { toast } from "sonner"
 
 /**
  * Hook to fetch and cache the list of all export jobs
  *
  * Automatically polls every 3 seconds when any job is active (pending/processing)
+ * Shows toast notifications for auth/permission/network errors
  */
 export function useExportJobs() {
   return useQuery({
@@ -24,7 +31,33 @@ export function useExportJobs() {
       return hasActiveJobs ? 3000 : false
     },
     staleTime: 0, // Always refetch when polling is active
-    retry: 2,
+    retry: (failureCount, error) => {
+      // Don't retry auth/permission errors
+      if (
+        error instanceof AuthenticationError ||
+        error instanceof PermissionError
+      ) {
+        if (error instanceof AuthenticationError) {
+          toast.error("Session expired", { description: error.message })
+        } else {
+          toast.error("Access denied", { description: error.message })
+        }
+        return false
+      }
+
+      // Handle network errors during polling
+      if (error instanceof NetworkError) {
+        if (failureCount === 0) {
+          toast.warning("Connection issue", {
+            description:
+              "Having trouble connecting. Will keep trying in the background.",
+          })
+        }
+        return failureCount < 2
+      }
+
+      return failureCount < 2
+    },
   })
 }
 
@@ -49,6 +82,7 @@ export function useExportJob(jobId: string | null) {
 
 /**
  * Hook to create an export job
+ * Shows success/error toast notifications
  */
 export function useCreateExport() {
   const queryClient = useQueryClient()
@@ -58,12 +92,27 @@ export function useCreateExport() {
     onSuccess: () => {
       // Invalidate export jobs list to show new job
       queryClient.invalidateQueries({ queryKey: ["admin", "exports", "list"] })
+      toast.success("Export started", {
+        description: "Export job has been created and is processing.",
+      })
+    },
+    onError: (error: Error) => {
+      if (error instanceof AuthenticationError) {
+        toast.error("Session expired", { description: error.message })
+      } else if (error instanceof PermissionError) {
+        toast.error("Access denied", { description: error.message })
+      } else {
+        toast.error("Export failed", {
+          description: error.message || "Failed to create export job.",
+        })
+      }
     },
   })
 }
 
 /**
  * Hook to download an export file
+ * Shows success/error toast notifications
  */
 export function useDownloadExport() {
   return useMutation({
@@ -79,6 +128,22 @@ export function useDownloadExport() {
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
+    },
+    onSuccess: () => {
+      toast.success("Download started", {
+        description: "Export file is downloading.",
+      })
+    },
+    onError: (error: Error) => {
+      if (error instanceof AuthenticationError) {
+        toast.error("Session expired", { description: error.message })
+      } else if (error instanceof PermissionError) {
+        toast.error("Access denied", { description: error.message })
+      } else {
+        toast.error("Download failed", {
+          description: error.message || "Failed to download export file.",
+        })
+      }
     },
   })
 }

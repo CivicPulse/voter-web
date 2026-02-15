@@ -6,9 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Upload, Loader2 } from "lucide-react"
 import { ImportJobTable } from "./_components/import-job-table"
 import { ImportUploadDialog } from "./_components/import-upload-dialog"
+import { AdminErrorBoundary } from "@/components/admin-error-boundary"
 
 export const Route = createFileRoute("/admin/imports/")({
-  component: ImportsPage,
+  component: () => (
+    <AdminErrorBoundary>
+      <ImportsPage />
+    </AdminErrorBoundary>
+  ),
 })
 
 function ImportsPage() {

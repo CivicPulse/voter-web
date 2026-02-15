@@ -26,6 +26,7 @@ import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import { useStatewideOverlayTypes } from "@/hooks/useStatewideOverlayTypes"
 import { useUserRole } from "@/lib/hooks/use-user-role"
 import { AdminNavMenu, AdminNavLinks } from "@/components/admin-nav-menu"
+import { Toaster } from "@/components/ui/sonner"
 
 function MobileNav({
   headerTitle,
@@ -392,6 +393,7 @@ function RootLayout() {
       <main className="flex-1 min-h-0 overflow-auto">
         <Outlet />
       </main>
+      <Toaster />
       <TanStackRouterDevtools />
     </div>
   )

@@ -14,6 +14,42 @@
 import type { UserRole } from "./auth"
 
 // ============================================================================
+// Error Types - Custom Error Classes for Admin Operations
+// ============================================================================
+
+/**
+ * Error thrown when authentication fails (401)
+ */
+export class AuthenticationError extends Error {
+  constructor(message = "Your session has expired. Please log in again.") {
+    super(message)
+    this.name = "AuthenticationError"
+  }
+}
+
+/**
+ * Error thrown when permission is denied (403)
+ */
+export class PermissionError extends Error {
+  constructor(
+    message = "You don't have permission to access this feature."
+  ) {
+    super(message)
+    this.name = "PermissionError"
+  }
+}
+
+/**
+ * Error type for network failures during polling operations
+ */
+export class NetworkError extends Error {
+  constructor(message = "Network connection failed. Retrying...") {
+    super(message)
+    this.name = "NetworkError"
+  }
+}
+
+// ============================================================================
 // Job Status Types - Discriminated Unions for Type-Safe State Management
 // ============================================================================
 
