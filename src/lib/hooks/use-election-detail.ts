@@ -20,7 +20,7 @@ export function useElectionDetail(electionDate: string) {
     },
     enabled: !!electionDate,
     staleTime: 30 * 1000,
-    retry: (failureCount, error) => {
+    retry: (failureCount) => {
       if (failureCount === 0) {
         toast.warning("Connection issue", {
           description: "Having trouble loading race list. Retrying...",

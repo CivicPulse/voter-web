@@ -59,16 +59,16 @@
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Create elections list query hook with client-side date grouping into ElectionEvent objects in `src/lib/hooks/use-elections.ts` (uses getElections API, groups by election_date, supports pagination and filter params)
-- [ ] T010 [P] [US1] Create election detail query hook in `src/lib/hooks/use-election-detail.ts` (fetches races for a specific date using date_from/date_to filters)
-- [ ] T011 [US1] Implement elections list page (grouped by date) at `/elections` in `src/routes/elections/index.tsx` showing election event cards with date, type(s), race count, status, and filter controls (status, type, date range) per FR-001/FR-002/FR-003/FR-015
-- [ ] T012 [US1] Create election date layout route in `src/routes/elections/$electionDate.tsx` with date validation and breadcrumb support
-- [ ] T013 [P] [US1] Create race list component with text search and category filter (Federal, State Senate, State House, Local) in `src/routes/elections/$electionDate/_components/race-list.tsx` per FR-003b
-- [ ] T014 [P] [US1] Create race list item component showing race name, district, and election status in `src/routes/elections/$electionDate/_components/race-list-item.tsx` per FR-003a
-- [ ] T015 [US1] Implement race list page for an election date at `/elections/$electionDate` in `src/routes/elections/$electionDate/index.tsx` using race-list and race-list-item components with empty state handling
-- [ ] T016 [P] [US1] Write unit tests for elections list hook (grouping logic, filtering, pagination) in `tests/lib/hooks/use-elections.test.ts`
-- [ ] T017 [P] [US1] Write unit tests for type utility functions (getPartyColor, getVotePercentage, getReportingPercentage, categorizeRace, getCertificationLabel, isActiveElection) in `tests/types/elections.test.ts`
-- [ ] T055 [P] [US1] Write unit tests for election detail hook (date filtering, race fetching) in `tests/lib/hooks/use-election-detail.test.ts`
+- [x] T009 [US1] Create elections list query hook with client-side date grouping into ElectionEvent objects in `src/lib/hooks/use-elections.ts` (uses getElections API, groups by election_date, supports pagination and filter params)
+- [x] T010 [P] [US1] Create election detail query hook in `src/lib/hooks/use-election-detail.ts` (fetches races for a specific date using date_from/date_to filters)
+- [x] T011 [US1] Implement elections list page (grouped by date) at `/elections` in `src/routes/elections/index.tsx` showing election event cards with date, type(s), race count, status, and filter controls (status, type, date range) per FR-001/FR-002/FR-003/FR-015
+- [x] T012 [US1] Create election date layout route in `src/routes/elections/$electionDate.tsx` with date validation and breadcrumb support
+- [x] T013 [P] [US1] Create race list component with text search and category filter (Federal, State Senate, State House, Local) in `src/routes/elections/$electionDate/_components/race-list.tsx` per FR-003b
+- [x] T014 [P] [US1] Create race list item component showing race name, district, and election status in `src/routes/elections/$electionDate/_components/race-list-item.tsx` per FR-003a
+- [x] T015 [US1] Implement race list page for an election date at `/elections/$electionDate` in `src/routes/elections/$electionDate/index.tsx` using race-list and race-list-item components with empty state handling
+- [x] T016 [P] [US1] Write unit tests for elections list hook (grouping logic, filtering, pagination) in `tests/lib/hooks/use-elections.test.ts`
+- [x] T017 [P] [US1] Write unit tests for type utility functions (getPartyColor, getVotePercentage, getReportingPercentage, categorizeRace, getCertificationLabel, isActiveElection) in `tests/types/elections.test.ts`
+- [x] T055 [P] [US1] Write unit tests for election detail hook (date filtering, race fetching) in `tests/lib/hooks/use-election-detail.test.ts`
 
 **Checkpoint**: Users can browse elections, filter by type/status/date, view race lists, and navigate to a race. The election discovery flow is fully functional.
 
