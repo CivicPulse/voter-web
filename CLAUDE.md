@@ -257,6 +257,8 @@ Do **not** mark a UI task as complete without performing this verification. If t
 
 ## Active Technologies
 - TypeScript 5.8+ (strict mode), React 19.2+ (001-admin-api-access)
+- TypeScript 5.9+, React 19.2+ + TanStack Router (file-based routing), TanStack Query (data fetching, caching, polling), React-Leaflet + Leaflet (maps), vaul (drawer), Recharts (charts if needed), Zustand (client state), ky (HTTP client), React Hook Form + Zod (admin forms), shadcn/ui (UI components), Lucide React (icons), Sonner (toasts) (002-election-results)
+- N/A (frontend SPA — all data from voter-api backend at `/api/v1`) (002-election-results)
 
 ## Recent Changes
 - 001-admin-api-access: Added TypeScript 5.8+ (strict mode), React 19.2+
