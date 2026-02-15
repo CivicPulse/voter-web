@@ -10,18 +10,28 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LookupIndexRouteImport } from './routes/lookup/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as LookupResultsRouteImport } from './routes/lookup/results'
 import { Route as DistrictsDistrictIdRouteImport } from './routes/districts/$districtId'
 import { Route as CountiesCountyIdRouteImport } from './routes/counties/$countyId'
+import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
+import { Route as AdminImportsIndexRouteImport } from './routes/admin/imports/index'
+import { Route as AdminExportsIndexRouteImport } from './routes/admin/exports/index'
 import { Route as DistrictsTypeNameRouteImport } from './routes/districts/$type/$name'
 import { Route as CountiesStateCountyRouteImport } from './routes/counties/$state/$county'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -39,6 +49,11 @@ const LookupIndexRoute = LookupIndexRouteImport.update({
   path: '/lookup/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const LookupResultsRoute = LookupResultsRouteImport.update({
   id: '/lookup/results',
   path: '/lookup/results',
@@ -54,6 +69,21 @@ const CountiesCountyIdRoute = CountiesCountyIdRouteImport.update({
   path: '/counties/$countyId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
+  id: '/users/',
+  path: '/users/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminImportsIndexRoute = AdminImportsIndexRouteImport.update({
+  id: '/imports/',
+  path: '/imports/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminExportsIndexRoute = AdminExportsIndexRouteImport.update({
+  id: '/exports/',
+  path: '/exports/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const DistrictsTypeNameRoute = DistrictsTypeNameRouteImport.update({
   id: '/districts/$type/$name',
   path: '/districts/$type/$name',
@@ -68,13 +98,18 @@ const CountiesStateCountyRoute = CountiesStateCountyRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
   '/lookup/results': typeof LookupResultsRoute
+  '/admin/': typeof AdminIndexRoute
   '/lookup/': typeof LookupIndexRoute
   '/counties/$state/$county': typeof CountiesStateCountyRoute
   '/districts/$type/$name': typeof DistrictsTypeNameRoute
+  '/admin/exports/': typeof AdminExportsIndexRoute
+  '/admin/imports/': typeof AdminImportsIndexRoute
+  '/admin/users/': typeof AdminUsersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,34 +118,48 @@ export interface FileRoutesByTo {
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
   '/lookup/results': typeof LookupResultsRoute
+  '/admin': typeof AdminIndexRoute
   '/lookup': typeof LookupIndexRoute
   '/counties/$state/$county': typeof CountiesStateCountyRoute
   '/districts/$type/$name': typeof DistrictsTypeNameRoute
+  '/admin/exports': typeof AdminExportsIndexRoute
+  '/admin/imports': typeof AdminImportsIndexRoute
+  '/admin/users': typeof AdminUsersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
   '/lookup/results': typeof LookupResultsRoute
+  '/admin/': typeof AdminIndexRoute
   '/lookup/': typeof LookupIndexRoute
   '/counties/$state/$county': typeof CountiesStateCountyRoute
   '/districts/$type/$name': typeof DistrictsTypeNameRoute
+  '/admin/exports/': typeof AdminExportsIndexRoute
+  '/admin/imports/': typeof AdminImportsIndexRoute
+  '/admin/users/': typeof AdminUsersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/about'
+    | '/admin'
     | '/login'
     | '/counties/$countyId'
     | '/districts/$districtId'
     | '/lookup/results'
+    | '/admin/'
     | '/lookup/'
     | '/counties/$state/$county'
     | '/districts/$type/$name'
+    | '/admin/exports/'
+    | '/admin/imports/'
+    | '/admin/users/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -119,25 +168,35 @@ export interface FileRouteTypes {
     | '/counties/$countyId'
     | '/districts/$districtId'
     | '/lookup/results'
+    | '/admin'
     | '/lookup'
     | '/counties/$state/$county'
     | '/districts/$type/$name'
+    | '/admin/exports'
+    | '/admin/imports'
+    | '/admin/users'
   id:
     | '__root__'
     | '/'
     | '/about'
+    | '/admin'
     | '/login'
     | '/counties/$countyId'
     | '/districts/$districtId'
     | '/lookup/results'
+    | '/admin/'
     | '/lookup/'
     | '/counties/$state/$county'
     | '/districts/$type/$name'
+    | '/admin/exports/'
+    | '/admin/imports/'
+    | '/admin/users/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AdminRoute: typeof AdminRouteWithChildren
   LoginRoute: typeof LoginRoute
   CountiesCountyIdRoute: typeof CountiesCountyIdRoute
   DistrictsDistrictIdRoute: typeof DistrictsDistrictIdRoute
@@ -154,6 +213,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -177,6 +243,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LookupIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/lookup/results': {
       id: '/lookup/results'
       path: '/lookup/results'
@@ -198,6 +271,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CountiesCountyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/users/': {
+      id: '/admin/users/'
+      path: '/users'
+      fullPath: '/admin/users/'
+      preLoaderRoute: typeof AdminUsersIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/imports/': {
+      id: '/admin/imports/'
+      path: '/imports'
+      fullPath: '/admin/imports/'
+      preLoaderRoute: typeof AdminImportsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/exports/': {
+      id: '/admin/exports/'
+      path: '/exports'
+      fullPath: '/admin/exports/'
+      preLoaderRoute: typeof AdminExportsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/districts/$type/$name': {
       id: '/districts/$type/$name'
       path: '/districts/$type/$name'
@@ -215,9 +309,26 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminExportsIndexRoute: typeof AdminExportsIndexRoute
+  AdminImportsIndexRoute: typeof AdminImportsIndexRoute
+  AdminUsersIndexRoute: typeof AdminUsersIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+  AdminExportsIndexRoute: AdminExportsIndexRoute,
+  AdminImportsIndexRoute: AdminImportsIndexRoute,
+  AdminUsersIndexRoute: AdminUsersIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AdminRoute: AdminRouteWithChildren,
   LoginRoute: LoginRoute,
   CountiesCountyIdRoute: CountiesCountyIdRoute,
   DistrictsDistrictIdRoute: DistrictsDistrictIdRoute,

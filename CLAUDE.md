@@ -141,3 +141,9 @@ After making **any** UI changes (components, layouts, styles, routes), you **mus
 5. If the change involves interaction (hover, click, form input), use the appropriate Playwright actions (`browser_click`, `browser_hover`, `browser_fill_form`, etc.) and verify the resulting state.
 
 Do **not** mark a UI task as complete without performing this verification. If the visual result does not match expectations, fix the issue and re-verify before proceeding.
+
+## Active Technologies
+- TypeScript 5.8+ (strict mode), React 19.2+ (001-admin-api-access)
+
+## Recent Changes
+- 001-admin-api-access: Added TypeScript 5.8+ (strict mode), React 19.2+
