@@ -297,7 +297,12 @@ export function getCertificationLabel(status: ElectionStatus): string {
   return status === "active" ? "Unofficial Results" : "Official Results"
 }
 
-/** Categorize a race by its district name for filtering */
+/**
+ * Categorize a race by its district name for filtering.
+ * Heuristic-based: matches common Georgia district naming conventions.
+ * Edge cases (Commissioner, Board of Education, Public Service Commission)
+ * fall through to "local" as the catch-all category.
+ */
 export function categorizeRace(district: string): RaceCategory {
   const lower = district.toLowerCase()
   if (lower.includes("us ") || lower.includes("u.s.") || lower.includes("president")) return "federal"

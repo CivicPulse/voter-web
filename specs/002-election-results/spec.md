@@ -28,9 +28,9 @@ A user clicks the "Elections" item in the main navigation bar (a new top-level n
 
 **Acceptance Scenarios**:
 
-1. **Given** the user navigates to the elections section, **When** the page loads, **Then** a list of elections is displayed showing each election's name, date, type, status, and overall reporting progress.
+1. **Given** the user navigates to the elections section, **When** the page loads, **Then** a list of elections is displayed showing each election's name, date, type, and status.
 2. **Given** elections are listed, **When** the user applies a filter (e.g., type = "general"), **Then** only elections matching the filter criteria are shown.
-3. **Given** elections are listed, **When** the user selects an election, **Then** they are navigated to the election detail page showing a list of races/contests within that election, each displaying the race name, district, number of candidates, seat count, and reporting progress.
+3. **Given** elections are listed, **When** the user selects an election, **Then** they are navigated to the election detail page showing a list of races/contests within that election, each displaying the race name, district, and election status.
 4. **Given** the race list is displayed, **When** the user types in the search bar, **Then** the race list filters to show only races matching the search text (by name or district).
 5. **Given** the race list is displayed, **When** the user selects a category filter (e.g., "State Senate"), **Then** only races in that category are shown.
 6. **Given** the race list is displayed, **When** the user selects a race, **Then** they are navigated to the race results view with the map and drawer for that specific race.
@@ -108,7 +108,7 @@ During an active election, results update automatically without requiring the us
 
 ### User Story 6 - Admin: Create a New Election (Priority: P2)
 
-An admin user navigates to the admin elections management page and creates a new election by providing its name, date, type, data source URL, and optionally a refresh interval. The data source URL points to the SOS results endpoint which returns all races for that election in a single payload; the backend parses individual races automatically on refresh. A confirmation step is shown before the election is created, following the established two-step confirmation pattern used in other admin operations.
+An admin or analyst user navigates to the admin elections management page and creates a new election by providing its name, date, type, data source URL, and optionally a refresh interval. The data source URL points to the SOS results endpoint which returns all races for that election in a single payload; the backend parses individual races automatically on refresh. A confirmation step is shown before the election is created, following the established two-step confirmation pattern used in other admin operations.
 
 **Why this priority**: Admins need to set up elections in the system before any results can be ingested or viewed. This is the foundational admin operation that enables all other election functionality.
 
@@ -126,7 +126,7 @@ An admin user navigates to the admin elections management page and creates a new
 
 ### User Story 7 - Admin: Update and Manage an Existing Election (Priority: P2)
 
-An admin user can update an existing election's details, change its status between active and finalized, and manually trigger a data refresh. These actions allow admins to manage the election lifecycle from setup through finalization.
+An admin or analyst user can update an existing election's details, change its status between active and finalized, and manually trigger a data refresh. These actions allow admins to manage the election lifecycle from setup through finalization.
 
 **Why this priority**: After creating an election, admins need to manage its lifecycle — updating the data source, adjusting refresh intervals, finalizing results, and manually refreshing when needed. These are essential operational controls.
 
@@ -163,12 +163,12 @@ An admin user can update an existing election's details, change its status betwe
 **Public Election Viewing:**
 
 - **FR-001**: System MUST provide a top-level "Elections" navigation item visible to all users (authenticated and unauthenticated) that links to a dedicated elections list page at `/elections`.
-- **FR-002**: System MUST display a browsable, filterable list of elections showing name, date, type, status, and overall reporting progress.
+- **FR-002**: System MUST display a browsable, filterable list of elections showing name, date, type, and status.
 - **FR-003**: System MUST support filtering elections by status, election type, and date range.
-- **FR-003a**: System MUST display a list of races/contests within a selected election, showing race name, district, number of candidates, seat count, and per-race reporting progress. The election detail page is at `/elections/$electionId`.
+- **FR-003a**: System MUST display a list of races/contests within a selected election, showing race name, district, and election status. The election detail page (race list) is at `/elections/$electionDate`.
 - **FR-003b**: The race list MUST support text search (filtering by race name or district) and category filtering (e.g., Federal, State Senate, State House, Local) to help users navigate elections with many races.
-- **FR-004**: System MUST display a choropleth map of counties colored by race result data when viewing a specific race within an election, on a dedicated race results page with its own map instance (separate from the home map). The race results page is at `/elections/$electionId/races/$raceId`.
-- **FR-005**: System MUST allow users to switch the map's data layer between at least: leading candidate (by party color), precincts reporting percentage, and total votes cast.
+- **FR-004**: System MUST display a choropleth map of counties colored by race result data when viewing a specific race within an election, on a dedicated race results page with its own map instance (separate from the home map). The race results page is at `/elections/$electionDate/$electionId`.
+- **FR-005**: System MUST allow users to switch the map's data layer between at least: leading candidate (by party color), precincts reporting percentage (sequential light-to-dark scale), and total votes cast (sequential scale using percentile bins across counties to avoid large-county domination).
 - **FR-006**: System MUST show a tooltip on county hover displaying county name, reporting progress, and per-candidate vote summary for the current race.
 - **FR-007**: System MUST display detailed race results in a bottom drawer panel following the established demographics drawer pattern (trigger button, scrollable content, close button).
 - **FR-008**: The results drawer MUST show race-wide summary results including the race name, district, seat count ("Vote for N"), and each candidate's name, party affiliation, vote count, vote percentage, and a visual indicator of relative share.
@@ -178,13 +178,13 @@ An admin user can update an existing election's details, change its status betwe
 - **FR-012**: System MUST auto-refresh election results data at the election's configured refresh interval while the election status is active.
 - **FR-013**: System MUST display the last refresh timestamp, a live/final status indicator, and a prominent certification badge: "Unofficial Results" for active elections, "Official Results" for finalized elections.
 - **FR-014**: System MUST stop auto-refreshing when the election status is finalized and display the "Official Results" badge instead of the live indicator.
-- **FR-015**: System MUST paginate the elections list to handle large numbers of elections.
+- **FR-015**: System MUST paginate the elections list using numbered page controls with a default page size of 20, consistent with the backend API default.
 - **FR-016**: System MUST handle error states gracefully, showing the last known good data when refreshes fail and displaying appropriate empty states when no data is available.
 
 **Admin Election Management:**
 
 - **FR-017**: Admin users MUST be able to view a management list of all elections within the admin section, showing name, date, type, status, last refresh time, and reporting progress.
-- **FR-018**: Admin users MUST be able to create a new election by providing name, election date, election type, data source URL, and optional refresh interval. Races are automatically parsed from the data source on first refresh — admins do not create races manually.
+- **FR-018**: Admin users MUST be able to create a new election by providing name, election date, election type, district, data source URL, and optional refresh interval. Races are automatically parsed from the data source on first refresh — admins do not create races manually.
 - **FR-019**: The election creation form MUST validate all required fields and enforce constraints (refresh interval minimum 60 seconds, valid URL format, election type from allowed values).
 - **FR-020**: Election creation MUST use a two-step confirmation dialog showing election details before final submission, consistent with the existing admin confirmation pattern.
 - **FR-021**: Admin users MUST be able to update an existing election's name, data source URL, status, and refresh interval.
@@ -215,6 +215,7 @@ An admin user can update an existing election's details, change its status betwe
 - Admin election management pages follow the same route structure (`/admin/elections/*`), access control, API patterns, error handling, and two-step confirmation patterns already established by the existing admin features (users, imports, exports).
 - The election results section is a dedicated area of the application with its own top-level nav item ("Elections"), separate routes (`/elections`, `/elections/$electionDate`, `/elections/$electionDate/$electionId`), and its own map instance — independent from the existing home page map and demographics drawer. The `$electionDate` segment groups races by date; the `$electionId` is the API election UUID for a specific race.
 - The election results page is publicly accessible (no authentication required to view results), consistent with the API's public endpoints. The "Elections" nav item is visible to all users regardless of authentication status.
+- Seat count ("Vote for N") is not provided by the backend API. The frontend defaults to displaying "Vote for 1" on race results pages. If the backend adds a `seat_count` field to the Election entity in the future, the frontend should use it.
 
 ## Success Criteria *(mandatory)*
 
