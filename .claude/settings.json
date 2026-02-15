@@ -31,7 +31,8 @@
       "Bash(npx vitest:*)",
       "Bash(git -C /home/kwhatcher/projects/voter-web status -u)",
       "Bash(git -C /home/kwhatcher/projects/voter-web diff --stat)",
-      "Bash(git -C /home/kwhatcher/projects/voter-web log --oneline -3)"
+      "Bash(git -C /home/kwhatcher/projects/voter-web log --oneline -3)",
+      "Bash(git -C /home/kwhatcher/projects/voter-web log --oneline -1)"
     ],
     "additionalDirectories": [
       "/home/kwhatcher/projects/voter-web/src/routes/elections/$electionDate"
