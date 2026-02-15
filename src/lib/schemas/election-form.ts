@@ -17,7 +17,7 @@ export const createElectionSchema = z.object({
     .max(200, "District must not exceed 200 characters"),
   data_source_url: z.string().url("Must be a valid URL"),
   refresh_interval_seconds: z
-    .number({ coerce: true })
+    .number()
     .int("Must be a whole number")
     .min(60, "Minimum refresh interval is 60 seconds"),
 })

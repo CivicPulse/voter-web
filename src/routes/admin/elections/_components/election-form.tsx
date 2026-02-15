@@ -163,7 +163,12 @@ export function ElectionForm({
             <FormItem>
               <FormLabel>Refresh Interval (seconds)</FormLabel>
               <FormControl>
-                <Input type="number" min={60} {...field} />
+                <Input
+                  type="number"
+                  min={60}
+                  {...field}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                />
               </FormControl>
               <FormDescription>
                 How often to poll the data source (minimum 60 seconds)

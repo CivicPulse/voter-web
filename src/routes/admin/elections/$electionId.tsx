@@ -5,6 +5,7 @@ import {
   useUpdateElection,
   useRefreshElection,
 } from "@/lib/hooks/use-admin-elections"
+import type { ElectionFormValues } from "@/lib/schemas/election-form"
 import { AdminErrorBoundary } from "@/components/admin-error-boundary"
 import { ElectionForm } from "./_components/election-form"
 import { Button } from "@/components/ui/button"
