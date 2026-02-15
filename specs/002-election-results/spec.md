@@ -5,15 +5,21 @@
 **Status**: Draft
 **Input**: User description: "We need a way to visualize and review live election results in the web interface. This would include both geospatial mapping (like votes per county or precinct, or precincts/counties reported) and text data similar to the demographics drawer that exists now. Admin functions will be needed as well."
 
+## Clarifications
+
+### Session 2026-02-15
+
+- Q: Where should the public elections section appear in the app navigation? → A: New top-level nav item "Elections" linking to a dedicated `/elections` route with its own map and drawer, separate from the existing home map page.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Browse and Select Elections (Priority: P1)
 
-A user visits the election results area of the application and sees a list of available elections. They can filter elections by type (general, primary, special, runoff), status (active, finalized), and date range. They select an election to view its results.
+A user clicks the "Elections" item in the main navigation bar (a new top-level nav item) and is taken to a dedicated elections list page at `/elections`. They see a list of available elections and can filter by type (general, primary, special, runoff), status (active, finalized), and date range. They select an election to view its results on a dedicated election detail page with its own map and drawer, separate from the home map.
 
 **Why this priority**: Users must first be able to discover and select an election before viewing any results. This is the entry point for the entire feature and delivers immediate value by making election data accessible.
 
-**Independent Test**: Can be fully tested by navigating to the elections page, verifying the list loads with filtering controls, and selecting an election to confirm navigation to the detail view.
+**Independent Test**: Can be fully tested by clicking the "Elections" nav item, verifying the list loads at `/elections` with filtering controls, and selecting an election to confirm navigation to the election detail view.
 
 **Acceptance Scenarios**:
 
@@ -146,34 +152,35 @@ An admin user can update an existing election's details, change its status betwe
 
 **Public Election Viewing:**
 
-- **FR-001**: System MUST display a browsable, filterable list of elections showing name, date, type, status, and reporting progress.
-- **FR-002**: System MUST support filtering elections by status, election type, date range, and district.
-- **FR-003**: System MUST display a choropleth map of counties colored by election result data when viewing a specific election.
-- **FR-004**: System MUST allow users to switch the map's data layer between at least: leading candidate (by party color), precincts reporting percentage, and total votes cast.
-- **FR-005**: System MUST show a tooltip on county hover displaying county name, reporting progress, and per-candidate vote summary.
-- **FR-006**: System MUST display detailed election results in a bottom drawer panel following the established demographics drawer pattern (trigger button, scrollable content, close button).
-- **FR-007**: The results drawer MUST show statewide summary results including each candidate's name, party affiliation, vote count, vote percentage, and a visual indicator of relative share.
-- **FR-008**: The results drawer MUST show vote method breakdowns (e.g., Election Day, Absentee, Advance) per candidate when available.
-- **FR-009**: System MUST update the drawer to show county-specific results when a county is selected on the map.
-- **FR-010**: System MUST support a precinct-level map view with precincts colored by leading candidate, filterable by county.
-- **FR-011**: System MUST auto-refresh election results data at the election's configured refresh interval while the election status is active.
-- **FR-012**: System MUST display the last refresh timestamp and a live/final status indicator.
-- **FR-013**: System MUST stop auto-refreshing when the election status is finalized and display a "Final Results" indicator.
-- **FR-014**: System MUST paginate the elections list to handle large numbers of elections.
-- **FR-015**: System MUST handle error states gracefully, showing the last known good data when refreshes fail and displaying appropriate empty states when no data is available.
+- **FR-001**: System MUST provide a top-level "Elections" navigation item visible to all users (authenticated and unauthenticated) that links to a dedicated elections list page at `/elections`.
+- **FR-002**: System MUST display a browsable, filterable list of elections showing name, date, type, status, and reporting progress.
+- **FR-003**: System MUST support filtering elections by status, election type, date range, and district.
+- **FR-004**: System MUST display a choropleth map of counties colored by election result data when viewing a specific election, on a dedicated election detail page with its own map instance (separate from the home map).
+- **FR-005**: System MUST allow users to switch the map's data layer between at least: leading candidate (by party color), precincts reporting percentage, and total votes cast.
+- **FR-006**: System MUST show a tooltip on county hover displaying county name, reporting progress, and per-candidate vote summary.
+- **FR-007**: System MUST display detailed election results in a bottom drawer panel following the established demographics drawer pattern (trigger button, scrollable content, close button).
+- **FR-008**: The results drawer MUST show statewide summary results including each candidate's name, party affiliation, vote count, vote percentage, and a visual indicator of relative share.
+- **FR-009**: The results drawer MUST show vote method breakdowns (e.g., Election Day, Absentee, Advance) per candidate when available.
+- **FR-010**: System MUST update the drawer to show county-specific results when a county is selected on the map.
+- **FR-011**: System MUST support a precinct-level map view with precincts colored by leading candidate, filterable by county.
+- **FR-012**: System MUST auto-refresh election results data at the election's configured refresh interval while the election status is active.
+- **FR-013**: System MUST display the last refresh timestamp and a live/final status indicator.
+- **FR-014**: System MUST stop auto-refreshing when the election status is finalized and display a "Final Results" indicator.
+- **FR-015**: System MUST paginate the elections list to handle large numbers of elections.
+- **FR-016**: System MUST handle error states gracefully, showing the last known good data when refreshes fail and displaying appropriate empty states when no data is available.
 
 **Admin Election Management:**
 
-- **FR-016**: Admin users MUST be able to view a management list of all elections within the admin section, showing name, date, type, status, last refresh time, and reporting progress.
-- **FR-017**: Admin users MUST be able to create a new election by providing name, election date, election type, district, data source URL, and optional refresh interval.
-- **FR-018**: The election creation form MUST validate all required fields and enforce constraints (refresh interval minimum 60 seconds, valid URL format, election type from allowed values).
-- **FR-019**: Election creation MUST use a two-step confirmation dialog showing election details before final submission, consistent with the existing admin confirmation pattern.
-- **FR-020**: Admin users MUST be able to update an existing election's name, data source URL, status, and refresh interval.
-- **FR-021**: Changing an election's status to "finalized" MUST require confirmation, warning that auto-refresh will stop.
-- **FR-022**: Admin users MUST be able to manually trigger a data refresh for an active election, with feedback showing the number of precincts reporting and counties updated.
-- **FR-023**: Manual refresh MUST be unavailable for finalized elections.
-- **FR-024**: Admin election management pages MUST be protected by the same role-based access control used by other admin pages (admin and analyst roles only).
-- **FR-025**: All admin election operations MUST provide toast notifications for success, validation errors, and failure states, consistent with existing admin patterns.
+- **FR-017**: Admin users MUST be able to view a management list of all elections within the admin section, showing name, date, type, status, last refresh time, and reporting progress.
+- **FR-018**: Admin users MUST be able to create a new election by providing name, election date, election type, district, data source URL, and optional refresh interval.
+- **FR-019**: The election creation form MUST validate all required fields and enforce constraints (refresh interval minimum 60 seconds, valid URL format, election type from allowed values).
+- **FR-020**: Election creation MUST use a two-step confirmation dialog showing election details before final submission, consistent with the existing admin confirmation pattern.
+- **FR-021**: Admin users MUST be able to update an existing election's name, data source URL, status, and refresh interval.
+- **FR-022**: Changing an election's status to "finalized" MUST require confirmation, warning that auto-refresh will stop.
+- **FR-023**: Admin users MUST be able to manually trigger a data refresh for an active election, with feedback showing the number of precincts reporting and counties updated.
+- **FR-024**: Manual refresh MUST be unavailable for finalized elections.
+- **FR-025**: Admin election management pages MUST be protected by the same role-based access control used by other admin pages (admin and analyst roles only).
+- **FR-026**: All admin election operations MUST provide toast notifications for success, validation errors, and failure states, consistent with existing admin patterns.
 
 ### Key Entities
 
@@ -193,7 +200,8 @@ An admin user can update an existing election's details, change its status betwe
 - The refresh interval for auto-polling is determined by the election's `refresh_interval_seconds` field (minimum 60 seconds).
 - Elections with no results data yet will still appear in the list but show an appropriate empty state on their detail page.
 - Admin election management pages follow the same route structure (`/admin/elections/*`), access control, API patterns, error handling, and two-step confirmation patterns already established by the existing admin features (users, imports, exports).
-- The election results page is publicly accessible (no authentication required to view results), consistent with the API's public endpoints.
+- The election results section is a dedicated area of the application with its own top-level nav item ("Elections"), separate routes (`/elections`, `/elections/$electionId`), and its own map instance — independent from the existing home page map and demographics drawer.
+- The election results page is publicly accessible (no authentication required to view results), consistent with the API's public endpoints. The "Elections" nav item is visible to all users regardless of authentication status.
 
 ## Success Criteria *(mandatory)*
 
