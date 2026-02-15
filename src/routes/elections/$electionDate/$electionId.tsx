@@ -8,6 +8,7 @@ import { ElectionResultsDrawer } from "@/components/elections/ElectionResultsDra
 import { PrecinctMapView } from "@/components/elections/PrecinctMapView"
 import { MapLayerSelector } from "@/components/elections/MapLayerSelector"
 import { CertificationBadge } from "@/components/elections/CertificationBadge"
+import { LiveStatusIndicator } from "@/components/elections/LiveStatusIndicator"
 import {
   ToggleGroup,
   ToggleGroupItem,
@@ -87,6 +88,11 @@ function RaceResultsPage() {
           </div>
           <CertificationBadge status={election.status} />
         </div>
+        <LiveStatusIndicator
+          status={election.status}
+          lastRefreshedAt={election.last_refreshed_at}
+          refreshIntervalSeconds={election.refresh_interval_seconds}
+        />
       </div>
 
       {/* Controls row: view toggle + layer selector */}

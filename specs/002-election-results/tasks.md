@@ -140,11 +140,11 @@
 
 ### Implementation for User Story 5
 
-- [ ] T034 [P] [US5] Create live status indicator component showing last refresh timestamp, next refresh countdown, and live/final badge in `src/components/elections/LiveStatusIndicator.tsx` per FR-013/FR-014
-- [ ] T035 [US5] Add auto-refresh polling logic using TanStack Query refetchInterval to race results hook — poll at election.refresh_interval_seconds when status is active, stop when finalized, handle network errors with warning toast in `src/lib/hooks/use-race-results.ts` per FR-012/FR-014/FR-016
-- [ ] T036 [US5] Integrate live status indicator into race results page header and wire auto-refresh behavior in `src/routes/elections/$electionDate/$electionId.tsx`
-- [ ] T037 [P] [US5] Write unit tests for auto-refresh polling logic (active polling, finalized stops, network error handling) in `tests/lib/hooks/use-race-results.test.ts`
-- [ ] T059 [P] [US5] Write component tests for LiveStatusIndicator (active vs finalized, timestamp display) in `tests/components/elections/LiveStatusIndicator.test.tsx`
+- [x] T034 [P] [US5] Create live status indicator component showing last refresh timestamp, next refresh countdown, and live/final badge in `src/components/elections/LiveStatusIndicator.tsx` per FR-013/FR-014
+- [x] T035 [US5] Add auto-refresh polling logic using TanStack Query refetchInterval to race results hook — poll at election.refresh_interval_seconds when status is active, stop when finalized, handle network errors with warning toast in `src/lib/hooks/use-race-results.ts` per FR-012/FR-014/FR-016
+- [x] T036 [US5] Integrate live status indicator into race results page header and wire auto-refresh behavior in `src/routes/elections/$electionDate/$electionId.tsx`
+- [x] T037 [P] [US5] Write unit tests for auto-refresh polling logic (active polling, finalized stops, network error handling) in `tests/lib/hooks/use-race-results.test.ts`
+- [x] T059 [P] [US5] Write component tests for LiveStatusIndicator (active vs finalized, timestamp display) in `tests/components/elections/LiveStatusIndicator.test.tsx`
 
 **Checkpoint**: Active elections auto-refresh within the configured interval (SC-005). Finalized elections show "Official Results" with no polling.
 

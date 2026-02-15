@@ -14,6 +14,9 @@ export interface RaceResultsData {
 /**
  * Hook to fetch both election detail and results for a specific race.
  * Combines two API calls into a single query for the race results page.
+ *
+ * Auto-refreshes at the election's configured interval when status is "active".
+ * Stops polling when the election is finalized.
  */
 export function useRaceResults(electionId: string) {
   return useQuery({
@@ -34,6 +37,11 @@ export function useRaceResults(electionId: string) {
         })
       }
       return failureCount < 2
+    },
+    refetchInterval: (query) => {
+      const data = query.state.data
+      if (data?.election.status !== "active") return false
+      return data.election.refresh_interval_seconds * 1000
     },
   })
 }
