@@ -124,9 +124,9 @@
 
 ### Implementation for User Story 4
 
-- [ ] T031 [US4] Add precinct GeoJSON query hook (with county filter parameter) to `src/lib/hooks/use-race-geojson.ts` (fetches GET /elections/{id}/results/geojson/precincts?county=X, returns PrecinctResultFeatureCollection)
-- [ ] T032 [US4] Create precinct map view component with county filter dropdown, precinct GeoJSON overlay, precinct hover tooltips, and empty state for unavailable precinct data in `src/components/elections/PrecinctMapView.tsx` per FR-011
-- [ ] T033 [US4] Integrate precinct view toggle (county vs precinct map switch) into race results page in `src/routes/elections/$electionDate/$electionId.tsx` per FR-011/SC-006
+- [x] T031 [US4] Add precinct GeoJSON query hook (with county filter parameter) to `src/lib/hooks/use-race-geojson.ts` (fetches GET /elections/{id}/results/geojson/precincts?county=X, returns PrecinctResultFeatureCollection)
+- [x] T032 [US4] Create precinct map view component with county filter dropdown, precinct GeoJSON overlay, precinct hover tooltips, and empty state for unavailable precinct data in `src/components/elections/PrecinctMapView.tsx` per FR-011
+- [x] T033 [US4] Integrate precinct view toggle (county vs precinct map switch) into race results page in `src/routes/elections/$electionDate/$electionId.tsx` per FR-011/SC-006
 
 **Checkpoint**: Users can switch between county and precinct map views within 2s (SC-006). Precinct view is filterable by county.
 
