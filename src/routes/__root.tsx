@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-router"
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
 import { useEffect, useState } from "react"
-import { Loader2, LogIn, LogOut, Menu, Search, User } from "lucide-react"
+import { HelpCircle, Loader2, LogIn, LogOut, Menu, Search, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -27,6 +27,7 @@ import { useStatewideOverlayTypes } from "@/hooks/useStatewideOverlayTypes"
 import { useUserRole } from "@/lib/hooks/use-user-role"
 import { AdminNavMenu, AdminNavLinks } from "@/components/admin-nav-menu"
 import { Toaster } from "@/components/ui/sonner"
+import { WelcomeModal } from "@/components/WelcomeModal"
 
 function MobileNav({
   headerTitle,
@@ -34,12 +35,14 @@ function MobileNav({
   user,
   onLogout,
   isAdmin,
+  onShowWelcome,
 }: {
   headerTitle: string | null
   isAuthenticated: boolean
   user: { username: string; role: string } | null
   onLogout: () => void
   isAdmin: boolean
+  onShowWelcome: () => void
 }) {
   const [open, setOpen] = useState(false)
 
@@ -77,6 +80,16 @@ function MobileNav({
               >
                 About
               </Link>
+            </SheetClose>
+            <SheetClose asChild>
+              <button
+                type="button"
+                className="py-2 text-sm text-left flex items-center gap-2"
+                onClick={onShowWelcome}
+              >
+                <HelpCircle className="h-4 w-4" />
+                Help
+              </button>
             </SheetClose>
             {isAuthenticated && (
               <SheetClose asChild>
@@ -274,6 +287,10 @@ function RootLayout() {
     }
   }
 
+  const [showWelcome, setShowWelcome] = useState(
+    () => localStorage.getItem("welcome_dismissed") !== "true",
+  )
+
   useEffect(() => {
     initialize()
   }, [initialize])
@@ -306,6 +323,14 @@ function RootLayout() {
             <Link to="/about" className="[&.active]:font-bold shrink-0">
               About
             </Link>
+            <button
+              type="button"
+              className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setShowWelcome(true)}
+              aria-label="Help"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </button>
             {isAuthenticated && (
               <Link
                 to="/lookup"
@@ -357,6 +382,7 @@ function RootLayout() {
           user={user}
           onLogout={handleLogout}
           isAdmin={isAdmin}
+          onShowWelcome={() => setShowWelcome(true)}
         />
 
         {/* Row 2: Layer controls (county detail or homepage) */}
@@ -393,6 +419,7 @@ function RootLayout() {
       <main className="flex-1 min-h-0 overflow-auto">
         <Outlet />
       </main>
+      <WelcomeModal open={showWelcome} onOpenChange={setShowWelcome} />
       <Toaster />
       <TanStackRouterDevtools />
     </div>
