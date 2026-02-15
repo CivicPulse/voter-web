@@ -61,6 +61,119 @@ Edit `.env` to configure the API base URL if needed (defaults to `http://localho
 - `src/routeTree.gen.ts` is ignored by ESLint and marked read-only in VSCode.
 - **Map visualization:** District overlays use a colorblind-friendly color palette. Double-click on a district to navigate to its detail page.
 
+## Admin Features
+
+The app includes a comprehensive admin panel for managing users, imports, and exports. Admin routes are protected by role-based access control.
+
+### Routing & Access Control
+
+**Admin Routes:** All admin pages live under `/admin/*`:
+- `/admin/users` - User management (list, create)
+- `/admin/imports` - Data import jobs (voters, boundaries)
+- `/admin/exports` - Data export jobs (voters, boundaries, full database)
+
+**Access Control:**
+- Role-based: Only users with `admin` or `analyst` roles can access admin routes
+- Enforced at layout level in `src/routes/admin.tsx`
+- Role fetched via `useUserRole` hook and cached in Zustand store
+- Admin navigation conditionally rendered in root layout based on user role
+
+### Auto-Polling Pattern
+
+Import and export job lists use intelligent auto-polling:
+- Polls every 3 seconds when any job is `pending` or `processing`
+- Automatically stops polling when all jobs reach terminal states (`completed` or `failed`)
+- Implemented via TanStack Query's `refetchInterval` with dynamic function
+
+Example:
+```typescript
+refetchInterval: (query) => {
+  const jobs = query.state.data?.jobs ?? []
+  const hasActiveJobs = jobs.some(isActiveJob)
+  return hasActiveJobs ? 3000 : false  // Auto-stop when all terminal
+}
+```
+
+### Error Handling
+
+Comprehensive error handling with user-friendly notifications:
+
+**Error Types:**
+- `AuthenticationError` (401) - Session expired, triggers logout & redirect
+- `PermissionError` (403) - Insufficient permissions, clears role & hides admin UI
+- `NetworkError` - Network failures during polling, non-intrusive warnings
+
+**Error Components:**
+- `PermissionErrorComponent` - Displays auth/permission errors with action buttons
+- `AdminErrorBoundary` - Catches runtime errors in admin pages
+- Toast notifications (Sonner) for all error types
+
+**Automatic Handling:**
+- API client intercepts 401/403 responses and throws typed errors
+- All admin hooks show toast notifications on errors
+- Network errors during polling: show warning once, continue with last known data
+- Role changes automatically hide admin navigation (reactive via Zustand)
+
+### Component Organization
+
+Admin features use a consistent structure:
+- Page components in `src/routes/admin/[feature]/index.tsx`
+- Shared components in `src/routes/admin/[feature]/_components/`
+- `_components/` directories are not treated as routes (underscore prefix)
+
+### API Client
+
+**Admin API:** `src/lib/api/admin.ts` wraps all admin endpoints
+- Uses shared `ky` client with JWT authentication
+- Type-safe request/response types from `src/types/admin.ts`
+- Error interception at client level (throws `AuthenticationError`, `PermissionError`)
+
+### Hooks
+
+**User Management:**
+- `useUserRole()` - Fetches current user role, caches for 5 minutes
+- `useAdminUsers()` - Lists all users (30s cache)
+- `useCreateUser()` - Creates new user with toast feedback
+
+**Import Jobs:**
+- `useImportJobs()` - Auto-polling list of import jobs
+- `useCreateVoterImport(file)` - Upload voter CSV
+- `useCreateBoundaryImport(file, type?)` - Upload boundary GeoJSON/ZIP
+
+**Export Jobs:**
+- `useExportJobs()` - Auto-polling list of export jobs
+- `useCreateExport(request)` - Request new export job
+- `useDownloadExport(jobId)` - Download completed export file
+
+All hooks include:
+- Error handling with toast notifications
+- Automatic query invalidation on mutations
+- Network error resilience during polling
+
+### Two-Step Confirmation Pattern
+
+Critical admin operations use two-step confirmation dialogs:
+
+1. **User creation** (admin/analyst roles):
+   - Form submission → confirmation dialog → API call
+   - Viewer role: direct submission (no confirmation)
+
+2. **File uploads** (imports):
+   - File selection → client-side validation → confirmation → upload
+   - Validation: file type, size (100MB limit)
+
+### Role-Based Rendering
+
+Admin navigation appears only for authorized users:
+```typescript
+const { data: userProfile } = useUserRole()
+const isAdmin = userProfile?.role === "admin" || userProfile?.role === "analyst"
+
+{isAdmin && <AdminNavMenu />}
+```
+
+Role changes are reactive - if a user's role changes to `viewer`, admin nav disappears immediately.
+
 ## Static Assets, Build & Deployment
 
 ### Build-time GeoJSON Caching
