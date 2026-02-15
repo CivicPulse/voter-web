@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   getElections,
+  getElectionDetail,
   createElection,
   updateElection,
   refreshElection,
@@ -15,6 +16,32 @@ import {
   NetworkError,
 } from "@/types/admin"
 import { toast } from "sonner"
+
+/**
+ * Hook to fetch a single election's detail for the admin edit page.
+ */
+export function useAdminElectionDetail(electionId: string) {
+  return useQuery({
+    queryKey: ["admin", "elections", electionId],
+    queryFn: () => getElectionDetail(electionId),
+    enabled: !!electionId,
+    staleTime: 30 * 1000,
+    retry: (failureCount, error) => {
+      if (
+        error instanceof AuthenticationError ||
+        error instanceof PermissionError
+      ) {
+        if (error instanceof AuthenticationError) {
+          toast.error("Session expired", { description: error.message })
+        } else {
+          toast.error("Access denied", { description: error.message })
+        }
+        return false
+      }
+      return failureCount < 1
+    },
+  })
+}
 
 /**
  * Hook to fetch and cache the list of all elections for admin management.

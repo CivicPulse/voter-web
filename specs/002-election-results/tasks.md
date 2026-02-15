@@ -178,9 +178,9 @@
 
 ### Implementation for User Story 7
 
-- [ ] T045 [US7] Implement admin election detail/edit page at `/admin/elections/$electionId` with editable form (name, data_source_url, status, refresh_interval_seconds), save functionality, and toast feedback in `src/routes/admin/elections/$electionId.tsx` per FR-021/FR-026
-- [ ] T046 [US7] Add manual refresh button with loading indicator and success toast (showing counties updated, precincts reporting) to admin election detail page — disabled for finalized elections in `src/routes/admin/elections/$electionId.tsx` per FR-023/FR-024
-- [ ] T047 [US7] Add finalization confirmation dialog warning that auto-refresh will stop when changing status to "finalized" in `src/routes/admin/elections/$electionId.tsx` per FR-022
+- [x] T045 [US7] Implement admin election detail/edit page at `/admin/elections/$electionId` with editable form (name, data_source_url, status, refresh_interval_seconds), save functionality, and toast feedback in `src/routes/admin/elections/$electionId.tsx` per FR-021/FR-026
+- [x] T046 [US7] Add manual refresh button with loading indicator and success toast (showing counties updated, precincts reporting) to admin election detail page — disabled for finalized elections in `src/routes/admin/elections/$electionId.tsx` per FR-023/FR-024
+- [x] T047 [US7] Add finalization confirmation dialog warning that auto-refresh will stop when changing status to "finalized" in `src/routes/admin/elections/$electionId.tsx` per FR-022
 
 **Checkpoint**: Admin users can fully manage election lifecycle — edit, finalize, and refresh. All admin operations provide clear feedback within 3s (SC-011).
 
