@@ -82,15 +82,15 @@
 
 ### Implementation for User Story 2
 
-- [ ] T018 [US2] Create race results query hook (fetches election detail + results JSON) in `src/lib/hooks/use-race-results.ts` per contracts (GET /elections/{id} + GET /elections/{id}/results)
-- [ ] T019 [P] [US2] Create county results GeoJSON hook in `src/lib/hooks/use-race-geojson.ts` (fetches GET /elections/{id}/results/geojson, returns CountyResultFeatureCollection)
-- [ ] T020 [P] [US2] Create map layer selector component with three data layer options (leading candidate, precincts reporting %, total votes) in `src/components/elections/MapLayerSelector.tsx` per FR-005
-- [ ] T021 [P] [US2] Create certification badge component displaying "Unofficial Results" or "Official Results" based on election status in `src/components/elections/CertificationBadge.tsx` per FR-013
-- [ ] T022 [US2] Create election results choropleth map component with data-driven GeoJSON styling, county hover tooltips (county name, reporting progress, candidate summary), county click handler, and layer switching in `src/components/elections/ElectionResultsMap.tsx` per FR-004/FR-005/FR-006
-- [ ] T023 [US2] Create race results page with map, layer selector, and certification badge at `/elections/$electionDate/$electionId` in `src/routes/elections/$electionDate/$electionId.tsx` displaying race name, district, and county choropleth map
-- [ ] T024 [P] [US2] Write component tests for MapLayerSelector (layer selection, active state) in `tests/components/elections/MapLayerSelector.test.tsx`
-- [ ] T025 [P] [US2] Write component tests for CertificationBadge (active vs finalized rendering) in `tests/components/elections/CertificationBadge.test.tsx`
-- [ ] T056 [P] [US2] Write unit tests for race GeoJSON hook (county GeoJSON fetching, caching) in `tests/lib/hooks/use-race-geojson.test.ts`
+- [x] T018 [US2] Create race results query hook (fetches election detail + results JSON) in `src/lib/hooks/use-race-results.ts` per contracts (GET /elections/{id} + GET /elections/{id}/results)
+- [x] T019 [P] [US2] Create county results GeoJSON hook in `src/lib/hooks/use-race-geojson.ts` (fetches GET /elections/{id}/results/geojson, returns CountyResultFeatureCollection)
+- [x] T020 [P] [US2] Create map layer selector component with three data layer options (leading candidate, precincts reporting %, total votes) in `src/components/elections/MapLayerSelector.tsx` per FR-005
+- [x] T021 [P] [US2] Create certification badge component displaying "Unofficial Results" or "Official Results" based on election status in `src/components/elections/CertificationBadge.tsx` per FR-013
+- [x] T022 [US2] Create election results choropleth map component with data-driven GeoJSON styling, county hover tooltips (county name, reporting progress, candidate summary), county click handler, and layer switching in `src/components/elections/ElectionResultsMap.tsx` per FR-004/FR-005/FR-006
+- [x] T023 [US2] Create race results page with map, layer selector, and certification badge at `/elections/$electionDate/$electionId` in `src/routes/elections/$electionDate/$electionId.tsx` displaying race name, district, and county choropleth map
+- [x] T024 [P] [US2] Write component tests for MapLayerSelector (layer selection, active state) in `tests/components/elections/MapLayerSelector.test.tsx`
+- [x] T025 [P] [US2] Write component tests for CertificationBadge (active vs finalized rendering) in `tests/components/elections/CertificationBadge.test.tsx`
+- [x] T056 [P] [US2] Write unit tests for race GeoJSON hook (county GeoJSON fetching, caching) in `tests/lib/hooks/use-race-geojson.test.ts`
 
 **Checkpoint**: Users can view race results on a county choropleth map with tooltips, switch data layers, and click counties. Map renders within 3s target (SC-002).
 

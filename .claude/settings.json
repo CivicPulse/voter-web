@@ -28,7 +28,10 @@
       "Bash(git -C /home/kwhatcher/projects/voter-web rev-parse --git-dir)",
       "Bash(npm test:*)",
       "Bash(node_modules/.bin/vitest run:*)",
-      "Bash(npx vitest:*)"
+      "Bash(npx vitest:*)",
+      "Bash(git -C /home/kwhatcher/projects/voter-web status -u)",
+      "Bash(git -C /home/kwhatcher/projects/voter-web diff --stat)",
+      "Bash(git -C /home/kwhatcher/projects/voter-web log --oneline -3)"
     ],
     "additionalDirectories": [
       "/home/kwhatcher/projects/voter-web/src/routes/elections/$electionDate"
