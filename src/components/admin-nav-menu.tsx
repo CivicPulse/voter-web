@@ -7,7 +7,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
-import { Users, Upload, Download, Shield } from "lucide-react"
+import { Users, Upload, Download, Shield, Vote } from "lucide-react"
 
 /**
  * Admin navigation menu with dropdown submenu
@@ -72,6 +72,22 @@ export function AdminNavMenu() {
                   </Link>
                 </NavigationMenuLink>
               </li>
+              <li>
+                <NavigationMenuLink asChild>
+                  <Link
+                    to="/admin/elections"
+                    className="block px-4 py-2 text-sm hover:bg-accent rounded-md transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Vote className="h-4 w-4" />
+                      <span>Elections</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Create and manage elections
+                    </p>
+                  </Link>
+                </NavigationMenuLink>
+              </li>
             </ul>
           </NavigationMenuContent>
         </NavigationMenuItem>
@@ -112,6 +128,14 @@ export function AdminNavLinks({ onLinkClick }: { onLinkClick?: () => void }) {
       >
         <Download className="h-4 w-4" />
         <span>Exports</span>
+      </Link>
+      <Link
+        to="/admin/elections"
+        className="flex items-center gap-2 px-2 py-2 text-sm hover:bg-accent rounded-md transition-colors"
+        onClick={onLinkClick}
+      >
+        <Vote className="h-4 w-4" />
+        <span>Elections</span>
       </Link>
     </div>
   )

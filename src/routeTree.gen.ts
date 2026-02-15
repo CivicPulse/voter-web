@@ -10,24 +10,37 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ElectionsRouteImport } from './routes/elections'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LookupIndexRouteImport } from './routes/lookup/index'
+import { Route as ElectionsIndexRouteImport } from './routes/elections/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as LookupResultsRouteImport } from './routes/lookup/results'
+import { Route as ElectionsElectionDateRouteImport } from './routes/elections/$electionDate'
 import { Route as DistrictsDistrictIdRouteImport } from './routes/districts/$districtId'
 import { Route as CountiesCountyIdRouteImport } from './routes/counties/$countyId'
+import { Route as ElectionsElectionDateIndexRouteImport } from './routes/elections/$electionDate/index'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
 import { Route as AdminImportsIndexRouteImport } from './routes/admin/imports/index'
 import { Route as AdminExportsIndexRouteImport } from './routes/admin/exports/index'
+import { Route as AdminElectionsIndexRouteImport } from './routes/admin/elections/index'
+import { Route as ElectionsElectionDateElectionIdRouteImport } from './routes/elections/$electionDate/$electionId'
 import { Route as DistrictsTypeNameRouteImport } from './routes/districts/$type/$name'
 import { Route as CountiesStateCountyRouteImport } from './routes/counties/$state/$county'
 import { Route as AdminUsersCreateRouteImport } from './routes/admin/users/create'
+import { Route as AdminElectionsCreateRouteImport } from './routes/admin/elections/create'
+import { Route as AdminElectionsElectionIdRouteImport } from './routes/admin/elections/$electionId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ElectionsRoute = ElectionsRouteImport.update({
+  id: '/elections',
+  path: '/elections',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -50,6 +63,11 @@ const LookupIndexRoute = LookupIndexRouteImport.update({
   path: '/lookup/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ElectionsIndexRoute = ElectionsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ElectionsRoute,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -59,6 +77,11 @@ const LookupResultsRoute = LookupResultsRouteImport.update({
   id: '/lookup/results',
   path: '/lookup/results',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ElectionsElectionDateRoute = ElectionsElectionDateRouteImport.update({
+  id: '/$electionDate',
+  path: '/$electionDate',
+  getParentRoute: () => ElectionsRoute,
 } as any)
 const DistrictsDistrictIdRoute = DistrictsDistrictIdRouteImport.update({
   id: '/districts/$districtId',
@@ -70,6 +93,12 @@ const CountiesCountyIdRoute = CountiesCountyIdRouteImport.update({
   path: '/counties/$countyId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ElectionsElectionDateIndexRoute =
+  ElectionsElectionDateIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => ElectionsElectionDateRoute,
+  } as any)
 const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
@@ -85,6 +114,17 @@ const AdminExportsIndexRoute = AdminExportsIndexRouteImport.update({
   path: '/exports/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminElectionsIndexRoute = AdminElectionsIndexRouteImport.update({
+  id: '/elections/',
+  path: '/elections/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const ElectionsElectionDateElectionIdRoute =
+  ElectionsElectionDateElectionIdRouteImport.update({
+    id: '/$electionId',
+    path: '/$electionId',
+    getParentRoute: () => ElectionsElectionDateRoute,
+  } as any)
 const DistrictsTypeNameRoute = DistrictsTypeNameRouteImport.update({
   id: '/districts/$type/$name',
   path: '/districts/$type/$name',
@@ -100,23 +140,42 @@ const AdminUsersCreateRoute = AdminUsersCreateRouteImport.update({
   path: '/users/create',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminElectionsCreateRoute = AdminElectionsCreateRouteImport.update({
+  id: '/elections/create',
+  path: '/elections/create',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminElectionsElectionIdRoute =
+  AdminElectionsElectionIdRouteImport.update({
+    id: '/elections/$electionId',
+    path: '/elections/$electionId',
+    getParentRoute: () => AdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
+  '/elections': typeof ElectionsRouteWithChildren
   '/login': typeof LoginRoute
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
+  '/elections/$electionDate': typeof ElectionsElectionDateRouteWithChildren
   '/lookup/results': typeof LookupResultsRoute
   '/admin/': typeof AdminIndexRoute
+  '/elections/': typeof ElectionsIndexRoute
   '/lookup/': typeof LookupIndexRoute
+  '/admin/elections/$electionId': typeof AdminElectionsElectionIdRoute
+  '/admin/elections/create': typeof AdminElectionsCreateRoute
   '/admin/users/create': typeof AdminUsersCreateRoute
   '/counties/$state/$county': typeof CountiesStateCountyRoute
   '/districts/$type/$name': typeof DistrictsTypeNameRoute
+  '/elections/$electionDate/$electionId': typeof ElectionsElectionDateElectionIdRoute
+  '/admin/elections/': typeof AdminElectionsIndexRoute
   '/admin/exports/': typeof AdminExportsIndexRoute
   '/admin/imports/': typeof AdminImportsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/elections/$electionDate/': typeof ElectionsElectionDateIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,31 +185,45 @@ export interface FileRoutesByTo {
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
   '/lookup/results': typeof LookupResultsRoute
   '/admin': typeof AdminIndexRoute
+  '/elections': typeof ElectionsIndexRoute
   '/lookup': typeof LookupIndexRoute
+  '/admin/elections/$electionId': typeof AdminElectionsElectionIdRoute
+  '/admin/elections/create': typeof AdminElectionsCreateRoute
   '/admin/users/create': typeof AdminUsersCreateRoute
   '/counties/$state/$county': typeof CountiesStateCountyRoute
   '/districts/$type/$name': typeof DistrictsTypeNameRoute
+  '/elections/$electionDate/$electionId': typeof ElectionsElectionDateElectionIdRoute
+  '/admin/elections': typeof AdminElectionsIndexRoute
   '/admin/exports': typeof AdminExportsIndexRoute
   '/admin/imports': typeof AdminImportsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
+  '/elections/$electionDate': typeof ElectionsElectionDateIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
+  '/elections': typeof ElectionsRouteWithChildren
   '/login': typeof LoginRoute
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
+  '/elections/$electionDate': typeof ElectionsElectionDateRouteWithChildren
   '/lookup/results': typeof LookupResultsRoute
   '/admin/': typeof AdminIndexRoute
+  '/elections/': typeof ElectionsIndexRoute
   '/lookup/': typeof LookupIndexRoute
+  '/admin/elections/$electionId': typeof AdminElectionsElectionIdRoute
+  '/admin/elections/create': typeof AdminElectionsCreateRoute
   '/admin/users/create': typeof AdminUsersCreateRoute
   '/counties/$state/$county': typeof CountiesStateCountyRoute
   '/districts/$type/$name': typeof DistrictsTypeNameRoute
+  '/elections/$electionDate/$electionId': typeof ElectionsElectionDateElectionIdRoute
+  '/admin/elections/': typeof AdminElectionsIndexRoute
   '/admin/exports/': typeof AdminExportsIndexRoute
   '/admin/imports/': typeof AdminImportsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/elections/$electionDate/': typeof ElectionsElectionDateIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -158,18 +231,26 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin'
+    | '/elections'
     | '/login'
     | '/counties/$countyId'
     | '/districts/$districtId'
+    | '/elections/$electionDate'
     | '/lookup/results'
     | '/admin/'
+    | '/elections/'
     | '/lookup/'
+    | '/admin/elections/$electionId'
+    | '/admin/elections/create'
     | '/admin/users/create'
     | '/counties/$state/$county'
     | '/districts/$type/$name'
+    | '/elections/$electionDate/$electionId'
+    | '/admin/elections/'
     | '/admin/exports/'
     | '/admin/imports/'
     | '/admin/users/'
+    | '/elections/$electionDate/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -179,36 +260,51 @@ export interface FileRouteTypes {
     | '/districts/$districtId'
     | '/lookup/results'
     | '/admin'
+    | '/elections'
     | '/lookup'
+    | '/admin/elections/$electionId'
+    | '/admin/elections/create'
     | '/admin/users/create'
     | '/counties/$state/$county'
     | '/districts/$type/$name'
+    | '/elections/$electionDate/$electionId'
+    | '/admin/elections'
     | '/admin/exports'
     | '/admin/imports'
     | '/admin/users'
+    | '/elections/$electionDate'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/admin'
+    | '/elections'
     | '/login'
     | '/counties/$countyId'
     | '/districts/$districtId'
+    | '/elections/$electionDate'
     | '/lookup/results'
     | '/admin/'
+    | '/elections/'
     | '/lookup/'
+    | '/admin/elections/$electionId'
+    | '/admin/elections/create'
     | '/admin/users/create'
     | '/counties/$state/$county'
     | '/districts/$type/$name'
+    | '/elections/$electionDate/$electionId'
+    | '/admin/elections/'
     | '/admin/exports/'
     | '/admin/imports/'
     | '/admin/users/'
+    | '/elections/$electionDate/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
+  ElectionsRoute: typeof ElectionsRouteWithChildren
   LoginRoute: typeof LoginRoute
   CountiesCountyIdRoute: typeof CountiesCountyIdRoute
   DistrictsDistrictIdRoute: typeof DistrictsDistrictIdRoute
@@ -225,6 +321,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/elections': {
+      id: '/elections'
+      path: '/elections'
+      fullPath: '/elections'
+      preLoaderRoute: typeof ElectionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -255,6 +358,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LookupIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/elections/': {
+      id: '/elections/'
+      path: '/'
+      fullPath: '/elections/'
+      preLoaderRoute: typeof ElectionsIndexRouteImport
+      parentRoute: typeof ElectionsRoute
+    }
     '/admin/': {
       id: '/admin/'
       path: '/'
@@ -269,6 +379,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LookupResultsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/elections/$electionDate': {
+      id: '/elections/$electionDate'
+      path: '/$electionDate'
+      fullPath: '/elections/$electionDate'
+      preLoaderRoute: typeof ElectionsElectionDateRouteImport
+      parentRoute: typeof ElectionsRoute
+    }
     '/districts/$districtId': {
       id: '/districts/$districtId'
       path: '/districts/$districtId'
@@ -282,6 +399,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/counties/$countyId'
       preLoaderRoute: typeof CountiesCountyIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/elections/$electionDate/': {
+      id: '/elections/$electionDate/'
+      path: '/'
+      fullPath: '/elections/$electionDate/'
+      preLoaderRoute: typeof ElectionsElectionDateIndexRouteImport
+      parentRoute: typeof ElectionsElectionDateRoute
     }
     '/admin/users/': {
       id: '/admin/users/'
@@ -304,6 +428,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminExportsIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/elections/': {
+      id: '/admin/elections/'
+      path: '/elections'
+      fullPath: '/admin/elections/'
+      preLoaderRoute: typeof AdminElectionsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/elections/$electionDate/$electionId': {
+      id: '/elections/$electionDate/$electionId'
+      path: '/$electionId'
+      fullPath: '/elections/$electionDate/$electionId'
+      preLoaderRoute: typeof ElectionsElectionDateElectionIdRouteImport
+      parentRoute: typeof ElectionsElectionDateRoute
+    }
     '/districts/$type/$name': {
       id: '/districts/$type/$name'
       path: '/districts/$type/$name'
@@ -325,12 +463,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersCreateRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/elections/create': {
+      id: '/admin/elections/create'
+      path: '/elections/create'
+      fullPath: '/admin/elections/create'
+      preLoaderRoute: typeof AdminElectionsCreateRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/elections/$electionId': {
+      id: '/admin/elections/$electionId'
+      path: '/elections/$electionId'
+      fullPath: '/admin/elections/$electionId'
+      preLoaderRoute: typeof AdminElectionsElectionIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminElectionsElectionIdRoute: typeof AdminElectionsElectionIdRoute
+  AdminElectionsCreateRoute: typeof AdminElectionsCreateRoute
   AdminUsersCreateRoute: typeof AdminUsersCreateRoute
+  AdminElectionsIndexRoute: typeof AdminElectionsIndexRoute
   AdminExportsIndexRoute: typeof AdminExportsIndexRoute
   AdminImportsIndexRoute: typeof AdminImportsIndexRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
@@ -338,7 +493,10 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
+  AdminElectionsElectionIdRoute: AdminElectionsElectionIdRoute,
+  AdminElectionsCreateRoute: AdminElectionsCreateRoute,
   AdminUsersCreateRoute: AdminUsersCreateRoute,
+  AdminElectionsIndexRoute: AdminElectionsIndexRoute,
   AdminExportsIndexRoute: AdminExportsIndexRoute,
   AdminImportsIndexRoute: AdminImportsIndexRoute,
   AdminUsersIndexRoute: AdminUsersIndexRoute,
@@ -346,10 +504,40 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface ElectionsElectionDateRouteChildren {
+  ElectionsElectionDateElectionIdRoute: typeof ElectionsElectionDateElectionIdRoute
+  ElectionsElectionDateIndexRoute: typeof ElectionsElectionDateIndexRoute
+}
+
+const ElectionsElectionDateRouteChildren: ElectionsElectionDateRouteChildren = {
+  ElectionsElectionDateElectionIdRoute: ElectionsElectionDateElectionIdRoute,
+  ElectionsElectionDateIndexRoute: ElectionsElectionDateIndexRoute,
+}
+
+const ElectionsElectionDateRouteWithChildren =
+  ElectionsElectionDateRoute._addFileChildren(
+    ElectionsElectionDateRouteChildren,
+  )
+
+interface ElectionsRouteChildren {
+  ElectionsElectionDateRoute: typeof ElectionsElectionDateRouteWithChildren
+  ElectionsIndexRoute: typeof ElectionsIndexRoute
+}
+
+const ElectionsRouteChildren: ElectionsRouteChildren = {
+  ElectionsElectionDateRoute: ElectionsElectionDateRouteWithChildren,
+  ElectionsIndexRoute: ElectionsIndexRoute,
+}
+
+const ElectionsRouteWithChildren = ElectionsRoute._addFileChildren(
+  ElectionsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
+  ElectionsRoute: ElectionsRouteWithChildren,
   LoginRoute: LoginRoute,
   CountiesCountyIdRoute: CountiesCountyIdRoute,
   DistrictsDistrictIdRoute: DistrictsDistrictIdRoute,

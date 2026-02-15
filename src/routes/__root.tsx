@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-router"
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
 import { useEffect, useState } from "react"
-import { HelpCircle, Loader2, LogIn, LogOut, Menu, Search, User } from "lucide-react"
+import { HelpCircle, Loader2, LogIn, LogOut, Menu, Search, User, Vote } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -79,6 +79,15 @@ function MobileNav({
                 className="[&.active]:font-bold py-2 text-sm"
               >
                 About
+              </Link>
+            </SheetClose>
+            <SheetClose asChild>
+              <Link
+                to="/elections"
+                className="[&.active]:font-bold py-2 text-sm flex items-center gap-2"
+              >
+                <Vote className="h-4 w-4" />
+                Elections
               </Link>
             </SheetClose>
             <SheetClose asChild>
@@ -322,6 +331,10 @@ function RootLayout() {
             </Link>
             <Link to="/about" className="[&.active]:font-bold shrink-0">
               About
+            </Link>
+            <Link to="/elections" className="[&.active]:font-bold shrink-0 flex items-center gap-1">
+              <Vote className="h-4 w-4" />
+              Elections
             </Link>
             <button
               type="button"
