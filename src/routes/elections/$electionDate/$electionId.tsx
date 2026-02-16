@@ -4,7 +4,7 @@ import { Loader2, Map, Grid3X3 } from "lucide-react"
 import { useRaceResults } from "@/lib/hooks/use-race-results"
 import { useCountyResultsGeoJSON } from "@/lib/hooks/use-race-geojson"
 import { ElectionResultsMap } from "@/components/elections/ElectionResultsMap"
-import { ElectionResultsDrawer } from "@/components/elections/ElectionResultsDrawer"
+import { ElectionResultsSection } from "@/components/elections/ElectionResultsSection"
 import { PrecinctMapView } from "@/components/elections/PrecinctMapView"
 import { MapLayerSelector } from "@/components/elections/MapLayerSelector"
 import { CertificationBadge } from "@/components/elections/CertificationBadge"
@@ -41,7 +41,6 @@ function RaceResultsPage() {
 
   const [activeLayer, setActiveLayer] = useState<MapDataLayer>("leading_candidate")
   const [selectedCounty, setSelectedCounty] = useState<string | null>(null)
-  const [drawerOpen, setDrawerOpen] = useState(false)
   const [mapView, setMapView] = useState<MapView>("county")
 
   const countyNames = useMemo(
@@ -72,7 +71,6 @@ function RaceResultsPage() {
 
   const handleCountyClick = (countyName: string) => {
     setSelectedCounty(countyName)
-    setDrawerOpen(true)
   }
 
   const hasCountyGeoJSON = geoJSON && geoJSON.features.length > 0
@@ -92,6 +90,15 @@ function RaceResultsPage() {
           status={election.status}
           lastRefreshedAt={election.last_refreshed_at}
           refreshIntervalSeconds={election.refresh_interval_seconds ?? 120}
+        />
+      </div>
+
+      {/* Inline results */}
+      <div className="mb-4">
+        <ElectionResultsSection
+          results={results}
+          selectedCounty={selectedCounty}
+          onClearCounty={() => setSelectedCounty(null)}
         />
       </div>
 
@@ -131,22 +138,12 @@ function RaceResultsPage() {
       )}
 
       {mapView === "county" && hasCountyGeoJSON && (
-        <div className="relative h-[350px] sm:h-[500px] md:h-[600px] rounded-lg overflow-hidden">
-          <div className="relative z-0 h-full w-full">
-            <ElectionResultsMap
-              geoJSON={geoJSON}
-              activeLayer={activeLayer}
-              selectedCounty={selectedCounty}
-              onCountyClick={handleCountyClick}
-            />
-          </div>
-
-          <ElectionResultsDrawer
-            open={drawerOpen}
-            onOpenChange={setDrawerOpen}
-            results={results}
+        <div className="h-[350px] sm:h-[500px] md:h-[600px] rounded-lg overflow-hidden">
+          <ElectionResultsMap
+            geoJSON={geoJSON}
+            activeLayer={activeLayer}
             selectedCounty={selectedCounty}
-            onClearCounty={() => setSelectedCounty(null)}
+            onCountyClick={handleCountyClick}
           />
         </div>
       )}
