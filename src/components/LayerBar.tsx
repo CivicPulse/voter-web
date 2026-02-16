@@ -12,6 +12,8 @@ interface LayerBarProps {
   overlayFeatureCount: number | null
   countyName: string
   statewide?: boolean
+  /** Set of boundary types that have at least one active election */
+  electionTypes?: Set<string>
 }
 
 export function LayerBar({
@@ -22,6 +24,7 @@ export function LayerBar({
   overlayFeatureCount,
   countyName,
   statewide,
+  electionTypes,
 }: LayerBarProps) {
   const [expanded, setExpanded] = useState(false)
   const barRef = useRef<HTMLDivElement>(null)
@@ -51,15 +54,24 @@ export function LayerBar({
         : `No ${typeName} districts found ${locationLabel}`
       : null
 
-  const toggleButtons = boundaryTypes?.map((type) => (
-    <ToggleGroupItem
-      key={type}
-      value={type}
-      className="text-xs capitalize bg-neutral-300 hover:bg-neutral-700 hover:text-white data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-    >
-      {type.replaceAll("_", " ")}
-    </ToggleGroupItem>
-  ))
+  const toggleButtons = boundaryTypes?.map((type) => {
+    const hasElection = electionTypes?.has(type) ?? false
+    return (
+      <ToggleGroupItem
+        key={type}
+        value={type}
+        className="relative text-xs capitalize bg-neutral-300 hover:bg-neutral-700 hover:text-white data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+      >
+        {type.replaceAll("_", " ")}
+        {hasElection && (
+          <span
+            className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-background"
+            aria-label="Active election"
+          />
+        )}
+      </ToggleGroupItem>
+    )
+  })
 
   const clearButton = selectedType && (
     <Button

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import {
   AlertCircle,
   ChevronDown,
@@ -20,8 +20,13 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer"
 import { DistrictDetailMap } from "@/components/DistrictDetailMap"
+import { ActiveElectionBanner } from "@/components/ActiveElectionBanner"
 import { useCountyBoundary } from "@/hooks/useCountyBoundary"
 import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
+import {
+  useActiveElections,
+  electionsForDistrict,
+} from "@/lib/hooks/use-active-elections"
 
 const boundaryTypeLabels: Record<string, string> = {
   congressional: "Congressional District",
@@ -45,6 +50,14 @@ export function DistrictDetailContent({
   } = useCountyBoundary(districtId)
   const { data: counties, isLoading: isCountiesLoading } =
     useCountyBoundaries()
+  const { data: activeElections } = useActiveElections()
+  const matchingElections = useMemo(
+    () =>
+      district && activeElections
+        ? electionsForDistrict(activeElections, district.name)
+        : [],
+    [district, activeElections],
+  )
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const typeLabel = district
@@ -88,6 +101,13 @@ export function DistrictDetailContent({
         </div>
       )}
 
+      {/* Active election banner — floating on map */}
+      {matchingElections.length > 0 && (
+        <div className="absolute left-3 right-3 top-3 z-[1000] sm:left-auto sm:right-3 sm:max-w-sm">
+          <ActiveElectionBanner elections={matchingElections} className="space-y-2" />
+        </div>
+      )}
+
       {/* Bottom drawer trigger — only show when district data is available */}
       {district && (
         <>
@@ -107,6 +127,9 @@ export function DistrictDetailContent({
                 <DrawerDescription>Swipe down to close</DrawerDescription>
               </DrawerHeader>
               <div className="overflow-y-auto px-4 pb-6 max-h-[60vh] md:max-h-[70vh] space-y-6">
+                {matchingElections.length > 0 && (
+                  <ActiveElectionBanner elections={matchingElections} className="space-y-2" />
+                )}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
