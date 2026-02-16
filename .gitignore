@@ -6,6 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+.tanstack/tmp
 
 node_modules
 dist
@@ -42,3 +43,10 @@ county-detail-regression.png
 about-page-bottom.png
 about-page-full.png
 about-page-licensing.png
+.tanstack/tmp/4c0664b7-9bc721032de37f897a8fde558e693c58
+imgs/image2.png
+imgs/image3.png
+imgs/image4.png
+imgs/image5.png
+imgs/image6.png
+election-inline-results.png

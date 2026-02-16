@@ -17,6 +17,7 @@ export default defineConfig({
         'dist/',
         'src/routeTree.gen.ts',
         'src/test/',
+        'src/components/ui/',
         '**/*.d.ts',
         '**/*.config.*',
         '**/mockData',
