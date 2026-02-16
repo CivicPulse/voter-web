@@ -39,7 +39,8 @@
       "Bash(git -C /home/kwhatcher/projects/voter-web add specs/002-election-results/tasks.md src/components/elections/PrecinctMapView.tsx src/components/elections/ElectionErrorBoundary.tsx src/lib/api/elections.ts src/lib/hooks/use-race-results.ts src/routes/elections.tsx src/routes/elections/index.tsx src/routes/elections/$electionDate/index.tsx src/routes/elections/$electionDate/$electionId.tsx src/types/elections.ts tests/lib/hooks/use-admin-elections.test.tsx tests/lib/hooks/use-race-geojson.test.tsx tests/lib/api/elections.test.ts tests/types/admin.test.ts vitest.config.ts)",
       "Bash(git -C /home/kwhatcher/projects/voter-web commit -m \"$\\(cat <<''EOF''\nfeat\\(elections\\): polish, coverage, and API response fix\n\n- Fix elections list page by transforming API response from\n  {items, pagination} to expected {elections, ...pagination} format\n- Make detail-only Election fields optional \\(data_source_url,\n  refresh_interval_seconds, created_at, updated_at\\)\n- Add error boundary for election routes\n- Add mobile responsive layout adjustments \\(map height, padding\\)\n- Exclude pre-existing shadcn/ui components from coverage\n- Add tests for usePrecinctResultsGeoJSON, admin error handling\n  branches, admin.ts utility functions, and API client branches\n- Coverage: 97.7% stmts, 95.8% branches, 96.87% funcs, 98.5% lines\n- 168 tests passing, lint clean, build passes\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
       "mcp__plugin_playwright_playwright__browser_console_messages",
-      "Bash(git show:*)"
+      "Bash(git show:*)",
+      "Bash(git -C /home/kwhatcher/projects/voter-web log --oneline -10 main)"
     ],
     "additionalDirectories": [
       "/home/kwhatcher/projects/voter-web/src/routes/elections/$electionDate"
