@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
-import { createFileRoute, useParams } from "@tanstack/react-router"
-import { Loader2, Map, Grid3X3 } from "lucide-react"
+import { createFileRoute, Link, useParams } from "@tanstack/react-router"
+import { ChevronRight, Loader2, Map, Grid3X3 } from "lucide-react"
 import { useRaceResults } from "@/lib/hooks/use-race-results"
 import { useCountyResultsGeoJSON } from "@/lib/hooks/use-race-geojson"
 import { useDistrictBoundary } from "@/hooks/useDistrictBoundary"
@@ -27,9 +27,14 @@ export const Route = createFileRoute(
 })
 
 function RaceResultsPage() {
-  const { electionId } = useParams({
+  const { electionId, electionDate } = useParams({
     from: "/elections/$electionDate/$electionId",
   })
+
+  const formattedDate = new Date(electionDate + "T00:00:00").toLocaleDateString(
+    "en-US",
+    { year: "numeric", month: "long", day: "numeric" },
+  )
 
   const {
     data: raceData,
@@ -85,6 +90,21 @@ function RaceResultsPage() {
 
   return (
     <div className="container mx-auto px-4 py-4 sm:p-6 max-w-5xl">
+      {/* Breadcrumb */}
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
+        <Link to="/elections" className="hover:text-foreground transition-colors">
+          Elections
+        </Link>
+        <ChevronRight className="h-3 w-3" />
+        <Link
+          to="/elections/$electionDate"
+          params={{ electionDate }}
+          className="hover:text-foreground transition-colors"
+        >
+          {formattedDate}
+        </Link>
+      </nav>
+
       {/* Header */}
       <div className="mb-4">
         <div className="flex items-start justify-between gap-4 flex-wrap">
