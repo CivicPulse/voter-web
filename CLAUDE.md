@@ -12,6 +12,10 @@ voter-web is a React SPA frontend for the [voter-api](https://github.com/CivicPu
 - `npm run build` — typecheck (`tsc -b`) then build to `dist/`
 - `npm run lint` — ESLint
 - `npm run preview` — serve production build locally
+- `npm test` — run Vitest unit tests (watch mode)
+- `npm test -- --run` — run unit tests once (CI mode)
+- `npm run test:e2e` — run Playwright E2E tests (requires `npm run build` first)
+- `npm run test:e2e:ui` — run E2E tests with Playwright interactive UI
 - `npx shadcn@latest add <component>` — add a shadcn/ui component (e.g. `button`, `dialog`, `data-table`)
 
 Requires Node.js LTS (use `nvm use` — reads `.nvmrc`).
@@ -216,7 +220,46 @@ Without these exclusions, the SPA catch-all will serve `index.html` (HTML conten
 
 ## Testing
 
-No automated test suite is currently configured. The project uses Playwright as a dev dependency for UI verification during development (see UI Verification section below), but automated tests have not been set up.
+### Unit Tests (Vitest)
+
+Unit tests use Vitest with jsdom and React Testing Library:
+
+- Test files live in `tests/`, mirroring the `src/` structure
+- Mock factories in `src/test/mocks/elections.ts`
+- Setup file: `src/test/setup.ts`
+- Custom render wrapper: `src/test/render.tsx`
+- Coverage thresholds: 95% (lines, functions, branches, statements)
+- Config: `vitest.config.ts`
+
+### E2E Tests (Playwright)
+
+End-to-end browser tests use Playwright with Chromium to verify rendered UI:
+
+- Test files live in `e2e/`
+- Mock data: `e2e/fixtures/mock-data.ts`
+- API interception fixture: `e2e/fixtures/election-api.ts`
+- Config: `playwright.config.ts`
+
+**Architecture:** E2E tests run against `vite preview` (production build on port 4173). The Playwright config auto-starts the preview server. API calls are intercepted using `page.route()` with mock JSON responses — no real backend needed.
+
+**Adding new E2E tests:**
+
+1. Add mock data to `e2e/fixtures/mock-data.ts` if new API endpoints are needed
+2. Add route interception to `e2e/fixtures/election-api.ts`
+3. Create test specs in `e2e/` using `import { test, expect } from "./fixtures/election-api"`
+
+**When to update E2E tests:**
+
+- After fixing UI bugs — add a regression test that would have caught the bug
+- After adding or modifying user-facing features (especially interactive elements)
+- After changing API response shapes or endpoint URLs
+- After modifying map rendering, dropdown behavior, or data display components
+
+### CI Integration
+
+- **Unit tests** run in `.github/workflows/deploy.yml` (lint -> test -> build -> deploy)
+- **E2E tests** run in `.github/workflows/e2e.yml` (build -> Playwright -> upload artifacts)
+- Both workflows trigger on pushes to `main` and PRs to `main`
 
 ## Backend API
 

@@ -27,6 +27,7 @@ jobs:
           cache: "npm"
       - run: npm ci
       - run: npm run lint
+      - run: npm test -- --run
       - run: npm run build
         env:
           VITE_API_BASE_URL: https://voteapi.civpulse.org/api/v1
