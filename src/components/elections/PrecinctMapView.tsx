@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { Progress } from "@/components/ui/progress"
 
 interface PrecinctMapViewProps {
   electionId: string
@@ -275,6 +276,7 @@ export function PrecinctMapView({
     isBoundaryError,
     isElectionError,
     dataUpdatedAt,
+    boundaryProgress,
   } = useMergedPrecinctGeoJSON(electionId, countyNames, selectedCounty)
 
   const { data: allCountyBoundaries, isError: isCountyBoundaryError } = useCountyBoundaries()
@@ -335,7 +337,7 @@ export function PrecinctMapView({
         {isLoading && (
           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
         )}
-        {isLoadingBoundaries && !isLoading && (
+        {isLoadingBoundaries && !isLoading && boundaryProgress.total <= 1 && (
           <span className="text-xs text-muted-foreground">
             Loading precinct boundaries…
           </span>
@@ -430,6 +432,30 @@ export function PrecinctMapView({
             <p className="text-muted-foreground text-sm">
               Precinct boundaries are not available for this election.
             </p>
+          </div>
+        )}
+
+        {/* Boundary loading progress overlay */}
+        {isLoadingBoundaries && boundaryProgress.total > 1 && (
+          <div className="absolute bottom-4 right-4 z-[1000] flex flex-col gap-1.5 rounded-lg bg-background/90 px-3 py-2 shadow-md border text-sm w-56">
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span>Loading boundaries…</span>
+              <span>
+                {Math.round(
+                  (boundaryProgress.loaded / boundaryProgress.total) * 100,
+                )}
+                %
+              </span>
+            </div>
+            <Progress
+              value={
+                (boundaryProgress.loaded / boundaryProgress.total) * 100
+              }
+              className="h-2"
+            />
+            <span className="text-xs text-muted-foreground">
+              {boundaryProgress.loaded} / {boundaryProgress.total} counties
+            </span>
           </div>
         )}
       </div>
