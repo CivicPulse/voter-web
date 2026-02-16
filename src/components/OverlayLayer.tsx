@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react"
 import { GeoJSON } from "react-leaflet"
-import type { Layer, LeafletMouseEvent, PathOptions } from "leaflet"
+import type { Layer, LeafletMouseEvent, Path, PathOptions } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
 import type {
   BoundaryFeatureCollection,
@@ -22,7 +22,6 @@ function getDistrictStyle(index: number, hasElection: boolean): PathOptions {
       fillColor: palette.fill,
       fillOpacity: 0.4,
       opacity: 1,
-      dashArray: "6 4",
     }
   }
   return {
@@ -70,7 +69,13 @@ export function OverlayLayer({
     const names = new Set<string>()
     for (const feature of data.features) {
       const name = feature.properties?.name
-      if (name && electionsForDistrict(activeElections, name).length > 0) {
+      const boundaryType = feature.properties?.boundary_type
+      // Build a full name like "state senate district 018" so normalize()
+      // can strip leading zeros and match "State Senate District 18".
+      const matchName = boundaryType
+        ? `${boundaryType.replaceAll("_", " ")} district ${name}`
+        : name
+      if (name && electionsForDistrict(activeElections, matchName).length > 0) {
         names.add(name.toLowerCase().trim())
       }
     }
@@ -120,6 +125,13 @@ export function OverlayLayer({
           ${electionBadge}
         </div>`,
       )
+
+      if (hasElection) {
+        layer.on("add", () => {
+          const el = (layer as Path).getElement()
+          if (el) el.classList.add("election-pulse")
+        })
+      }
 
       layer.on({
         mouseover: (e: LeafletMouseEvent) => {
