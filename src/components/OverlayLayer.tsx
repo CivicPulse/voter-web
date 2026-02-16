@@ -141,7 +141,7 @@ export function OverlayLayer({
         : ""
 
       const normalizedId =
-        props.boundary_identifier.replace(/^0+/, "") ||
+        props.boundary_identifier.replace(/^0+(?=\d)/, "") ||
         props.boundary_identifier
       const officials = electedOfficials?.get(normalizedId) ?? []
       const officialsHtml = buildOfficialsPopupHtml(officials)

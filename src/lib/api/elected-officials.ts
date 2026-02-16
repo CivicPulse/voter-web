@@ -13,7 +13,7 @@ export async function getElectedOfficialsByDistrict(
   districtIdentifier: string,
 ): Promise<ElectedOfficialDetailResponse[]> {
   const normalizedId =
-    districtIdentifier.replace(/^0+/, "") || districtIdentifier
+    districtIdentifier.replace(/^0+(?=\d)/, "") || districtIdentifier
   return api
     .get("elected-officials/by-district", {
       searchParams: {
