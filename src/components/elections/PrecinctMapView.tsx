@@ -11,6 +11,10 @@ import type {
   PrecinctResultGeoProperties,
 } from "@/types/elections"
 import { useMergedPrecinctGeoJSON } from "@/lib/hooks/use-merged-precinct-geojson"
+import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
+import { useDistrictBoundary } from "@/hooks/useDistrictBoundary"
+import { DISTRICT_COLORS } from "@/lib/colors"
+import type { CountyFeatureCollection, CountyProperties } from "@/types/boundaries"
 import {
   Select,
   SelectContent,
@@ -18,10 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
 
 interface PrecinctMapViewProps {
   electionId: string
   countyNames: string[]
+  districtName: string
   className?: string
 }
 
@@ -55,6 +62,77 @@ function FitBoundsToPrecincts({
   }, [map, geoJSON])
 
   return null
+}
+
+function CountyOverlayLayer({
+  counties,
+  countyNames,
+}: Readonly<{
+  counties: CountyFeatureCollection
+  countyNames: string[]
+}>) {
+  const colorMap = useMemo(() => {
+    const sorted = [...countyNames]
+      .map((n) => n.replace(/ County$/i, ""))
+      .sort((a, b) => a.localeCompare(b))
+    const map = new Map<string, number>()
+    sorted.forEach((name, i) => map.set(name.toLowerCase(), i))
+    return map
+  }, [countyNames])
+
+  const style = useCallback(
+    (feature?: Feature<Polygon | MultiPolygon, CountyProperties>) => {
+      if (!feature) return {}
+      const name = feature.properties.name
+      const index = colorMap.get(name.toLowerCase()) ?? 0
+      const palette = DISTRICT_COLORS[index % DISTRICT_COLORS.length]
+      return {
+        fillColor: palette.fill,
+        fillOpacity: 0.18,
+        color: "#9ca3af",
+        weight: 1,
+        opacity: 0.6,
+      } satisfies PathOptions
+    },
+    [colorMap],
+  )
+
+  return (
+    <GeoJSON
+      key={`county-overlay-${counties.features.length}`}
+      data={counties}
+      style={style as (feature?: Feature) => PathOptions}
+      interactive={false}
+    />
+  )
+}
+
+function DistrictOutlineLayer({
+  geometry,
+}: Readonly<{
+  geometry: Record<string, unknown>
+}>) {
+  const geoJsonData = useMemo(
+    () => ({
+      type: "Feature" as const,
+      geometry: geometry as unknown as MultiPolygon | Polygon,
+      properties: {},
+    }),
+    [geometry],
+  )
+
+  const style = useCallback(
+    (): PathOptions => ({
+      color: "#7c3aed",
+      weight: 5,
+      fillOpacity: 0,
+      opacity: 0.9,
+      dashArray: "12 6",
+    }),
+    [],
+  )
+
+  return <GeoJSON data={geoJsonData} style={style} interactive={false} />
 }
 
 function PrecinctLayer({
@@ -178,11 +256,14 @@ function PrecinctLayer({
 export function PrecinctMapView({
   electionId,
   countyNames,
+  districtName,
   className,
 }: PrecinctMapViewProps) {
   const [selectedCounty, setSelectedCounty] = useState<string | undefined>(
     undefined,
   )
+  const [showCountyOverlay, setShowCountyOverlay] = useState(true)
+  const [showDistrictOutline, setShowDistrictOutline] = useState(true)
 
   const {
     data: geoJSON,
@@ -191,10 +272,26 @@ export function PrecinctMapView({
     dataUpdatedAt,
   } = useMergedPrecinctGeoJSON(electionId, countyNames, selectedCounty)
 
+  const { data: allCountyBoundaries } = useCountyBoundaries()
+  const { geometry: districtGeometry, boundaryType } =
+    useDistrictBoundary(districtName)
+
   const sortedCounties = useMemo(
     () => [...countyNames].sort((a, b) => a.localeCompare(b)),
     [countyNames],
   )
+
+  const filteredCountyBoundaries = useMemo(() => {
+    if (!allCountyBoundaries) return null
+    const bareNames = new Set(
+      countyNames.map((n) => n.replace(/ County$/i, "").toLowerCase()),
+    )
+    const filtered = allCountyBoundaries.features.filter((f) =>
+      bareNames.has(f.properties.name.toLowerCase()),
+    )
+    if (filtered.length === 0) return null
+    return { ...allCountyBoundaries, features: filtered } as CountyFeatureCollection
+  }, [allCountyBoundaries, countyNames])
 
   const hasRenderableFeatures = useMemo(
     () => geoJSON && featuresWithGeometry(geoJSON).features.length > 0,
@@ -203,8 +300,8 @@ export function PrecinctMapView({
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
-      {/* County filter */}
-      <div className="flex items-center gap-2">
+      {/* Controls row: county filter + layer toggles */}
+      <div className="flex items-center gap-2 flex-wrap">
         <Select
           value={selectedCounty ?? "all"}
           onValueChange={(v) =>
@@ -231,6 +328,39 @@ export function PrecinctMapView({
             Loading precinct boundaries…
           </span>
         )}
+
+        {/* Layer toggles */}
+        <div className="flex items-center gap-4 ml-auto">
+          <div className="flex items-center gap-1.5">
+            <Checkbox
+              id="county-overlay"
+              checked={showCountyOverlay}
+              onCheckedChange={(checked) =>
+                setShowCountyOverlay(checked === true)
+              }
+            />
+            <Label htmlFor="county-overlay" className="text-sm cursor-pointer">
+              Counties
+            </Label>
+          </div>
+          {boundaryType && (
+            <div className="flex items-center gap-1.5">
+              <Checkbox
+                id="district-outline"
+                checked={showDistrictOutline}
+                onCheckedChange={(checked) =>
+                  setShowDistrictOutline(checked === true)
+                }
+              />
+              <Label
+                htmlFor="district-outline"
+                className="text-sm cursor-pointer"
+              >
+                District outline
+              </Label>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Map — z-0 creates a stacking context so Leaflet's internal
@@ -249,7 +379,18 @@ export function PrecinctMapView({
           {hasRenderableFeatures && geoJSON ? (
             <>
               <FitBoundsToPrecincts geoJSON={geoJSON} />
+              {showCountyOverlay && filteredCountyBoundaries && (
+                <CountyOverlayLayer
+                  counties={filteredCountyBoundaries}
+                  countyNames={countyNames}
+                />
+              )}
               <PrecinctLayer geoJSON={geoJSON} dataUpdatedAt={dataUpdatedAt} />
+              {/* District outline renders above precincts for visibility;
+                  interactive={false} lets mouse events pass through to precincts */}
+              {showDistrictOutline && districtGeometry && (
+                <DistrictOutlineLayer geometry={districtGeometry} />
+              )}
             </>
           ) : null}
         </MapContainer>

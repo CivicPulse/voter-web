@@ -31,7 +31,7 @@ export function useActiveElections() {
  * This handles the API convention where election districts use
  * "State Senate - District 18" while boundaries use "State Senate District 18".
  */
-function normalize(name: string): string {
+export function normalize(name: string): string {
   return name.toLowerCase().replace(/\s+-\s+/g, " ").trim()
 }
 
