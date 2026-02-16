@@ -134,6 +134,7 @@ function RaceResultsPage() {
         <PrecinctMapView
           electionId={electionId}
           countyNames={countyNames}
+          districtName={election.district}
         />
       )}
 

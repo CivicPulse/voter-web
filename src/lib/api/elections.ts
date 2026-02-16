@@ -1,4 +1,5 @@
 import { api } from "@/api/client"
+import { stripCountySuffix } from "@/lib/utils"
 import type {
   Election,
   PaginatedElectionListResponse,
@@ -94,7 +95,8 @@ export async function getPrecinctGeoJSON(
 ): Promise<PrecinctResultFeatureCollection> {
   const searchParams: Record<string, string> = {}
   if (county) {
-    searchParams.county = county
+    // API expects bare county name (e.g. "Houston") without " County" suffix
+    searchParams.county = stripCountySuffix(county)
   }
 
   return api

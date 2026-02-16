@@ -8,6 +8,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    exclude: ['node_modules', 'dist', 'e2e'],
     css: true,
     coverage: {
       provider: 'v8',
@@ -22,7 +23,7 @@ export default defineConfig({
         '**/*.config.*',
         '**/mockData',
       ],
-      // Constitution requires 95% coverage
+      // Project minimum coverage threshold
       thresholds: {
         lines: 95,
         functions: 95,

@@ -90,8 +90,8 @@ export interface ElectionResultsResponse {
   election_id: string
   candidates: CandidateResult[]
   county_results: CountyResult[]
-  total_precincts_participating: number
-  total_precincts_reporting: number
+  precincts_participating: number | null
+  precincts_reporting: number | null
 }
 
 // ============================================================================
@@ -177,9 +177,11 @@ export type CountyResultFeatureCollection = FeatureCollection<
 export interface PrecinctResultGeoProperties {
   precinct_id: string
   precinct_name: string
-  county: string
+  county_name: string
   reporting_status: string
   candidates: CandidateResult[]
+  /** Whether this feature has matched election result data (set by client-side merge) */
+  has_results?: boolean
 }
 
 /** Precinct-level election results GeoJSON */
@@ -239,10 +241,27 @@ export function getVotePercentage(candidateVotes: number, totalVotes: number): n
   return (candidateVotes / totalVotes) * 100
 }
 
+/** Resolve race-wide precinct counts, falling back to county_results sum when top-level values are null */
+export function resolvePrecinctCounts(
+  results: ElectionResultsResponse,
+): { participating: number; reporting: number } {
+  return {
+    participating:
+      results.precincts_participating ??
+      results.county_results.reduce((sum, c) => sum + c.precincts_participating, 0),
+    reporting:
+      results.precincts_reporting ??
+      results.county_results.reduce((sum, c) => sum + c.precincts_reporting, 0),
+  }
+}
+
 /** Calculate reporting percentage for a county or race */
-export function getReportingPercentage(reporting: number, participating: number): number {
-  if (participating === 0) return 0
-  return (reporting / participating) * 100
+export function getReportingPercentage(
+  reporting: number | null | undefined,
+  participating: number | null | undefined,
+): number {
+  if (participating == null || participating === 0) return 0
+  return ((reporting ?? 0) / participating) * 100
 }
 
 /** Determine if an election is actively polling */

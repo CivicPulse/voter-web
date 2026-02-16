@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge"
 import {
   getReportingPercentage,
   getTotalVotes,
+  resolvePrecinctCounts,
 } from "@/types/elections"
 import type { ElectionResultsResponse } from "@/types/elections"
 import { CandidateResultRow } from "./CandidateResultRow"
@@ -12,10 +13,8 @@ interface RaceWideSummaryProps {
 
 export function RaceWideSummary({ results }: RaceWideSummaryProps) {
   const totalVotes = getTotalVotes(results.candidates)
-  const reportingPct = getReportingPercentage(
-    results.total_precincts_reporting,
-    results.total_precincts_participating,
-  )
+  const { participating, reporting } = resolvePrecinctCounts(results)
+  const reportingPct = getReportingPercentage(reporting, participating)
 
   return (
     <div>
@@ -26,8 +25,8 @@ export function RaceWideSummary({ results }: RaceWideSummaryProps) {
         </Badge>
       </div>
       <div className="text-sm text-muted-foreground mb-3">
-        {results.total_precincts_reporting} of{" "}
-        {results.total_precincts_participating} precincts reporting
+        {reporting} of{" "}
+        {participating} precincts reporting
         {" · "}
         {totalVotes.toLocaleString()} total votes
       </div>

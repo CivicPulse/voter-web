@@ -25,6 +25,21 @@ public/geojson/
 # Wrangler local state
 .wrangler
 
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Screenshots (Playwright MCP, UI verification, etc.)
+screenshots/
+.playwright-mcp/*.png
+/*.png
+imgs/
+
+# TanStack temp files
+.tanstack/tmp/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -36,17 +51,3 @@ public/geojson/
 *.njsproj
 *.sln
 *.sw?
-.playwright-mcp/*.png
-homepage-congressional-overlay.png
-county-detail-regression.png
-.tanstack/tmp/35076e8d-9bc721032de37f897a8fde558e693c58
-about-page-bottom.png
-about-page-full.png
-about-page-licensing.png
-.tanstack/tmp/4c0664b7-9bc721032de37f897a8fde558e693c58
-imgs/image2.png
-imgs/image3.png
-imgs/image4.png
-imgs/image5.png
-imgs/image6.png
-election-inline-results.png

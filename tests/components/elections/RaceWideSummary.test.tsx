@@ -4,13 +4,14 @@ import { RaceWideSummary } from "@/components/elections/RaceWideSummary"
 import {
   mockElectionResultsResponse,
   mockCandidateResult,
+  mockCountyResult,
 } from "@/test/mocks/elections"
 
 describe("RaceWideSummary", () => {
   it("displays reporting percentage badge", () => {
     const results = mockElectionResultsResponse({
-      total_precincts_reporting: 50,
-      total_precincts_participating: 100,
+      precincts_reporting: 50,
+      precincts_participating: 100,
     })
 
     render(<RaceWideSummary results={results} />)
@@ -20,8 +21,8 @@ describe("RaceWideSummary", () => {
 
   it("displays precinct counts and total votes", () => {
     const results = mockElectionResultsResponse({
-      total_precincts_reporting: 25,
-      total_precincts_participating: 50,
+      precincts_reporting: 25,
+      precincts_participating: 50,
       candidates: [
         mockCandidateResult({ vote_count: 1000 }),
         mockCandidateResult({ vote_count: 800 }),
@@ -51,10 +52,26 @@ describe("RaceWideSummary", () => {
     expect(names[2]).toHaveTextContent("Low Votes")
   })
 
+  it("derives precinct counts from county_results when top-level values are null", () => {
+    const results = mockElectionResultsResponse({
+      precincts_participating: null,
+      precincts_reporting: null,
+      county_results: [
+        mockCountyResult({ precincts_participating: 45, precincts_reporting: 38 }),
+        mockCountyResult({ precincts_participating: 55, precincts_reporting: 50 }),
+      ],
+    })
+
+    render(<RaceWideSummary results={results} />)
+
+    expect(screen.getByText("88% reporting")).toBeInTheDocument()
+    expect(screen.getByText(/88 of 100 precincts reporting/)).toBeInTheDocument()
+  })
+
   it("handles zero total votes gracefully", () => {
     const results = mockElectionResultsResponse({
-      total_precincts_reporting: 0,
-      total_precincts_participating: 10,
+      precincts_reporting: 0,
+      precincts_participating: 10,
       candidates: [
         mockCandidateResult({ vote_count: 0 }),
       ],
