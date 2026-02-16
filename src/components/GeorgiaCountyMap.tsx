@@ -13,6 +13,7 @@ import type {
   CountyProperties,
 } from "@/types/boundaries"
 import type { BoundaryFeatureCollection } from "@/types/boundary"
+import type { Election } from "@/types/elections"
 
 const GA_CENTER: [number, number] = [32.6791, -83.6233]
 const GA_ZOOM = 7
@@ -35,6 +36,7 @@ const HOVER_STYLE: PathOptions = {
 interface GeorgiaCountyMapProps {
   data?: CountyFeatureCollection | null
   overlayData?: BoundaryFeatureCollection | null
+  activeElections?: Election[]
   isCountiesLoading?: boolean
   isOverlayLoading?: boolean
   className?: string
@@ -143,6 +145,7 @@ function CountyGeoJSON({ data }: Readonly<{ data: CountyFeatureCollection }>) {
 export function GeorgiaCountyMap({
   data,
   overlayData,
+  activeElections,
   isCountiesLoading,
   isOverlayLoading,
   className,
@@ -182,6 +185,7 @@ export function GeorgiaCountyMap({
         {overlayData && overlayData.features.length > 0 && (
           <OverlayLayer
             data={overlayData}
+            activeElections={activeElections}
             onDistrictDblClick={handleDistrictDblClick}
           />
         )}

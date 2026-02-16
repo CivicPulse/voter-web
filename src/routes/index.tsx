@@ -5,6 +5,7 @@ import { AlertCircle, ChevronDown, ChevronUp } from "lucide-react"
 import { GeorgiaCountyMap } from "@/components/GeorgiaCountyMap"
 import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
+import { useActiveElections } from "@/lib/hooks/use-active-elections"
 import { StateCensusProfileCard } from "@/components/StateCensusProfileCard"
 import {
   Drawer,
@@ -32,6 +33,7 @@ function Index() {
     useCountyBoundaries()
   const { data: overlayData, isLoading: isOverlayLoading } =
     useBoundaryTypeGeoJSON(overlay ?? null, null)
+  const { data: activeElections } = useActiveElections()
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   return (
@@ -41,6 +43,7 @@ function Index() {
         <GeorgiaCountyMap
           data={data ?? null}
           overlayData={overlayData}
+          activeElections={activeElections}
           isCountiesLoading={isCountiesLoading}
           isOverlayLoading={isOverlayLoading}
           className="rounded-none border-0"

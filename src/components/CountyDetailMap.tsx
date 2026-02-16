@@ -9,6 +9,7 @@ import { geometryToLeafletBounds } from "@/lib/geo"
 import { districtSlugPath } from "@/lib/slugs"
 import { OverlayLayer } from "@/components/OverlayLayer"
 import type { BoundaryFeatureCollection } from "@/types/boundary"
+import type { Election } from "@/types/elections"
 
 const GA_CENTER: [number, number] = [32.6791, -83.6233]
 const GA_ZOOM = 7
@@ -24,6 +25,7 @@ const COUNTY_STYLE: PathOptions = {
 interface CountyDetailMapProps {
   countyGeometry?: Record<string, unknown> | null
   overlayData?: BoundaryFeatureCollection | null
+  activeElections?: Election[]
   isCountyLoading?: boolean
   isOverlayLoading?: boolean
   className?: string
@@ -62,6 +64,7 @@ function CountyBoundaryLayer({
 export function CountyDetailMap({
   countyGeometry,
   overlayData,
+  activeElections,
   isCountyLoading,
   isOverlayLoading,
   className,
@@ -102,6 +105,7 @@ export function CountyDetailMap({
         {overlayData && overlayData.features.length > 0 && (
           <OverlayLayer
             data={overlayData}
+            activeElections={activeElections}
             onDistrictDblClick={handleDistrictDblClick}
           />
         )}

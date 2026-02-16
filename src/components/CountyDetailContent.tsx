@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import {
   Lock,
   AlertCircle,
@@ -24,9 +24,14 @@ import {
 } from "@/components/ui/drawer"
 import { CensusProfileCard } from "@/components/CensusProfileCard"
 import { CountyDetailMap } from "@/components/CountyDetailMap"
+import { ActiveElectionBanner } from "@/components/ActiveElectionBanner"
 import { useCountyBoundary } from "@/hooks/useCountyBoundary"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import { useAuthStore } from "@/stores/authStore"
+import {
+  useActiveElections,
+  electionsForDistrict,
+} from "@/lib/hooks/use-active-elections"
 
 const functionalStatusLabels: Record<string, string> = {
   A: "Active",
@@ -56,6 +61,14 @@ export function CountyDetailContent({
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const { data: overlayData, isLoading: isOverlayLoading } =
     useBoundaryTypeGeoJSON(selectedType, county?.name ?? null)
+  const { data: activeElections } = useActiveElections()
+  const matchingElections = useMemo(
+    () =>
+      county && activeElections
+        ? electionsForDistrict(activeElections, county.name)
+        : [],
+    [county, activeElections],
+  )
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   return (
@@ -65,6 +78,7 @@ export function CountyDetailContent({
         <CountyDetailMap
           countyGeometry={county?.geometry ?? null}
           overlayData={overlayData}
+          activeElections={activeElections}
           isCountyLoading={isCountyLoading}
           isOverlayLoading={isOverlayLoading}
           className="rounded-none border-0"
@@ -94,6 +108,13 @@ export function CountyDetailContent({
         </div>
       )}
 
+      {/* Active election banner — floating on map */}
+      {matchingElections.length > 0 && (
+        <div className="absolute left-3 right-3 top-3 z-[1000] sm:left-auto sm:right-3 sm:max-w-sm">
+          <ActiveElectionBanner elections={matchingElections} className="space-y-2" />
+        </div>
+      )}
+
       {/* Bottom drawer trigger — only show when county data is available */}
       {county && (
         <>
@@ -113,6 +134,9 @@ export function CountyDetailContent({
                 <DrawerDescription>Swipe down to close</DrawerDescription>
               </DrawerHeader>
               <div className="overflow-y-auto px-4 pb-6 max-h-[60vh] md:max-h-[70vh] space-y-6">
+                {matchingElections.length > 0 && (
+                  <ActiveElectionBanner elections={matchingElections} className="space-y-2" />
+                )}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
