@@ -53,7 +53,7 @@ function Index() {
 
       {/* Active election banner — floating on map */}
       {activeElections && activeElections.length > 0 && (
-        <div className="absolute left-3 right-3 top-3 z-[1000] sm:left-auto sm:right-3 sm:max-w-sm">
+        <div className="absolute left-3 right-3 top-3 z-40 sm:left-auto sm:right-3 sm:max-w-sm">
           <ActiveElectionBanner elections={activeElections} className="space-y-2" />
         </div>
       )}
