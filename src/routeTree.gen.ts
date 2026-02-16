@@ -30,6 +30,7 @@ import { Route as ElectionsElectionDateElectionIdRouteImport } from './routes/el
 import { Route as DistrictsTypeNameRouteImport } from './routes/districts/$type/$name'
 import { Route as CountiesStateCountyRouteImport } from './routes/counties/$state/$county'
 import { Route as AdminUsersCreateRouteImport } from './routes/admin/users/create'
+import { Route as AdminElectionsImportFeedRouteImport } from './routes/admin/elections/import-feed'
 import { Route as AdminElectionsCreateRouteImport } from './routes/admin/elections/create'
 import { Route as AdminElectionsElectionIdRouteImport } from './routes/admin/elections/$electionId'
 
@@ -140,6 +141,12 @@ const AdminUsersCreateRoute = AdminUsersCreateRouteImport.update({
   path: '/users/create',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminElectionsImportFeedRoute =
+  AdminElectionsImportFeedRouteImport.update({
+    id: '/elections/import-feed',
+    path: '/elections/import-feed',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminElectionsCreateRoute = AdminElectionsCreateRouteImport.update({
   id: '/elections/create',
   path: '/elections/create',
@@ -167,6 +174,7 @@ export interface FileRoutesByFullPath {
   '/lookup/': typeof LookupIndexRoute
   '/admin/elections/$electionId': typeof AdminElectionsElectionIdRoute
   '/admin/elections/create': typeof AdminElectionsCreateRoute
+  '/admin/elections/import-feed': typeof AdminElectionsImportFeedRoute
   '/admin/users/create': typeof AdminUsersCreateRoute
   '/counties/$state/$county': typeof CountiesStateCountyRoute
   '/districts/$type/$name': typeof DistrictsTypeNameRoute
@@ -189,6 +197,7 @@ export interface FileRoutesByTo {
   '/lookup': typeof LookupIndexRoute
   '/admin/elections/$electionId': typeof AdminElectionsElectionIdRoute
   '/admin/elections/create': typeof AdminElectionsCreateRoute
+  '/admin/elections/import-feed': typeof AdminElectionsImportFeedRoute
   '/admin/users/create': typeof AdminUsersCreateRoute
   '/counties/$state/$county': typeof CountiesStateCountyRoute
   '/districts/$type/$name': typeof DistrictsTypeNameRoute
@@ -215,6 +224,7 @@ export interface FileRoutesById {
   '/lookup/': typeof LookupIndexRoute
   '/admin/elections/$electionId': typeof AdminElectionsElectionIdRoute
   '/admin/elections/create': typeof AdminElectionsCreateRoute
+  '/admin/elections/import-feed': typeof AdminElectionsImportFeedRoute
   '/admin/users/create': typeof AdminUsersCreateRoute
   '/counties/$state/$county': typeof CountiesStateCountyRoute
   '/districts/$type/$name': typeof DistrictsTypeNameRoute
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/lookup/'
     | '/admin/elections/$electionId'
     | '/admin/elections/create'
+    | '/admin/elections/import-feed'
     | '/admin/users/create'
     | '/counties/$state/$county'
     | '/districts/$type/$name'
@@ -264,6 +275,7 @@ export interface FileRouteTypes {
     | '/lookup'
     | '/admin/elections/$electionId'
     | '/admin/elections/create'
+    | '/admin/elections/import-feed'
     | '/admin/users/create'
     | '/counties/$state/$county'
     | '/districts/$type/$name'
@@ -289,6 +301,7 @@ export interface FileRouteTypes {
     | '/lookup/'
     | '/admin/elections/$electionId'
     | '/admin/elections/create'
+    | '/admin/elections/import-feed'
     | '/admin/users/create'
     | '/counties/$state/$county'
     | '/districts/$type/$name'
@@ -463,6 +476,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersCreateRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/elections/import-feed': {
+      id: '/admin/elections/import-feed'
+      path: '/elections/import-feed'
+      fullPath: '/admin/elections/import-feed'
+      preLoaderRoute: typeof AdminElectionsImportFeedRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/elections/create': {
       id: '/admin/elections/create'
       path: '/elections/create'
@@ -484,6 +504,7 @@ interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   AdminElectionsElectionIdRoute: typeof AdminElectionsElectionIdRoute
   AdminElectionsCreateRoute: typeof AdminElectionsCreateRoute
+  AdminElectionsImportFeedRoute: typeof AdminElectionsImportFeedRoute
   AdminUsersCreateRoute: typeof AdminUsersCreateRoute
   AdminElectionsIndexRoute: typeof AdminElectionsIndexRoute
   AdminExportsIndexRoute: typeof AdminExportsIndexRoute
@@ -495,6 +516,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   AdminElectionsElectionIdRoute: AdminElectionsElectionIdRoute,
   AdminElectionsCreateRoute: AdminElectionsCreateRoute,
+  AdminElectionsImportFeedRoute: AdminElectionsImportFeedRoute,
   AdminUsersCreateRoute: AdminUsersCreateRoute,
   AdminElectionsIndexRoute: AdminElectionsIndexRoute,
   AdminExportsIndexRoute: AdminExportsIndexRoute,

@@ -30,6 +30,8 @@ export interface Election {
   district: string
   status: ElectionStatus
   last_refreshed_at: string | null
+  /** SOS ballot item ID for multi-race feeds; null for single-race elections */
+  ballot_item_id?: string | null
   /** Only present on list endpoint */
   precincts_reporting?: number | null
   /** Only present on list endpoint */
@@ -122,6 +124,7 @@ export interface CreateElectionRequest {
   district: string
   data_source_url: string
   refresh_interval_seconds?: number
+  ballot_item_id?: string | null
 }
 
 /** Request body for PATCH /elections/{id} (update) — all fields optional */
@@ -130,6 +133,7 @@ export interface UpdateElectionRequest {
   data_source_url?: string
   status?: ElectionStatus
   refresh_interval_seconds?: number
+  ballot_item_id?: string | null
 }
 
 /** Response from POST /elections/{id}/refresh */
@@ -297,6 +301,54 @@ export function getTotalVotes(candidates: CandidateResult[]): number {
 export function getLeadingCandidate(candidates: CandidateResult[]): CandidateResult | null {
   if (candidates.length === 0) return null
   return candidates.reduce((leader, c) => (c.vote_count > leader.vote_count ? c : leader))
+}
+
+// ============================================================================
+// Feed Import Types
+// ============================================================================
+
+/** Request body for POST /elections/import-feed/preview and /elections/import-feed */
+export interface FeedImportRequest {
+  data_source_url: string
+  election_type: ElectionType
+  refresh_interval_seconds?: number
+  auto_refresh?: boolean
+}
+
+/** A race summary returned from feed preview */
+export interface FeedRaceSummary {
+  ballot_item_id: string
+  name: string
+  candidate_count: number
+  statewide_precincts_participating: number | null
+  statewide_precincts_reporting: number | null
+}
+
+/** Response from POST /elections/import-feed/preview */
+export interface FeedImportPreviewResponse {
+  data_source_url: string
+  election_date: string
+  election_name: string
+  total_races: number
+  races: FeedRaceSummary[]
+}
+
+/** An election created by the feed import */
+export interface FeedImportedElection {
+  election_id: string
+  ballot_item_id: string
+  name: string
+  election_date: string
+  refreshed: boolean
+  precincts_reporting: number | null
+  precincts_participating: number | null
+}
+
+/** Response from POST /elections/import-feed */
+export interface FeedImportResponse {
+  elections_created: number
+  elections_skipped: number
+  elections: FeedImportedElection[]
 }
 
 /** Group an array of elections by election_date into ElectionEvents */

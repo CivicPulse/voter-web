@@ -4,6 +4,7 @@ import {
   createElectionSchema,
   type ElectionFormValues,
 } from "@/lib/schemas/election-form"
+import { useSosFeedAutoFill } from "@/lib/hooks/use-sos-feed-autofill"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -22,12 +23,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Link } from "@tanstack/react-router"
+import { Loader2, Sparkles, Info } from "lucide-react"
 
 interface ElectionFormProps {
   defaultValues?: Partial<ElectionFormValues>
   onSubmit: (data: ElectionFormValues) => void
   isPending: boolean
   submitLabel?: string
+  enableAutoFill?: boolean
 }
 
 export function ElectionForm({
@@ -35,6 +40,7 @@ export function ElectionForm({
   onSubmit,
   isPending,
   submitLabel = "Create Election",
+  enableAutoFill = true,
 }: ElectionFormProps) {
   const form = useForm<ElectionFormValues>({
     resolver: zodResolver(createElectionSchema),
@@ -49,9 +55,74 @@ export function ElectionForm({
     },
   })
 
+  const { isFetching, fetchError, isAutoFilled, selectKey, multiRaceCount } =
+    useSosFeedAutoFill({ form, enabled: enableAutoFill })
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="data_source_url"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="flex items-center gap-2">
+                Data Source URL
+                {isFetching && (
+                  <>
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span className="sr-only" aria-live="polite">
+                      Fetching election details...
+                    </span>
+                  </>
+                )}
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type="url"
+                  placeholder="https://results.sos.ga.gov/cdn/results/Georgia/export-..."
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription>
+                Enter a Georgia SOS results JSON URL to auto-fill election
+                details
+              </FormDescription>
+              {fetchError && (
+                <p className="text-sm text-destructive">{fetchError}</p>
+              )}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {isAutoFilled && (
+          <Alert>
+            <Sparkles className="h-4 w-4" />
+            <AlertDescription>
+              Fields auto-filled from SOS feed. All fields remain editable.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {multiRaceCount && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              This feed contains {multiRaceCount} races. Only the first race was
+              used for auto-fill. To import all races at once, use the{" "}
+              <Link
+                to="/admin/elections/import-feed"
+                search={{ url: form.getValues("data_source_url") }}
+                className="underline font-medium"
+              >
+                Feed Import
+              </Link>{" "}
+              page.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <FormField
           control={form.control}
           name="name"
@@ -94,6 +165,7 @@ export function ElectionForm({
               <FormItem>
                 <FormLabel>Election Type</FormLabel>
                 <Select
+                  key={selectKey}
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
@@ -129,27 +201,6 @@ export function ElectionForm({
               </FormControl>
               <FormDescription>
                 The district or scope of this race
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="data_source_url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Data Source URL</FormLabel>
-              <FormControl>
-                <Input
-                  type="url"
-                  placeholder="https://results.sos.ga.gov/api/..."
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription>
-                URL for the election results data source
               </FormDescription>
               <FormMessage />
             </FormItem>

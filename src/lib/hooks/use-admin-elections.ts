@@ -15,6 +15,7 @@ import {
   PermissionError,
   NetworkError,
 } from "@/types/admin"
+import { HTTPError } from "ky"
 import { toast } from "sonner"
 
 /**
@@ -94,6 +95,11 @@ export function useCreateElection() {
         toast.error("Session expired", { description: error.message })
       } else if (error instanceof PermissionError) {
         toast.error("Access denied", { description: error.message })
+      } else if (error instanceof HTTPError && error.response.status === 409) {
+        toast.error("Duplicate election", {
+          description:
+            "An election with these details already exists.",
+        })
       } else {
         toast.error("Failed to create election", {
           description:
