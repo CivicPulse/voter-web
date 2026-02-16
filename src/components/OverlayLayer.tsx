@@ -6,6 +6,8 @@ import type {
   BoundaryFeatureCollection,
   BoundaryFeatureProperties,
 } from "@/types/boundary"
+import type { Election } from "@/types/elections"
+import { electionsForDistrict } from "@/lib/hooks/use-active-elections"
 
 function escapeHtml(str: string): string {
   return str
@@ -36,8 +38,18 @@ const DISTRICT_COLORS = [
   { fill: "#a9a9a9", border: "#757575" }, // grey
 ]
 
-function getDistrictStyle(index: number): PathOptions {
+function getDistrictStyle(index: number, hasElection: boolean): PathOptions {
   const palette = DISTRICT_COLORS[index % DISTRICT_COLORS.length]
+  if (hasElection) {
+    return {
+      color: palette.border,
+      weight: 3,
+      fillColor: palette.fill,
+      fillOpacity: 0.4,
+      opacity: 1,
+      dashArray: "6 4",
+    }
+  }
   return {
     color: palette.border,
     weight: 1.5,
@@ -55,6 +67,7 @@ const OVERLAY_HOVER_STYLE: PathOptions = {
 
 interface OverlayLayerProps {
   data: BoundaryFeatureCollection
+  activeElections?: Election[]
   onDistrictDblClick?: (
     featureId: string,
     boundaryType: string,
@@ -64,6 +77,7 @@ interface OverlayLayerProps {
 
 export function OverlayLayer({
   data,
+  activeElections,
   onDistrictDblClick,
 }: Readonly<OverlayLayerProps>) {
   const featureIndexMap = useMemo(() => {
@@ -75,13 +89,32 @@ export function OverlayLayer({
     return map
   }, [data])
 
+  /** Set of district names (lowercased) that have active elections */
+  const electionDistrictNames = useMemo(() => {
+    if (!activeElections || activeElections.length === 0) return new Set<string>()
+    const names = new Set<string>()
+    for (const feature of data.features) {
+      const name = feature.properties?.name
+      if (name && electionsForDistrict(activeElections, name).length > 0) {
+        names.add(name.toLowerCase().trim())
+      }
+    }
+    return names
+  }, [activeElections, data.features])
+
+  const hasElectionForName = useCallback(
+    (name: string) => electionDistrictNames.has(name.toLowerCase().trim()),
+    [electionDistrictNames],
+  )
+
   const style = useCallback(
     (feature?: Feature) => {
       const key = feature?.properties?.boundary_identifier ?? ""
+      const name = feature?.properties?.name ?? ""
       const index = featureIndexMap.get(key) ?? 0
-      return getDistrictStyle(index)
+      return getDistrictStyle(index, hasElectionForName(name))
     },
-    [featureIndexMap],
+    [featureIndexMap, hasElectionForName],
   )
 
   const onEachFeature = useCallback(
@@ -95,12 +128,21 @@ export function OverlayLayer({
       const typeName = props.boundary_type.replaceAll("_", " ")
       const key = props.boundary_identifier ?? ""
       const index = featureIndexMap.get(key) ?? 0
-      const defaultStyle = getDistrictStyle(index)
+      const hasElection = hasElectionForName(props.name)
+      const defaultStyle = getDistrictStyle(index, hasElection)
+
+      const electionBadge = hasElection
+        ? `<span style="display:inline-flex;align-items:center;gap:3px;margin-top:4px;padding:1px 6px;border-radius:9999px;background:#dcfce7;color:#166534;font-size:11px;font-weight:500;border:1px solid #bbf7d0;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Active election indicator"><path d="m9 12 2 2 4-4"/><path d="M5 7c0-1.1.9-2 2-2h10a2 2 0 0 1 2 2v12H5V7Z"/><path d="M22 19H2"/></svg>
+            Active Election
+          </span>`
+        : ""
 
       layer.bindPopup(
         `<div class="p-1">
           <p class="font-semibold text-sm">${escapeHtml(displayName)}</p>
           <p class="text-xs text-muted-foreground capitalize">${escapeHtml(typeName)}</p>
+          ${electionBadge}
         </div>`,
       )
 
@@ -123,12 +165,12 @@ export function OverlayLayer({
         },
       })
     },
-    [featureIndexMap, onDistrictDblClick],
+    [featureIndexMap, hasElectionForName, onDistrictDblClick],
   )
 
   return (
     <GeoJSON
-      key={`${data.features[0]?.properties?.boundary_type}-${data.features.length}`}
+      key={`${data.features[0]?.properties?.boundary_type}-${data.features.length}-${electionDistrictNames.size}`}
       data={data}
       style={style}
       onEachFeature={onEachFeature}

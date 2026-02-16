@@ -6,7 +6,7 @@ import {
   useNavigate,
 } from "@tanstack/react-router"
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { HelpCircle, Loader2, LogIn, LogOut, Menu, Search, User, Vote } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -25,6 +25,10 @@ import { useBoundaryTypes } from "@/hooks/useBoundaryTypes"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import { useStatewideOverlayTypes } from "@/hooks/useStatewideOverlayTypes"
 import { useUserRole } from "@/lib/hooks/use-user-role"
+import {
+  useActiveElections,
+  electionBoundaryTypes,
+} from "@/lib/hooks/use-active-elections"
 import { AdminNavMenu, AdminNavLinks } from "@/components/admin-nav-menu"
 import { Toaster } from "@/components/ui/sonner"
 import { WelcomeModal } from "@/components/WelcomeModal"
@@ -251,6 +255,13 @@ function RootLayout() {
       isOnCountyRoute ? (county?.name ?? null) : null,
     )
 
+  // Active election awareness for LayerBar indicators
+  const { data: activeElections } = useActiveElections()
+  const electionTypes = useMemo(
+    () => (activeElections ? electionBoundaryTypes(activeElections) : new Set<string>()),
+    [activeElections],
+  )
+
   // Determine header title
   let headerTitle: string | null = null
   if (isOnDistrictRoute && district) {
@@ -411,6 +422,7 @@ function RootLayout() {
                 : null
             }
             countyName={county.name}
+            electionTypes={electionTypes}
           />
         )}
         {isOnHomePage && (
@@ -426,6 +438,7 @@ function RootLayout() {
             }
             countyName="Georgia"
             statewide
+            electionTypes={electionTypes}
           />
         )}
       </header>
