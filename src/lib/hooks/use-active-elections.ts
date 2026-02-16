@@ -25,19 +25,27 @@ export function useActiveElections() {
 }
 
 /**
+ * Normalize a district/boundary name for comparison by lowercasing,
+ * collapsing ` - ` separators to a single space, and trimming.
+ * This handles the API convention where election districts use
+ * "State Senate - District 18" while boundaries use "State Senate District 18".
+ */
+function normalize(name: string): string {
+  return name.toLowerCase().replace(/\s+-\s+/g, " ").trim()
+}
+
+/**
  * Case-insensitive check whether an election's district field matches
- * a boundary name. Handles common naming variations:
- * - Exact match (case-insensitive)
- * - Election district contains the boundary name
- * - Boundary name contains the election district
+ * a boundary name. Normalizes dash separators so
+ * "State Senate - District 18" matches "State Senate District 18".
  */
 export function electionsForDistrict(
   elections: Election[],
   boundaryName: string,
 ): Election[] {
-  const normalized = boundaryName.toLowerCase().trim()
+  const normalized = normalize(boundaryName)
   return elections.filter((e) => {
-    const district = e.district.toLowerCase().trim()
+    const district = normalize(e.district)
     return district === normalized || district.includes(normalized) || normalized.includes(district)
   })
 }
