@@ -33,6 +33,10 @@ interface PrecinctMapViewProps {
   className?: string
 }
 
+function isReported(status: string): boolean {
+  return status === "Reported" || status === "Fully Reported"
+}
+
 const HOVER_STYLE: PathOptions = {
   weight: 3,
   fillOpacity: 0.7,
@@ -149,7 +153,7 @@ function PrecinctLayer({
       let fillColor: string
       let fillOpacity = 0.6
 
-      if (props.reporting_status === "Reported") {
+      if (isReported(props.reporting_status)) {
         const leader = getLeadingCandidate(props.candidates)
         fillColor = leader
           ? getPartyColor(leader.political_party).fill
@@ -179,10 +183,10 @@ function PrecinctLayer({
       layer: Layer,
     ) => {
       const props = feature.properties
-      const isReported = props.reporting_status === "Reported"
+      const hasResults = isReported(props.reporting_status)
 
       let candidateLines: string
-      if (isReported) {
+      if (hasResults) {
         candidateLines = props.candidates
           .slice()
           .sort((a, b) => b.vote_count - a.vote_count)

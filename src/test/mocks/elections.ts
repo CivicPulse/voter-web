@@ -213,7 +213,10 @@ export function mockCountyGeoJSON(): CountyResultFeatureCollection {
   }
 }
 
-export function mockPrecinctGeoJSON(): PrecinctResultFeatureCollection {
+export function mockPrecinctGeoJSON(
+  overrides?: { reporting_status?: string },
+): PrecinctResultFeatureCollection {
+  const reporting_status = overrides?.reporting_status ?? "Reported"
   return {
     type: "FeatureCollection",
     features: [
@@ -235,7 +238,7 @@ export function mockPrecinctGeoJSON(): PrecinctResultFeatureCollection {
           precinct_id: "precinct-001",
           precinct_name: "Bibb Precinct 1",
           county_name: "Bibb County",
-          reporting_status: "Reported",
+          reporting_status,
           candidates: [
             mockCandidateResult({ vote_count: 350 }),
             mockCandidateResult({
