@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react"
-import { createFileRoute, useParams } from "@tanstack/react-router"
-import { Loader2, Map, Grid3X3 } from "lucide-react"
+import { createFileRoute, Link, useParams } from "@tanstack/react-router"
+import { ChevronRight, Loader2, Map, Grid3X3 } from "lucide-react"
 import { useRaceResults } from "@/lib/hooks/use-race-results"
 import { useCountyResultsGeoJSON } from "@/lib/hooks/use-race-geojson"
+import { useDistrictBoundary } from "@/hooks/useDistrictBoundary"
 import { ElectionResultsMap } from "@/components/elections/ElectionResultsMap"
 import { ElectionResultsSection } from "@/components/elections/ElectionResultsSection"
 import { PrecinctMapView } from "@/components/elections/PrecinctMapView"
@@ -13,7 +14,10 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@/components/ui/toggle-group"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
 import type { MapDataLayer } from "@/types/elections"
+import { buildCandidateColorMap } from "@/lib/candidate-colors"
 
 type MapView = "county" | "precinct"
 
@@ -24,9 +28,14 @@ export const Route = createFileRoute(
 })
 
 function RaceResultsPage() {
-  const { electionId } = useParams({
+  const { electionId, electionDate } = useParams({
     from: "/elections/$electionDate/$electionId",
   })
+
+  const formattedDate = new Date(electionDate + "T00:00:00").toLocaleDateString(
+    "en-US",
+    { year: "numeric", month: "long", day: "numeric" },
+  )
 
   const {
     data: raceData,
@@ -42,11 +51,21 @@ function RaceResultsPage() {
   const [activeLayer, setActiveLayer] = useState<MapDataLayer>("leading_candidate")
   const [selectedCounty, setSelectedCounty] = useState<string | null>(null)
   const [mapView, setMapView] = useState<MapView>("county")
+  const [showDistrictOutline, setShowDistrictOutline] = useState(true)
+
+  const districtName = raceData?.election.district ?? ""
+  const { geometry: districtGeometry, boundaryType } =
+    useDistrictBoundary(districtName)
 
   const countyNames = useMemo(
     () =>
       raceData?.results.county_results.map((c) => c.county_name) ?? [],
     [raceData?.results.county_results],
+  )
+
+  const candidateColorMap = useMemo(
+    () => buildCandidateColorMap(raceData?.results.candidates ?? []),
+    [raceData],
   )
 
   const isLoading = raceLoading || geoLoading
@@ -77,6 +96,21 @@ function RaceResultsPage() {
 
   return (
     <div className="container mx-auto px-4 py-4 sm:p-6 max-w-5xl">
+      {/* Breadcrumb */}
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
+        <Link to="/elections" className="hover:text-foreground transition-colors">
+          Elections
+        </Link>
+        <ChevronRight className="h-3 w-3" />
+        <Link
+          to="/elections/$electionDate"
+          params={{ electionDate }}
+          className="hover:text-foreground transition-colors"
+        >
+          {formattedDate}
+        </Link>
+      </nav>
+
       {/* Header */}
       <div className="mb-4">
         <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -99,6 +133,7 @@ function RaceResultsPage() {
           results={results}
           selectedCounty={selectedCounty}
           onClearCounty={() => setSelectedCounty(null)}
+          candidateColorMap={candidateColorMap}
         />
       </div>
 
@@ -122,10 +157,29 @@ function RaceResultsPage() {
         </ToggleGroup>
 
         {mapView === "county" && (
-          <MapLayerSelector
-            activeLayer={activeLayer}
-            onLayerChange={setActiveLayer}
-          />
+          <div className="flex items-center gap-4">
+            {boundaryType && (
+              <div className="flex items-center gap-1.5">
+                <Checkbox
+                  id="county-map-district-outline"
+                  checked={showDistrictOutline}
+                  onCheckedChange={(checked) =>
+                    setShowDistrictOutline(checked === true)
+                  }
+                />
+                <Label
+                  htmlFor="county-map-district-outline"
+                  className="text-sm cursor-pointer"
+                >
+                  District outline
+                </Label>
+              </div>
+            )}
+            <MapLayerSelector
+              activeLayer={activeLayer}
+              onLayerChange={setActiveLayer}
+            />
+          </div>
         )}
       </div>
 
@@ -135,6 +189,7 @@ function RaceResultsPage() {
           electionId={electionId}
           countyNames={countyNames}
           districtName={election.district}
+          candidateColorMap={candidateColorMap}
         />
       )}
 
@@ -145,6 +200,9 @@ function RaceResultsPage() {
             activeLayer={activeLayer}
             selectedCounty={selectedCounty}
             onCountyClick={handleCountyClick}
+            districtGeometry={districtGeometry}
+            showDistrictOutline={showDistrictOutline}
+            candidateColorMap={candidateColorMap}
           />
         </div>
       )}

@@ -37,6 +37,8 @@ export function useMultiCountyPrecinctBoundaries(countyNames: string[]) {
 
   const isLoading = queries.some((q) => q.isLoading)
   const isError = queries.some((q) => q.isError)
+  const loadedCount = queries.filter((q) => q.isSuccess).length
+  const totalCount = queries.length
 
   const allBoundaryFeatures = useMemo(
     () =>
@@ -51,5 +53,5 @@ export function useMultiCountyPrecinctBoundaries(countyNames: string[]) {
     [queries.map((q) => q.dataUpdatedAt).join(",")],
   )
 
-  return { isLoading, isError, allBoundaryFeatures }
+  return { isLoading, isError, allBoundaryFeatures, loadedCount, totalCount }
 }

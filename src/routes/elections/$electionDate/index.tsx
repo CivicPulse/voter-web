@@ -1,5 +1,5 @@
-import { createFileRoute, useParams } from "@tanstack/react-router"
-import { Loader2, Vote } from "lucide-react"
+import { createFileRoute, Link, useParams } from "@tanstack/react-router"
+import { ChevronRight, Loader2, Vote } from "lucide-react"
 import { useElectionDetail } from "@/lib/hooks/use-election-detail"
 import { RaceList } from "./_components/race-list"
 
@@ -21,6 +21,15 @@ function RaceListPage() {
 
   return (
     <div className="container mx-auto px-4 py-4 sm:p-6 max-w-3xl">
+      {/* Breadcrumb */}
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-3">
+        <Link to="/elections" className="hover:text-foreground transition-colors">
+          Elections
+        </Link>
+        <ChevronRight className="h-3 w-3" />
+        <span className="text-foreground">{formattedDate}</span>
+      </nav>
+
       <div className="flex items-center gap-3 mb-2">
         <Vote className="h-6 w-6" />
         <h1 className="text-2xl font-bold">{formattedDate}</h1>

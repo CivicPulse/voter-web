@@ -4,13 +4,22 @@ import type {
   PrecinctResultGeoProperties,
 } from "@/types/elections"
 import type { BoundaryFeatureProperties } from "@/types/boundary"
+import { stripCountySuffix } from "@/lib/utils"
 
 function normalizeKey(value: string | undefined | null): string {
   return (value ?? "").toLowerCase().trim()
 }
 
 function compositeKey(precinctName: string, countyName: string): string {
-  return `${normalizeKey(precinctName)}::${normalizeKey(countyName)}`
+  return `${normalizeKey(precinctName)}::${normalizeKey(stripCountySuffix(countyName || ""))}`
+}
+
+/** Convert "FULTON" → "Fulton County" to match election data format */
+function formatCountyName(raw: string): string {
+  if (!raw) return ""
+  const bare = stripCountySuffix(raw).trim()
+  const titled = bare.charAt(0).toUpperCase() + bare.slice(1).toLowerCase()
+  return `${titled} County`
 }
 
 /**
@@ -103,7 +112,7 @@ export function mergePrecinctData(
         properties: {
           precinct_id: bp.precinct_id ?? bp.boundary_identifier ?? "",
           precinct_name: bp.precinct_name ?? bp.name ?? "Unknown",
-          county_name: bp.precinct_county_name ?? bp.county ?? "",
+          county_name: formatCountyName(bp.precinct_county_name ?? bp.county ?? ""),
           reporting_status: "Not Reported",
           candidates: [],
           has_results: false,
@@ -111,6 +120,14 @@ export function mergePrecinctData(
       })
     }
   }
+
+  // Sort so "Not Reported" boundary features render first (behind)
+  // and features with results render last (on top) in Leaflet
+  mergedFeatures.sort((a, b) => {
+    const aHas = a.properties.has_results ? 1 : 0
+    const bHas = b.properties.has_results ? 1 : 0
+    return aHas - bHas
+  })
 
   return {
     type: "FeatureCollection",

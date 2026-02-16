@@ -1,12 +1,13 @@
 import { useCallback, useMemo } from "react"
 import { GeoJSON } from "react-leaflet"
-import type { Layer, LeafletMouseEvent, PathOptions } from "leaflet"
+import type { Layer, LeafletMouseEvent, Path, PathOptions } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
 import type {
   BoundaryFeatureCollection,
   BoundaryFeatureProperties,
 } from "@/types/boundary"
 import type { Election } from "@/types/elections"
+import type { ElectedOfficialSummaryResponse } from "@/types/elected-officials"
 import { electionsForDistrict } from "@/lib/hooks/use-active-elections"
 import { escapeHtml } from "@/lib/utils"
 
@@ -22,7 +23,6 @@ function getDistrictStyle(index: number, hasElection: boolean): PathOptions {
       fillColor: palette.fill,
       fillOpacity: 0.4,
       opacity: 1,
-      dashArray: "6 4",
     }
   }
   return {
@@ -40,9 +40,29 @@ const OVERLAY_HOVER_STYLE: PathOptions = {
   opacity: 1,
 }
 
+function formatOfficialLine(o: ElectedOfficialSummaryResponse): string {
+  const party = o.party
+    ? ` <span style="color:#6b7280;">(${escapeHtml(o.party)})</span>`
+    : ""
+  return `<p style="font-size:11px;margin-top:2px;"><span style="font-weight:500;">${escapeHtml(o.full_name)}</span>${party}</p>`
+}
+
+function buildOfficialsPopupHtml(
+  officials: ElectedOfficialSummaryResponse[],
+): string {
+  if (officials.length === 0) return ""
+  const lines = officials.slice(0, 2).map(formatOfficialLine).join("")
+  const overflow =
+    officials.length > 2
+      ? `<p style="font-size:10px;color:#9ca3af;margin-top:2px;">+${officials.length - 2} more</p>`
+      : ""
+  return `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e5e7eb;">${lines}${overflow}</div>`
+}
+
 interface OverlayLayerProps {
   data: BoundaryFeatureCollection
   activeElections?: Election[]
+  electedOfficials?: Map<string, ElectedOfficialSummaryResponse[]>
   onDistrictDblClick?: (
     featureId: string,
     boundaryType: string,
@@ -53,6 +73,7 @@ interface OverlayLayerProps {
 export function OverlayLayer({
   data,
   activeElections,
+  electedOfficials,
   onDistrictDblClick,
 }: Readonly<OverlayLayerProps>) {
   const featureIndexMap = useMemo(() => {
@@ -70,7 +91,13 @@ export function OverlayLayer({
     const names = new Set<string>()
     for (const feature of data.features) {
       const name = feature.properties?.name
-      if (name && electionsForDistrict(activeElections, name).length > 0) {
+      const boundaryType = feature.properties?.boundary_type
+      // Build a full name like "state senate district 018" so normalize()
+      // can strip leading zeros and match "State Senate District 18".
+      const matchName = boundaryType
+        ? `${boundaryType.replaceAll("_", " ")} district ${name}`
+        : name
+      if (name && electionsForDistrict(activeElections, matchName).length > 0) {
         names.add(name.toLowerCase().trim())
       }
     }
@@ -113,13 +140,27 @@ export function OverlayLayer({
           </span>`
         : ""
 
+      const normalizedId =
+        props.boundary_identifier.replace(/^0+(?=\d)/, "") ||
+        props.boundary_identifier
+      const officials = electedOfficials?.get(normalizedId) ?? []
+      const officialsHtml = buildOfficialsPopupHtml(officials)
+
       layer.bindPopup(
         `<div class="p-1">
           <p class="font-semibold text-sm">${escapeHtml(displayName)}</p>
           <p class="text-xs text-muted-foreground capitalize">${escapeHtml(typeName)}</p>
           ${electionBadge}
+          ${officialsHtml}
         </div>`,
       )
+
+      if (hasElection) {
+        layer.on("add", () => {
+          const el = (layer as Path).getElement()
+          if (el) el.classList.add("election-pulse")
+        })
+      }
 
       layer.on({
         mouseover: (e: LeafletMouseEvent) => {
@@ -140,12 +181,12 @@ export function OverlayLayer({
         },
       })
     },
-    [featureIndexMap, hasElectionForName, onDistrictDblClick],
+    [featureIndexMap, hasElectionForName, electedOfficials, onDistrictDblClick],
   )
 
   return (
     <GeoJSON
-      key={`${data.features[0]?.properties?.boundary_type}-${data.features.length}-${electionDistrictNames.size}`}
+      key={`${data.features[0]?.properties?.boundary_type}-${data.features.length}-${electionDistrictNames.size}-${electedOfficials?.size ?? 0}`}
       data={data}
       style={style}
       onEachFeature={onEachFeature}

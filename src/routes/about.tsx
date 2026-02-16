@@ -8,6 +8,10 @@ import {
   ExternalLink,
   Scale,
   Github,
+  BarChart3,
+  Users,
+  Landmark,
+  Building2,
 } from "lucide-react"
 import {
   Card,
@@ -101,6 +105,16 @@ function AboutSection() {
             icon={<Vote className="h-4 w-4" />}
             title="Voter Registration"
             description="Access voter registration data and analysis tools for Georgia counties (requires authentication)."
+          />
+          <FeatureItem
+            icon={<BarChart3 className="h-4 w-4" />}
+            title="Election Results"
+            description="View live and historical election results with county and precinct-level choropleth maps, powered by the Georgia Secretary of State results feed."
+          />
+          <FeatureItem
+            icon={<Users className="h-4 w-4" />}
+            title="Elected Officials"
+            description="See current elected representatives for congressional, state senate, and state house districts sourced from official government records."
           />
           <FeatureItem
             icon={<Globe className="h-4 w-4" />}
@@ -211,12 +225,19 @@ function DataCreditsSection() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm leading-relaxed">
-              Voter registration records and election data are provided by the
-              Georgia Secretary of State's office.
+              Voter registration records are provided by the Georgia Secretary of
+              State's office. Live and historical election results are sourced
+              from the SOS election results JSON feed at{" "}
+              <code className="rounded bg-muted px-1 py-0.5 text-xs">
+                results.sos.ga.gov
+              </code>
+              , which provides county and precinct-level vote totals, candidate
+              data, and reporting status.
             </p>
             <div className="flex flex-wrap gap-2">
               <Badge variant="secondary">Voter Registration</Badge>
-              <Badge variant="secondary">Election Data</Badge>
+              <Badge variant="secondary">Election Results Feed</Badge>
+              <Badge variant="secondary">Precinct Data</Badge>
             </div>
             <a
               href="https://sos.ga.gov/"
@@ -225,6 +246,65 @@ function DataCreditsSection() {
               className="inline-flex items-center gap-1 text-sm text-primary underline-offset-4 hover:underline"
             >
               sos.ga.gov
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Landmark className="h-5 w-5" />
+              Congress.gov API (Library of Congress)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm leading-relaxed">
+              Current U.S. Senators and Representatives for Georgia are sourced
+              from the Congress.gov API, the official legislative data service
+              maintained by the Library of Congress.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="secondary">U.S. Congress Members</Badge>
+              <Badge variant="secondary">Federal Officials</Badge>
+            </div>
+            <a
+              href="https://api.congress.gov/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm text-primary underline-offset-4 hover:underline"
+            >
+              api.congress.gov
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Building2 className="h-5 w-5" />
+              Open States (Plural Policy)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm leading-relaxed">
+              Georgia state legislators (State Senate and State House) are
+              sourced from the Open States API, a nonprofit civic data project
+              maintained by Plural Policy.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="secondary">State Legislators</Badge>
+              <Badge variant="secondary">State Senate</Badge>
+              <Badge variant="secondary">State House</Badge>
+            </div>
+            <a
+              href="https://openstates.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm text-primary underline-offset-4 hover:underline"
+            >
+              openstates.org
               <ExternalLink className="h-3 w-3" />
             </a>
           </CardContent>

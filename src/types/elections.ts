@@ -228,7 +228,7 @@ export const PARTY_COLORS: Record<string, { fill: string; border: string }> = {
   Rep: { fill: "#dc2626", border: "#b91c1c" },
   Lib: { fill: "#eab308", border: "#ca8a04" },
   Grn: { fill: "#16a34a", border: "#15803d" },
-  Ind: { fill: "#6b7280", border: "#4b5563" },
+  Ind: { fill: "#7c3aed", border: "#6d28d9" },
 }
 
 /** Default color for unknown parties */

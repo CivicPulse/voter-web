@@ -10,9 +10,11 @@ import type {
   PrecinctResultFeatureCollection,
   PrecinctResultGeoProperties,
 } from "@/types/elections"
+import type { CandidateColorMap } from "@/lib/candidate-colors"
 import { useMergedPrecinctGeoJSON } from "@/lib/hooks/use-merged-precinct-geojson"
 import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
 import { useDistrictBoundary } from "@/hooks/useDistrictBoundary"
+import { DistrictOutlineLayer } from "@/components/elections/DistrictOutlineLayer"
 import { DISTRICT_COLORS } from "@/lib/colors"
 import type { CountyFeatureCollection, CountyProperties } from "@/types/boundaries"
 import {
@@ -24,12 +26,18 @@ import {
 } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { Progress } from "@/components/ui/progress"
 
 interface PrecinctMapViewProps {
   electionId: string
   countyNames: string[]
   districtName: string
+  candidateColorMap?: CandidateColorMap
   className?: string
+}
+
+function isReported(status: string): boolean {
+  return status === "Reported" || status === "Fully Reported"
 }
 
 const HOVER_STYLE: PathOptions = {
@@ -127,40 +135,15 @@ function CountyOverlayLayer({
   )
 }
 
-function DistrictOutlineLayer({
-  geometry,
-}: Readonly<{
-  geometry: Polygon | MultiPolygon
-}>) {
-  const geoJsonData = useMemo(
-    () => ({
-      type: "Feature" as const,
-      geometry,
-      properties: {},
-    }),
-    [geometry],
-  )
-
-  const style = useCallback(
-    (): PathOptions => ({
-      color: "#7c3aed",
-      weight: 5,
-      fillOpacity: 0,
-      opacity: 0.9,
-      dashArray: "12 6",
-    }),
-    [],
-  )
-
-  return <GeoJSON data={geoJsonData} style={style} interactive={false} />
-}
 
 function PrecinctLayer({
   geoJSON,
   dataUpdatedAt,
+  candidateColorMap,
 }: {
   geoJSON: PrecinctResultFeatureCollection
   dataUpdatedAt: number
+  candidateColorMap?: CandidateColorMap
 }) {
   const filteredGeoJSON = useMemo(
     () => featuresWithGeometry(geoJSON),
@@ -175,11 +158,11 @@ function PrecinctLayer({
       let fillColor: string
       let fillOpacity = 0.6
 
-      if (props.reporting_status === "Reported") {
+      if (isReported(props.reporting_status)) {
         const leader = getLeadingCandidate(props.candidates)
-        fillColor = leader
-          ? getPartyColor(leader.political_party).fill
-          : "#9ca3af"
+        const mapped = leader ? candidateColorMap?.get(leader.id) : undefined
+        fillColor = mapped?.fill
+          ?? (leader ? getPartyColor(leader.political_party).fill : "#9ca3af")
       } else if (props.has_results === false) {
         // Boundary-only precinct with no election results
         fillColor = "#e5e7eb"
@@ -196,7 +179,7 @@ function PrecinctLayer({
         opacity: 0.8,
       } satisfies PathOptions
     },
-    [],
+    [candidateColorMap],
   )
 
   const onEachFeature = useCallback(
@@ -205,17 +188,17 @@ function PrecinctLayer({
       layer: Layer,
     ) => {
       const props = feature.properties
-      const isReported = props.reporting_status === "Reported"
+      const hasResults = isReported(props.reporting_status)
 
       let candidateLines: string
-      if (isReported) {
+      if (hasResults) {
         candidateLines = props.candidates
           .slice()
           .sort((a, b) => b.vote_count - a.vote_count)
           .slice(0, 3)
           .map(
             (c) =>
-              `<div>${escapeHtml(c.name)} (${escapeHtml(c.political_party)}): ${c.vote_count.toLocaleString()}</div>`,
+              `<div>${escapeHtml(c.name)}: ${c.vote_count.toLocaleString()}</div>`,
           )
           .join("")
       } else if (props.has_results === false) {
@@ -277,6 +260,7 @@ export function PrecinctMapView({
   electionId,
   countyNames,
   districtName,
+  candidateColorMap,
   className,
 }: PrecinctMapViewProps) {
   const [selectedCounty, setSelectedCounty] = useState<string | undefined>(
@@ -292,6 +276,7 @@ export function PrecinctMapView({
     isBoundaryError,
     isElectionError,
     dataUpdatedAt,
+    boundaryProgress,
   } = useMergedPrecinctGeoJSON(electionId, countyNames, selectedCounty)
 
   const { data: allCountyBoundaries, isError: isCountyBoundaryError } = useCountyBoundaries()
@@ -352,7 +337,7 @@ export function PrecinctMapView({
         {isLoading && (
           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
         )}
-        {isLoadingBoundaries && !isLoading && (
+        {isLoadingBoundaries && !isLoading && boundaryProgress.total <= 1 && (
           <span className="text-xs text-muted-foreground">
             Loading precinct boundaries…
           </span>
@@ -423,7 +408,7 @@ export function PrecinctMapView({
                   onCountyDblClick={handleCountyDblClick}
                 />
               )}
-              <PrecinctLayer geoJSON={geoJSON} dataUpdatedAt={dataUpdatedAt} />
+              <PrecinctLayer geoJSON={geoJSON} dataUpdatedAt={dataUpdatedAt} candidateColorMap={candidateColorMap} />
               {/* District outline renders above precincts for visibility;
                   interactive={false} lets mouse events pass through to precincts */}
               {showDistrictOutline && districtGeometry && (
@@ -447,6 +432,30 @@ export function PrecinctMapView({
             <p className="text-muted-foreground text-sm">
               Precinct boundaries are not available for this election.
             </p>
+          </div>
+        )}
+
+        {/* Boundary loading progress overlay */}
+        {isLoadingBoundaries && boundaryProgress.total > 1 && (
+          <div className="absolute bottom-4 right-4 z-[1000] flex flex-col gap-1.5 rounded-lg bg-background/90 px-3 py-2 shadow-md border text-sm w-56">
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span>Loading boundaries…</span>
+              <span>
+                {Math.round(
+                  (boundaryProgress.loaded / boundaryProgress.total) * 100,
+                )}
+                %
+              </span>
+            </div>
+            <Progress
+              value={
+                (boundaryProgress.loaded / boundaryProgress.total) * 100
+              }
+              className="h-2"
+            />
+            <span className="text-xs text-muted-foreground">
+              {boundaryProgress.loaded} / {boundaryProgress.total} counties
+            </span>
           </div>
         )}
       </div>

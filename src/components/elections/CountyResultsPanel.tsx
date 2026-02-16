@@ -1,13 +1,15 @@
 import { Badge } from "@/components/ui/badge"
 import { getReportingPercentage, getTotalVotes } from "@/types/elections"
 import type { CountyResult } from "@/types/elections"
+import type { CandidateColorMap } from "@/lib/candidate-colors"
 import { CandidateResultRow } from "./CandidateResultRow"
 
 interface CountyResultsPanelProps {
   countyResult: CountyResult
+  candidateColorMap?: CandidateColorMap
 }
 
-export function CountyResultsPanel({ countyResult }: CountyResultsPanelProps) {
+export function CountyResultsPanel({ countyResult, candidateColorMap }: CountyResultsPanelProps) {
   const reportingPct = getReportingPercentage(
     countyResult.precincts_reporting,
     countyResult.precincts_participating,
@@ -37,6 +39,7 @@ export function CountyResultsPanel({ countyResult }: CountyResultsPanelProps) {
               candidate={candidate}
               totalVotes={totalVotes}
               rank={index + 1}
+              candidateColorMap={candidateColorMap}
             />
           ))}
       </div>

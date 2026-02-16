@@ -14,6 +14,7 @@ import type {
 } from "@/types/boundaries"
 import type { BoundaryFeatureCollection } from "@/types/boundary"
 import type { Election } from "@/types/elections"
+import type { ElectedOfficialSummaryResponse } from "@/types/elected-officials"
 
 const GA_CENTER: [number, number] = [32.6791, -83.6233]
 const GA_ZOOM = 7
@@ -37,6 +38,7 @@ interface GeorgiaCountyMapProps {
   data?: CountyFeatureCollection | null
   overlayData?: BoundaryFeatureCollection | null
   activeElections?: Election[]
+  electedOfficials?: Map<string, ElectedOfficialSummaryResponse[]>
   isCountiesLoading?: boolean
   isOverlayLoading?: boolean
   className?: string
@@ -146,6 +148,7 @@ export function GeorgiaCountyMap({
   data,
   overlayData,
   activeElections,
+  electedOfficials,
   isCountiesLoading,
   isOverlayLoading,
   className,
@@ -186,6 +189,7 @@ export function GeorgiaCountyMap({
           <OverlayLayer
             data={overlayData}
             activeElections={activeElections}
+            electedOfficials={electedOfficials}
             onDistrictDblClick={handleDistrictDblClick}
           />
         )}

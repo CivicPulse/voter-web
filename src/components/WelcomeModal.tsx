@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router"
-import { Map, Database, Vote, Layers } from "lucide-react"
+import { Map, BarChart3, Users, Layers, LogIn } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -30,8 +30,8 @@ export function WelcomeModal({
         <DialogHeader>
           <DialogTitle>Welcome to Voter Data Explorer</DialogTitle>
           <DialogDescription>
-            An open-source tool for exploring voter registration data,
-            boundaries, and demographics across Georgia.
+            An open-source tool for exploring election results, elected
+            officials, boundaries, and demographics across Georgia.
           </DialogDescription>
         </DialogHeader>
 
@@ -46,21 +46,28 @@ export function WelcomeModal({
               </span>
             </li>
             <li className="flex items-start gap-2">
+              <BarChart3 className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>
+                Explore election results with candidate-colored maps at both
+                county and precinct levels.
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <Users className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>
+                View current elected officials for congressional, state house,
+                and state senate districts.
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
               <Layers className="mt-0.5 h-4 w-4 shrink-0" />
               <span>
-                Use the layer bar to toggle district overlays like
-                congressional, state house, and state senate boundaries.
+                Toggle district overlays to see how political boundaries
+                intersect with counties.
               </span>
             </li>
             <li className="flex items-start gap-2">
-              <Database className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>
-                Each county page shows Census demographic data including
-                population, age, and housing statistics.
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Vote className="mt-0.5 h-4 w-4 shrink-0" />
+              <LogIn className="mt-0.5 h-4 w-4 shrink-0" />
               <span>
                 Sign in to access voter registration data and the address lookup
                 tool.

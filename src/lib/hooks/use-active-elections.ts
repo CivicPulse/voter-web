@@ -32,7 +32,11 @@ export function useActiveElections() {
  * "State Senate - District 18" while boundaries use "State Senate District 18".
  */
 function normalize(name: string): string {
-  return name.toLowerCase().replace(/\s+-\s+/g, " ").trim()
+  return name
+    .toLowerCase()
+    .replace(/\s+-\s+/g, " ")
+    .replace(/\b0+(\d)/g, "$1")
+    .trim()
 }
 
 /** Escape special regex characters in a string */

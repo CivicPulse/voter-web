@@ -122,3 +122,21 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Pulsating fill for districts with active elections */
+@keyframes election-pulse {
+  0%, 100% { fill-opacity: 0.15; }
+  50% { fill-opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .election-pulse {
+    animation: election-pulse 2s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .election-pulse {
+    animation: none;
+  }
+}

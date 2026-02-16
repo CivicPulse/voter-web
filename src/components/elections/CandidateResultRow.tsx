@@ -2,6 +2,7 @@ import { useState } from "react"
 import { ChevronDown, ChevronRight } from "lucide-react"
 import { getPartyColor, getVotePercentage } from "@/types/elections"
 import type { CandidateResult } from "@/types/elections"
+import type { CandidateColorMap } from "@/lib/candidate-colors"
 import {
   Collapsible,
   CollapsibleContent,
@@ -12,15 +13,18 @@ interface CandidateResultRowProps {
   candidate: CandidateResult
   totalVotes: number
   rank: number
+  candidateColorMap?: CandidateColorMap
 }
 
 export function CandidateResultRow({
   candidate,
   totalVotes,
   rank,
+  candidateColorMap,
 }: CandidateResultRowProps) {
   const [expanded, setExpanded] = useState(false)
-  const partyColor = getPartyColor(candidate.political_party)
+  const partyColor = candidateColorMap?.get(candidate.id)
+    ?? getPartyColor(candidate.political_party)
   const percentage = getVotePercentage(candidate.vote_count, totalVotes)
   const hasVoteMethods = candidate.group_results.length > 0
 

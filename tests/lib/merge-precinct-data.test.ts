@@ -178,6 +178,29 @@ describe("mergePrecinctData", () => {
       expect(result.features).toHaveLength(1)
     })
 
+    it("matches when election has 'County' suffix but boundary does not", () => {
+      const fc = makeElectionFC([
+        makeElectionFeature({
+          geometry: null,
+          precinct_id: "",
+          precinct_name: "Salem",
+          county_name: "Crawford County",
+        }),
+      ])
+      const boundaries = [
+        makeBoundaryFeature({
+          precinct_id: undefined,
+          precinct_sos_id: undefined,
+          precinct_name: "Salem",
+          precinct_county_name: undefined,
+          county: "Crawford",
+        }),
+      ]
+      const result = mergePrecinctData(fc, boundaries)
+      expect(result.features).toHaveLength(1)
+      expect(result.features[0].properties.has_results).toBe(true)
+    })
+
     it("uses boundary county field as fallback when precinct_county_name is absent", () => {
       const fc = makeElectionFC([
         makeElectionFeature({
@@ -216,8 +239,21 @@ describe("mergePrecinctData", () => {
       expect(result.features[0].properties.reporting_status).toBe("Not Reported")
       expect(result.features[0].properties.has_results).toBe(false)
       expect(result.features[0].properties.precinct_name).toBe("Unmatched Precinct")
-      expect(result.features[0].properties.county_name).toBe("Crawford")
+      expect(result.features[0].properties.county_name).toBe("Crawford County")
       expect(result.features[0].properties.candidates).toEqual([])
+    })
+
+    it("formats all-caps county name to title case with suffix", () => {
+      const fc = makeElectionFC([])
+      const boundaries = [
+        makeBoundaryFeature({
+          precinct_name: "SC16B",
+          precinct_county_name: "FULTON",
+          county: "FULTON",
+        }),
+      ]
+      const result = mergePrecinctData(fc, boundaries)
+      expect(result.features[0].properties.county_name).toBe("Fulton County")
     })
 
     it("uses fallback name when precinct_name is absent", () => {
@@ -321,6 +357,25 @@ describe("mergePrecinctData", () => {
       const result = mergePrecinctData(fc, boundaries)
       // Should NOT create a duplicate — election feature already emitted
       expect(result.features).toHaveLength(1)
+    })
+
+    it("sorts features so results render on top (after) 'Not Reported' entries", () => {
+      const fc = makeElectionFC([
+        makeElectionFeature({ geometry: POLYGON, precinct_id: "p-with-geo" }),
+      ])
+      const boundaries = [
+        makeBoundaryFeature({
+          precinct_id: "p-extra",
+          precinct_name: "Extra",
+          county: "Bibb",
+        }),
+      ]
+      const result = mergePrecinctData(fc, boundaries)
+      expect(result.features).toHaveLength(2)
+      // "Not Reported" (has_results=false) should come first
+      expect(result.features[0].properties.has_results).toBe(false)
+      // Results (has_results=true) should come last (rendered on top in Leaflet)
+      expect(result.features[1].properties.has_results).toBe(true)
     })
 
     it("returns empty collection when both inputs are empty", () => {

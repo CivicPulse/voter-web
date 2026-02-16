@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { safeBbox } from "@/lib/geo"
 import {
   getPartyColor,
+  getLeadingCandidate,
   getReportingPercentage,
 } from "@/types/elections"
 import type {
@@ -13,12 +14,17 @@ import type {
   CountyResultGeoProperties,
   MapDataLayer,
 } from "@/types/elections"
+import type { CandidateColorMap } from "@/lib/candidate-colors"
+import { DistrictOutlineLayer } from "@/components/elections/DistrictOutlineLayer"
 
 interface ElectionResultsMapProps {
   geoJSON: CountyResultFeatureCollection
   activeLayer: MapDataLayer
   selectedCounty: string | null
   onCountyClick: (countyName: string) => void
+  districtGeometry?: Polygon | MultiPolygon | null
+  showDistrictOutline?: boolean
+  candidateColorMap?: CandidateColorMap
   className?: string
 }
 
@@ -61,6 +67,7 @@ function CountyLayer({
   activeLayer,
   selectedCounty,
   onCountyClick,
+  candidateColorMap,
 }: Omit<ElectionResultsMapProps, "className">) {
   const maxVotes = useMemo(() => {
     if (geoJSON.features.length === 0) return 0
@@ -79,9 +86,13 @@ function CountyLayer({
       let fillOpacity = 0.6
 
       switch (activeLayer) {
-        case "leading_candidate":
-          fillColor = getPartyColor(props.leading_candidate_party).fill
+        case "leading_candidate": {
+          const leader = getLeadingCandidate(props.candidates ?? [])
+          const mapped = leader ? candidateColorMap?.get(leader.id) : undefined
+          fillColor = mapped?.fill
+            ?? getPartyColor(props.leading_candidate_party).fill
           break
+        }
         case "precincts_reporting": {
           const pct = getReportingPercentage(
             props.precincts_reporting,
@@ -105,7 +116,7 @@ function CountyLayer({
         opacity: 0.8,
       } satisfies PathOptions
     },
-    [activeLayer, maxVotes, selectedCounty],
+    [activeLayer, candidateColorMap, maxVotes, selectedCounty],
   )
 
   const onEachFeature = useCallback(
@@ -119,11 +130,23 @@ function CountyLayer({
         props.precincts_participating,
       ).toFixed(1)
 
+      let leadingCandidate = "No votes reported"
+      if (props.leading_candidate_name) {
+        leadingCandidate = `${props.leading_candidate_name} (${props.leading_candidate_party})`
+      } else if (props.candidates?.length) {
+        const sorted = [...props.candidates].sort(
+          (a, b) => b.vote_count - a.vote_count,
+        )
+        if (sorted[0].vote_count > 0) {
+          leadingCandidate = `${sorted[0].name} (${sorted[0].political_party})`
+        }
+      }
+
       layer.bindTooltip(
         `<div class="text-sm">
           <div class="font-semibold">${props.county_name}</div>
           <div>${reportingPct}% reporting</div>
-          <div>${props.leading_candidate_name} (${props.leading_candidate_party})</div>
+          <div>${leadingCandidate}</div>
         </div>`,
         { sticky: true },
       )
@@ -167,6 +190,9 @@ export function ElectionResultsMap({
   activeLayer,
   selectedCounty,
   onCountyClick,
+  districtGeometry,
+  showDistrictOutline = true,
+  candidateColorMap,
   className,
 }: ElectionResultsMapProps) {
   return (
@@ -186,7 +212,11 @@ export function ElectionResultsMap({
         activeLayer={activeLayer}
         selectedCounty={selectedCounty}
         onCountyClick={onCountyClick}
+        candidateColorMap={candidateColorMap}
       />
+      {showDistrictOutline && districtGeometry && (
+        <DistrictOutlineLayer geometry={districtGeometry} />
+      )}
     </MapContainer>
   )
 }
