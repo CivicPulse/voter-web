@@ -35,10 +35,25 @@ function normalize(name: string): string {
   return name.toLowerCase().replace(/\s+-\s+/g, " ").trim()
 }
 
+/** Escape special regex characters in a string */
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
+/**
+ * Test whether `haystack` contains `needle` as a whole-word substring.
+ * Uses \b word boundaries to prevent "District 1" matching "District 11".
+ */
+function containsWholeWord(haystack: string, needle: string): boolean {
+  return new RegExp(`\\b${escapeRegExp(needle)}\\b`).test(haystack)
+}
+
 /**
  * Case-insensitive check whether an election's district field matches
  * a boundary name. Normalizes dash separators so
  * "State Senate - District 18" matches "State Senate District 18".
+ * Uses word boundaries to prevent partial matches like
+ * "District 1" matching "District 11".
  */
 export function electionsForDistrict(
   elections: Election[],
@@ -47,7 +62,11 @@ export function electionsForDistrict(
   const normalized = normalize(boundaryName)
   return elections.filter((e) => {
     const district = normalize(e.district)
-    return district === normalized || district.includes(normalized) || normalized.includes(district)
+    return (
+      district === normalized ||
+      containsWholeWord(district, normalized) ||
+      containsWholeWord(normalized, district)
+    )
   })
 }
 

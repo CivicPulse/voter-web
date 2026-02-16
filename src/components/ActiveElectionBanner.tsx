@@ -44,6 +44,7 @@ export function ActiveElectionBanner({
             key={date}
             to="/elections/$electionDate"
             params={{ electionDate: date }}
+            aria-label={`View active election on ${formattedDate}, ${races.length} ${races.length === 1 ? "race" : "races"}`}
             className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm transition-colors hover:bg-green-100 dark:border-green-800 dark:bg-green-950 dark:hover:bg-green-900"
           >
             <Vote className="h-4 w-4 shrink-0 text-green-700 dark:text-green-400" />
