@@ -214,6 +214,7 @@ function AdminElectionDetailPage() {
         onSubmit={handleFormSubmit}
         isPending={updateMutation.isPending}
         submitLabel="Save Changes"
+        enableAutoFill={false}
       />
 
       {/* Finalization confirmation dialog */}
