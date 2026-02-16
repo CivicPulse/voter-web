@@ -3,12 +3,11 @@ import { TokenBucketRateLimiter } from "@/lib/rate-limiter"
 /**
  * Singleton rate limiter for the voter-api.
  *
- * 50 requests per 60-second rolling window, leaving headroom
- * below the API's 60 req/min/IP limit.
+ * 150 requests per 60-second rolling window.
  */
 export const apiRateLimiter = new TokenBucketRateLimiter({
-  maxTokens: 50,
-  refillRate: 50,
+  maxTokens: 150,
+  refillRate: 150,
   refillIntervalMs: 60_000,
 })
 
