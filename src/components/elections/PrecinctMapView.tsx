@@ -59,8 +59,10 @@ function FitBoundsToPrecincts({
 
 function PrecinctLayer({
   geoJSON,
+  dataUpdatedAt,
 }: {
   geoJSON: PrecinctResultFeatureCollection
+  dataUpdatedAt: number
 }) {
   const filteredGeoJSON = useMemo(
     () => featuresWithGeometry(geoJSON),
@@ -158,10 +160,8 @@ function PrecinctLayer({
   // key forces a remount when feature data changes
   const dataKey = useMemo(() => {
     const features = filteredGeoJSON.features
-    const first = features[0]?.properties?.precinct_id ?? ""
-    const last = features[features.length - 1]?.properties?.precinct_id ?? ""
-    return `precincts-${features.length}-${first}-${last}`
-  }, [filteredGeoJSON])
+    return `precincts-${features.length}-${dataUpdatedAt}`
+  }, [filteredGeoJSON, dataUpdatedAt])
 
   return (
     <GeoJSON
@@ -188,6 +188,7 @@ export function PrecinctMapView({
     data: geoJSON,
     isLoading,
     isLoadingBoundaries,
+    dataUpdatedAt,
   } = useMergedPrecinctGeoJSON(electionId, countyNames, selectedCounty)
 
   const sortedCounties = useMemo(
@@ -248,7 +249,7 @@ export function PrecinctMapView({
           {hasRenderableFeatures && geoJSON ? (
             <>
               <FitBoundsToPrecincts geoJSON={geoJSON} />
-              <PrecinctLayer geoJSON={geoJSON} />
+              <PrecinctLayer geoJSON={geoJSON} dataUpdatedAt={dataUpdatedAt} />
             </>
           ) : null}
         </MapContainer>
