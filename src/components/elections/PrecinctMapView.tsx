@@ -67,9 +67,11 @@ function FitBoundsToPrecincts({
 function CountyOverlayLayer({
   counties,
   countyNames,
+  onCountyDblClick,
 }: Readonly<{
   counties: CountyFeatureCollection
   countyNames: string[]
+  onCountyDblClick?: (countyFullName: string) => void
 }>) {
   const colorMap = useMemo(() => {
     const sorted = [...countyNames]
@@ -97,12 +99,30 @@ function CountyOverlayLayer({
     [colorMap],
   )
 
+  const onEachFeature = useCallback(
+    (
+      feature: Feature<Polygon | MultiPolygon, CountyProperties>,
+      layer: Layer,
+    ) => {
+      layer.on({
+        dblclick: () => {
+          if (onCountyDblClick) {
+            onCountyDblClick(`${feature.properties.name} County`)
+          }
+        },
+      })
+    },
+    [onCountyDblClick],
+  )
+
   return (
     <GeoJSON
       key={`county-overlay-${counties.features.length}`}
       data={counties}
       style={style as (feature?: Feature) => PathOptions}
-      interactive={false}
+      onEachFeature={
+        onEachFeature as (feature: Feature, layer: Layer) => void
+      }
     />
   )
 }
@@ -293,6 +313,13 @@ export function PrecinctMapView({
     return { ...allCountyBoundaries, features: filtered } as CountyFeatureCollection
   }, [allCountyBoundaries, countyNames])
 
+  const handleCountyDblClick = useCallback(
+    (countyFullName: string) => {
+      setSelectedCounty(countyFullName)
+    },
+    [],
+  )
+
   const hasRenderableFeatures = useMemo(
     () => geoJSON && featuresWithGeometry(geoJSON).features.length > 0,
     [geoJSON],
@@ -370,6 +397,7 @@ export function PrecinctMapView({
           center={GA_CENTER}
           zoom={GA_ZOOM}
           scrollWheelZoom={true}
+          doubleClickZoom={false}
           className="h-full w-full rounded-lg border"
         >
           <TileLayer
@@ -383,6 +411,7 @@ export function PrecinctMapView({
                 <CountyOverlayLayer
                   counties={filteredCountyBoundaries}
                   countyNames={countyNames}
+                  onCountyDblClick={handleCountyDblClick}
                 />
               )}
               <PrecinctLayer geoJSON={geoJSON} dataUpdatedAt={dataUpdatedAt} />
