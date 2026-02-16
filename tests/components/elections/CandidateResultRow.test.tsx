@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { CandidateResultRow } from "@/components/elections/CandidateResultRow"
 import { mockCandidateResult } from "@/test/mocks/elections"
+import { buildCandidateColorMap, PARTY_SHADE_PALETTES } from "@/lib/candidate-colors"
 
 describe("CandidateResultRow", () => {
   it("renders candidate name and party", () => {
@@ -59,5 +60,28 @@ describe("CandidateResultRow", () => {
     render(<CandidateResultRow candidate={candidate} totalVotes={0} rank={1} />)
 
     expect(screen.getByText(/0\.0%/)).toBeInTheDocument()
+  })
+
+  it("uses candidate color map shade instead of default party color", () => {
+    const candidates = [
+      mockCandidateResult({ id: "r1", political_party: "Rep", vote_count: 500 }),
+      mockCandidateResult({ id: "r2", name: "Second Rep", political_party: "Rep", vote_count: 200 }),
+    ]
+    const colorMap = buildCandidateColorMap(candidates)
+
+    const { container } = render(
+      <CandidateResultRow
+        candidate={candidates[1]}
+        totalVotes={700}
+        rank={2}
+        candidateColorMap={colorMap}
+      />,
+    )
+
+    // The colored dot should use the second shade, not the default Rep color
+    const dot = container.querySelector(".rounded-full")
+    expect(dot).toHaveStyle({
+      backgroundColor: PARTY_SHADE_PALETTES.Rep[1].fill,
+    })
   })
 })

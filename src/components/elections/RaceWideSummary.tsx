@@ -5,13 +5,15 @@ import {
   resolvePrecinctCounts,
 } from "@/types/elections"
 import type { ElectionResultsResponse } from "@/types/elections"
+import type { CandidateColorMap } from "@/lib/candidate-colors"
 import { CandidateResultRow } from "./CandidateResultRow"
 
 interface RaceWideSummaryProps {
   results: ElectionResultsResponse
+  candidateColorMap?: CandidateColorMap
 }
 
-export function RaceWideSummary({ results }: RaceWideSummaryProps) {
+export function RaceWideSummary({ results, candidateColorMap }: RaceWideSummaryProps) {
   const totalVotes = getTotalVotes(results.candidates)
   const { participating, reporting } = resolvePrecinctCounts(results)
   const reportingPct = getReportingPercentage(reporting, participating)
@@ -39,6 +41,7 @@ export function RaceWideSummary({ results }: RaceWideSummaryProps) {
               candidate={candidate}
               totalVotes={totalVotes}
               rank={index + 1}
+              candidateColorMap={candidateColorMap}
             />
           ))}
       </div>

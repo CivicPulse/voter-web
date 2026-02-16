@@ -10,6 +10,7 @@ import type {
   PrecinctResultFeatureCollection,
   PrecinctResultGeoProperties,
 } from "@/types/elections"
+import type { CandidateColorMap } from "@/lib/candidate-colors"
 import { useMergedPrecinctGeoJSON } from "@/lib/hooks/use-merged-precinct-geojson"
 import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
 import { useDistrictBoundary } from "@/hooks/useDistrictBoundary"
@@ -30,6 +31,7 @@ interface PrecinctMapViewProps {
   electionId: string
   countyNames: string[]
   districtName: string
+  candidateColorMap?: CandidateColorMap
   className?: string
 }
 
@@ -136,9 +138,11 @@ function CountyOverlayLayer({
 function PrecinctLayer({
   geoJSON,
   dataUpdatedAt,
+  candidateColorMap,
 }: {
   geoJSON: PrecinctResultFeatureCollection
   dataUpdatedAt: number
+  candidateColorMap?: CandidateColorMap
 }) {
   const filteredGeoJSON = useMemo(
     () => featuresWithGeometry(geoJSON),
@@ -155,9 +159,9 @@ function PrecinctLayer({
 
       if (isReported(props.reporting_status)) {
         const leader = getLeadingCandidate(props.candidates)
-        fillColor = leader
-          ? getPartyColor(leader.political_party).fill
-          : "#9ca3af"
+        const mapped = leader ? candidateColorMap?.get(leader.id) : undefined
+        fillColor = mapped?.fill
+          ?? (leader ? getPartyColor(leader.political_party).fill : "#9ca3af")
       } else if (props.has_results === false) {
         // Boundary-only precinct with no election results
         fillColor = "#e5e7eb"
@@ -174,7 +178,7 @@ function PrecinctLayer({
         opacity: 0.8,
       } satisfies PathOptions
     },
-    [],
+    [candidateColorMap],
   )
 
   const onEachFeature = useCallback(
@@ -255,6 +259,7 @@ export function PrecinctMapView({
   electionId,
   countyNames,
   districtName,
+  candidateColorMap,
   className,
 }: PrecinctMapViewProps) {
   const [selectedCounty, setSelectedCounty] = useState<string | undefined>(
@@ -401,7 +406,7 @@ export function PrecinctMapView({
                   onCountyDblClick={handleCountyDblClick}
                 />
               )}
-              <PrecinctLayer geoJSON={geoJSON} dataUpdatedAt={dataUpdatedAt} />
+              <PrecinctLayer geoJSON={geoJSON} dataUpdatedAt={dataUpdatedAt} candidateColorMap={candidateColorMap} />
               {/* District outline renders above precincts for visibility;
                   interactive={false} lets mouse events pass through to precincts */}
               {showDistrictOutline && districtGeometry && (

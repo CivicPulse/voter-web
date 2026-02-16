@@ -17,6 +17,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import type { MapDataLayer } from "@/types/elections"
+import { buildCandidateColorMap } from "@/lib/candidate-colors"
 
 type MapView = "county" | "precinct"
 
@@ -60,6 +61,11 @@ function RaceResultsPage() {
     () =>
       raceData?.results.county_results.map((c) => c.county_name) ?? [],
     [raceData?.results.county_results],
+  )
+
+  const candidateColorMap = useMemo(
+    () => buildCandidateColorMap(raceData?.results.candidates ?? []),
+    [raceData],
   )
 
   const isLoading = raceLoading || geoLoading
@@ -127,6 +133,7 @@ function RaceResultsPage() {
           results={results}
           selectedCounty={selectedCounty}
           onClearCounty={() => setSelectedCounty(null)}
+          candidateColorMap={candidateColorMap}
         />
       </div>
 
@@ -182,6 +189,7 @@ function RaceResultsPage() {
           electionId={electionId}
           countyNames={countyNames}
           districtName={election.district}
+          candidateColorMap={candidateColorMap}
         />
       )}
 
@@ -194,6 +202,7 @@ function RaceResultsPage() {
             onCountyClick={handleCountyClick}
             districtGeometry={districtGeometry}
             showDistrictOutline={showDistrictOutline}
+            candidateColorMap={candidateColorMap}
           />
         </div>
       )}
