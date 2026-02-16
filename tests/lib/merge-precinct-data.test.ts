@@ -178,6 +178,29 @@ describe("mergePrecinctData", () => {
       expect(result.features).toHaveLength(1)
     })
 
+    it("matches when election has 'County' suffix but boundary does not", () => {
+      const fc = makeElectionFC([
+        makeElectionFeature({
+          geometry: null,
+          precinct_id: "",
+          precinct_name: "Salem",
+          county_name: "Crawford County",
+        }),
+      ])
+      const boundaries = [
+        makeBoundaryFeature({
+          precinct_id: undefined,
+          precinct_sos_id: undefined,
+          precinct_name: "Salem",
+          precinct_county_name: undefined,
+          county: "Crawford",
+        }),
+      ]
+      const result = mergePrecinctData(fc, boundaries)
+      expect(result.features).toHaveLength(1)
+      expect(result.features[0].properties.has_results).toBe(true)
+    })
+
     it("uses boundary county field as fallback when precinct_county_name is absent", () => {
       const fc = makeElectionFC([
         makeElectionFeature({

@@ -197,7 +197,7 @@ function PrecinctLayer({
           .slice(0, 3)
           .map(
             (c) =>
-              `<div>${escapeHtml(c.name)} (${escapeHtml(c.political_party)}): ${c.vote_count.toLocaleString()}</div>`,
+              `<div>${escapeHtml(c.name)}: ${c.vote_count.toLocaleString()}</div>`,
           )
           .join("")
       } else if (props.has_results === false) {

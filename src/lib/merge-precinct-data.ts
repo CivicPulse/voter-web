@@ -4,13 +4,14 @@ import type {
   PrecinctResultGeoProperties,
 } from "@/types/elections"
 import type { BoundaryFeatureProperties } from "@/types/boundary"
+import { stripCountySuffix } from "@/lib/utils"
 
 function normalizeKey(value: string | undefined | null): string {
   return (value ?? "").toLowerCase().trim()
 }
 
 function compositeKey(precinctName: string, countyName: string): string {
-  return `${normalizeKey(precinctName)}::${normalizeKey(countyName)}`
+  return `${normalizeKey(precinctName)}::${normalizeKey(stripCountySuffix(countyName || ""))}`
 }
 
 /**
