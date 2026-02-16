@@ -1,5 +1,6 @@
 import ky from "ky"
 import { AuthenticationError, PermissionError } from "@/types/admin"
+import { rateLimitedFetch } from "@/api/rate-limited-fetch"
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1"
@@ -9,6 +10,7 @@ let refreshPromise: Promise<void> | null = null
 
 export const api = ky.create({
   prefixUrl: API_BASE_URL,
+  fetch: rateLimitedFetch,
   hooks: {
     beforeRequest: [
       (request) => {
@@ -79,7 +81,13 @@ export const api = ky.create({
     ],
   },
   retry: {
-    limit: 2,
+    limit: 3,
     statusCodes: [408, 413, 429, 500, 502, 503, 504],
+    afterStatusCodes: [429, 503],
+    maxRetryAfter: 60_000,
+    backoffLimit: 30_000,
+    delay: (attemptCount: number) =>
+      Math.min(1000 * 2 ** (attemptCount - 1), 30_000),
+    jitter: true,
   },
 })
