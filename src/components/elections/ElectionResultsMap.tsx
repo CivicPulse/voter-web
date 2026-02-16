@@ -122,11 +122,23 @@ function CountyLayer({
         props.precincts_participating,
       ).toFixed(1)
 
+      let leadingCandidate = "No votes reported"
+      if (props.leading_candidate_name) {
+        leadingCandidate = `${props.leading_candidate_name} (${props.leading_candidate_party})`
+      } else if (props.candidates?.length) {
+        const sorted = [...props.candidates].sort(
+          (a, b) => b.vote_count - a.vote_count,
+        )
+        if (sorted[0].vote_count > 0) {
+          leadingCandidate = `${sorted[0].name} (${sorted[0].political_party})`
+        }
+      }
+
       layer.bindTooltip(
         `<div class="text-sm">
           <div class="font-semibold">${props.county_name}</div>
           <div>${reportingPct}% reporting</div>
-          <div>${props.leading_candidate_name} (${props.leading_candidate_party})</div>
+          <div>${leadingCandidate}</div>
         </div>`,
         { sticky: true },
       )
