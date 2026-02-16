@@ -19,17 +19,23 @@ export function useMergedPrecinctGeoJSON(
   data: PrecinctResultFeatureCollection | undefined
   isLoading: boolean
   isLoadingBoundaries: boolean
+  isBoundaryError: boolean
+  isElectionError: boolean
   dataUpdatedAt: number
 } {
-  const { data: electionGeoJSON, isLoading: isLoadingResults, dataUpdatedAt } =
-    usePrecinctResultsGeoJSON(electionId, selectedCounty)
+  const {
+    data: electionGeoJSON,
+    isLoading: isLoadingResults,
+    isError: isElectionError,
+    dataUpdatedAt,
+  } = usePrecinctResultsGeoJSON(electionId, selectedCounty)
 
   const countiesToFetch = useMemo(
     () => (selectedCounty ? [selectedCounty] : countyNames),
     [selectedCounty, countyNames],
   )
 
-  const { isLoading: isLoadingBoundaries, allBoundaryFeatures } =
+  const { isLoading: isLoadingBoundaries, isError: isBoundaryError, allBoundaryFeatures } =
     useMultiCountyPrecinctBoundaries(countiesToFetch)
 
   const merged = useMemo(() => {
@@ -47,6 +53,8 @@ export function useMergedPrecinctGeoJSON(
     data: merged,
     isLoading: isLoadingResults,
     isLoadingBoundaries,
+    isBoundaryError,
+    isElectionError,
     dataUpdatedAt,
   }
 }

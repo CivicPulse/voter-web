@@ -1,8 +1,7 @@
 /**
  * E2E tests for the election race results page.
  *
- * These tests serve as regression guards for three GUI bugs fixed in
- * the claude/fix-precinct-map-display branch:
+ * Regression guards for three precinct map display bugs:
  *
  * 1. NaN% reporting badge — RaceWideSummary showed "NaN%" when API
  *    returned null precinct counts.

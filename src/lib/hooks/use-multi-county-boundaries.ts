@@ -6,17 +6,17 @@ import type {
   BoundaryFeatureCollection,
   BoundaryFeatureProperties,
 } from "@/types/boundary"
+import { stripCountySuffix } from "@/lib/utils"
 
 /**
  * Fetch precinct boundary GeoJSON for multiple counties in parallel.
- * Reuses the same query key pattern and cache timing as useBoundaryTypeGeoJSON
- * so county pages and election pages share cached data.
+ * Uses the same cache timing as useBoundaryTypeGeoJSON but different
+ * query keys (bare county name vs full name).
  */
 export function useMultiCountyPrecinctBoundaries(countyNames: string[]) {
   const queries = useQueries({
     queries: countyNames.map((county) => {
-      // API expects bare county name (e.g. "Crawford") without " County" suffix
-      const bareCounty = county.replace(/ County$/i, "")
+      const bareCounty = stripCountySuffix(county)
       return {
         queryKey: ["boundaries", "county_precinct", "geojson", bareCounty],
         queryFn: () =>
@@ -36,6 +36,7 @@ export function useMultiCountyPrecinctBoundaries(countyNames: string[]) {
   })
 
   const isLoading = queries.some((q) => q.isLoading)
+  const isError = queries.some((q) => q.isError)
 
   const allBoundaryFeatures = useMemo(
     () =>
@@ -46,8 +47,9 @@ export function useMultiCountyPrecinctBoundaries(countyNames: string[]) {
             BoundaryFeatureProperties
           >[],
       ),
-    [queries],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- derived from query data identity
+    [queries.map((q) => q.dataUpdatedAt).join(",")],
   )
 
-  return { isLoading, allBoundaryFeatures }
+  return { isLoading, isError, allBoundaryFeatures }
 }

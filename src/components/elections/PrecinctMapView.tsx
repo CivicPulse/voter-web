@@ -2,8 +2,8 @@ import { useState, useCallback, useMemo, useEffect } from "react"
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
 import type { Layer, PathOptions } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
-import { Loader2 } from "lucide-react"
-import { cn, escapeHtml } from "@/lib/utils"
+import { AlertCircle, Loader2 } from "lucide-react"
+import { cn, escapeHtml, stripCountySuffix } from "@/lib/utils"
 import { safeBbox, featuresWithGeometry } from "@/lib/geo"
 import { getPartyColor, getLeadingCandidate } from "@/types/elections"
 import type {
@@ -75,7 +75,7 @@ function CountyOverlayLayer({
 }>) {
   const colorMap = useMemo(() => {
     const sorted = [...countyNames]
-      .map((n) => n.replace(/ County$/i, ""))
+      .map((n) => stripCountySuffix(n))
       .sort((a, b) => a.localeCompare(b))
     const map = new Map<string, number>()
     sorted.forEach((name, i) => map.set(name.toLowerCase(), i))
@@ -130,12 +130,12 @@ function CountyOverlayLayer({
 function DistrictOutlineLayer({
   geometry,
 }: Readonly<{
-  geometry: Record<string, unknown>
+  geometry: Polygon | MultiPolygon
 }>) {
   const geoJsonData = useMemo(
     () => ({
       type: "Feature" as const,
-      geometry: geometry as unknown as MultiPolygon | Polygon,
+      geometry,
       properties: {},
     }),
     [geometry],
@@ -289,10 +289,12 @@ export function PrecinctMapView({
     data: geoJSON,
     isLoading,
     isLoadingBoundaries,
+    isBoundaryError,
+    isElectionError,
     dataUpdatedAt,
   } = useMergedPrecinctGeoJSON(electionId, countyNames, selectedCounty)
 
-  const { data: allCountyBoundaries } = useCountyBoundaries()
+  const { data: allCountyBoundaries, isError: isCountyBoundaryError } = useCountyBoundaries()
   const { geometry: districtGeometry, boundaryType } =
     useDistrictBoundary(districtName)
 
@@ -304,7 +306,7 @@ export function PrecinctMapView({
   const filteredCountyBoundaries = useMemo(() => {
     if (!allCountyBoundaries) return null
     const bareNames = new Set(
-      countyNames.map((n) => n.replace(/ County$/i, "").toLowerCase()),
+      countyNames.map((n) => stripCountySuffix(n).toLowerCase()),
     )
     const filtered = allCountyBoundaries.features.filter((f) =>
       bareNames.has(f.properties.name.toLowerCase()),
@@ -355,6 +357,12 @@ export function PrecinctMapView({
             Loading precinct boundaries…
           </span>
         )}
+        {isBoundaryError && !isLoadingBoundaries && (
+          <span className="text-xs text-destructive flex items-center gap-1">
+            <AlertCircle className="h-3 w-3" />
+            Some boundary data unavailable
+          </span>
+        )}
 
         {/* Layer toggles */}
         <div className="flex items-center gap-4 ml-auto">
@@ -362,6 +370,7 @@ export function PrecinctMapView({
             <Checkbox
               id="county-overlay"
               checked={showCountyOverlay}
+              disabled={isCountyBoundaryError}
               onCheckedChange={(checked) =>
                 setShowCountyOverlay(checked === true)
               }
@@ -424,8 +433,16 @@ export function PrecinctMapView({
           ) : null}
         </MapContainer>
 
-        {/* Empty state overlay */}
-        {!isLoading && !hasRenderableFeatures && (
+        {/* Error / empty state overlay */}
+        {!isLoading && isElectionError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-lg">
+            <p className="text-destructive text-sm flex items-center gap-1.5">
+              <AlertCircle className="h-4 w-4" />
+              Failed to load precinct results. Please try again.
+            </p>
+          </div>
+        )}
+        {!isLoading && !isElectionError && !hasRenderableFeatures && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-lg">
             <p className="text-muted-foreground text-sm">
               Precinct boundaries are not available for this election.
