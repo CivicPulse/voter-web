@@ -24,7 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Sparkles } from "lucide-react"
+import { Link } from "@tanstack/react-router"
+import { Loader2, Sparkles, Info } from "lucide-react"
 
 interface ElectionFormProps {
   defaultValues?: Partial<ElectionFormValues>
@@ -54,7 +55,7 @@ export function ElectionForm({
     },
   })
 
-  const { isFetching, fetchError, isAutoFilled, selectKey } =
+  const { isFetching, fetchError, isAutoFilled, selectKey, multiRaceCount } =
     useSosFeedAutoFill({ form, enabled: enableAutoFill })
 
   return (
@@ -100,6 +101,24 @@ export function ElectionForm({
             <Sparkles className="h-4 w-4" />
             <AlertDescription>
               Fields auto-filled from SOS feed. All fields remain editable.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {multiRaceCount && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              This feed contains {multiRaceCount} races. Only the first race was
+              used for auto-fill. To import all races at once, use the{" "}
+              <Link
+                to="/admin/elections/import-feed"
+                search={{ url: form.getValues("data_source_url") }}
+                className="underline font-medium"
+              >
+                Feed Import
+              </Link>{" "}
+              page.
             </AlertDescription>
           </Alert>
         )}

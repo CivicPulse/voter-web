@@ -4,7 +4,7 @@ import { AdminErrorBoundary } from "@/components/admin-error-boundary"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Vote, Plus } from "lucide-react"
+import { Vote, Plus, FileDown } from "lucide-react"
 import { ElectionTable } from "./_components/election-table"
 
 export const Route = createFileRoute("/admin/elections/")({
@@ -74,12 +74,20 @@ function AdminElectionsPage() {
             Manage elections and race configurations
           </p>
         </div>
-        <Button asChild>
-          <Link to="/admin/elections/create">
-            <Plus className="h-4 w-4 mr-2" />
-            Create Election
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <Link to="/admin/elections/import-feed">
+              <FileDown className="h-4 w-4 mr-2" />
+              Import Feed
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link to="/admin/elections/create">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Election
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {elections.length === 0 ? (

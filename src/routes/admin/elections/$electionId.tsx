@@ -148,6 +148,14 @@ function AdminElectionDetailPage() {
         <p className="text-muted-foreground">
           {election.district} · {election.election_date}
         </p>
+        {election.ballot_item_id && (
+          <p className="text-xs text-muted-foreground mt-1">
+            Ballot Item ID:{" "}
+            <code className="bg-muted px-1 rounded">
+              {election.ballot_item_id}
+            </code>
+          </p>
+        )}
       </div>
 
       {updateMutation.isError && (

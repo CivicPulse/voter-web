@@ -38,6 +38,14 @@ export function ElectionTable({ elections }: ElectionTableProps) {
                 >
                   {election.name}
                 </Link>
+                {election.ballot_item_id && (
+                  <Badge
+                    variant="outline"
+                    className="ml-2 text-xs font-normal"
+                  >
+                    Feed
+                  </Badge>
+                )}
               </TableCell>
               <TableCell className="text-sm">
                 {new Date(election.election_date + "T00:00:00").toLocaleDateString()}

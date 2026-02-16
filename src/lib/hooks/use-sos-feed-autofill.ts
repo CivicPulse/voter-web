@@ -18,6 +18,8 @@ interface UseSosFeedAutoFillReturn {
   isAutoFilled: boolean
   /** React key for Select remount — incremented when election_type changes to force re-render */
   selectKey: number
+  /** Number of ballot items (races) in the feed, or null if single-race or unknown */
+  multiRaceCount: number | null
 }
 
 export function useSosFeedAutoFill({
@@ -29,6 +31,7 @@ export function useSosFeedAutoFill({
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [isAutoFilled, setIsAutoFilled] = useState(false)
   const [selectKey, setSelectKey] = useState(0)
+  const [multiRaceCount, setMultiRaceCount] = useState<number | null>(null)
 
   const initialUrlRef = useRef(form.getValues("data_source_url"))
   const lastFetchedUrlRef = useRef<string | null>(null)
@@ -73,6 +76,9 @@ export function useSosFeedAutoFill({
         const feed = await fetchSosFeed(url, controller.signal)
 
         if (controller.signal.aborted) return
+
+        const ballotItemCount = feed.results.ballotItems?.length ?? 0
+        setMultiRaceCount(ballotItemCount > 1 ? ballotItemCount : null)
 
         const data = extractAutoFillData(feed)
         const edited = userEditedFieldsRef.current
@@ -158,6 +164,7 @@ export function useSosFeedAutoFill({
               : "Failed to fetch SOS feed"
         }
 
+        setMultiRaceCount(null)
         setFetchError(message)
         toast.error("Could not load election details", {
           description: message,
@@ -181,6 +188,7 @@ export function useSosFeedAutoFill({
       const url = value.data_source_url
       if (!url || !isSosUrl(url)) {
         setFetchError(null)
+        setMultiRaceCount(null)
         return
       }
 
@@ -201,5 +209,5 @@ export function useSosFeedAutoFill({
     }
   }, [])
 
-  return { isFetching, fetchError, isAutoFilled, selectKey }
+  return { isFetching, fetchError, isAutoFilled, selectKey, multiRaceCount }
 }

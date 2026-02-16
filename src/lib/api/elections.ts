@@ -11,6 +11,9 @@ import type {
   UpdateElectionRequest,
   RefreshResponse,
   ElectionFilters,
+  FeedImportRequest,
+  FeedImportPreviewResponse,
+  FeedImportResponse,
 } from "@/types/elections"
 
 // ============================================================================
@@ -132,4 +135,22 @@ export async function refreshElection(
   return api
     .post(`elections/${electionId}/refresh`)
     .json<RefreshResponse>()
+}
+
+/** Preview races available in an SOS feed URL */
+export async function previewFeedImport(
+  data: FeedImportRequest,
+): Promise<FeedImportPreviewResponse> {
+  return api
+    .post("elections/import-feed/preview", { json: data })
+    .json<FeedImportPreviewResponse>()
+}
+
+/** Import all races from an SOS feed URL as election records */
+export async function importFeed(
+  data: FeedImportRequest,
+): Promise<FeedImportResponse> {
+  return api
+    .post("elections/import-feed", { json: data })
+    .json<FeedImportResponse>()
 }
