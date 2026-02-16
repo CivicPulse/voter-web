@@ -3,6 +3,7 @@ import {
   getPartyColor,
   getVotePercentage,
   getReportingPercentage,
+  resolvePrecinctCounts,
   categorizeRace,
   getCertificationLabel,
   isActiveElection,
@@ -15,6 +16,8 @@ import {
 import {
   mockElection,
   mockCandidateResult,
+  mockElectionResultsResponse,
+  mockCountyResult,
 } from "@/test/mocks/elections"
 
 describe("getPartyColor", () => {
@@ -84,6 +87,62 @@ describe("getReportingPercentage", () => {
 
   it("returns 0 when none reporting", () => {
     expect(getReportingPercentage(0, 50)).toBe(0)
+  })
+
+  it("returns 0 when participating is null", () => {
+    expect(getReportingPercentage(50, null)).toBe(0)
+  })
+
+  it("returns 0 when reporting is null", () => {
+    expect(getReportingPercentage(null, 100)).toBe(0)
+  })
+
+  it("returns 0 when both are null", () => {
+    expect(getReportingPercentage(null, null)).toBe(0)
+  })
+
+  it("returns 0 when participating is undefined", () => {
+    expect(getReportingPercentage(50, undefined)).toBe(0)
+  })
+})
+
+describe("resolvePrecinctCounts", () => {
+  it("returns top-level values when present", () => {
+    const results = mockElectionResultsResponse({
+      precincts_participating: 100,
+      precincts_reporting: 75,
+    })
+    expect(resolvePrecinctCounts(results)).toEqual({
+      participating: 100,
+      reporting: 75,
+    })
+  })
+
+  it("sums county_results when top-level values are null", () => {
+    const results = mockElectionResultsResponse({
+      precincts_participating: null,
+      precincts_reporting: null,
+      county_results: [
+        mockCountyResult({ precincts_participating: 45, precincts_reporting: 38 }),
+        mockCountyResult({ precincts_participating: 30, precincts_reporting: 25 }),
+      ],
+    })
+    expect(resolvePrecinctCounts(results)).toEqual({
+      participating: 75,
+      reporting: 63,
+    })
+  })
+
+  it("returns 0 for both when null and county_results is empty", () => {
+    const results = mockElectionResultsResponse({
+      precincts_participating: null,
+      precincts_reporting: null,
+      county_results: [],
+    })
+    expect(resolvePrecinctCounts(results)).toEqual({
+      participating: 0,
+      reporting: 0,
+    })
   })
 })
 

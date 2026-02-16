@@ -8,15 +8,7 @@ import type {
 } from "@/types/boundary"
 import type { Election } from "@/types/elections"
 import { electionsForDistrict } from "@/lib/hooks/use-active-elections"
-
-function escapeHtml(str: string): string {
-  return str
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;")
-}
+import { escapeHtml } from "@/lib/utils"
 
 // Distinct, colorblind-friendly palette for district overlays
 const DISTRICT_COLORS = [

@@ -4,6 +4,7 @@ import { RaceWideSummary } from "@/components/elections/RaceWideSummary"
 import {
   mockElectionResultsResponse,
   mockCandidateResult,
+  mockCountyResult,
 } from "@/test/mocks/elections"
 
 describe("RaceWideSummary", () => {
@@ -49,6 +50,22 @@ describe("RaceWideSummary", () => {
     expect(names[0]).toHaveTextContent("High Votes")
     expect(names[1]).toHaveTextContent("Mid Votes")
     expect(names[2]).toHaveTextContent("Low Votes")
+  })
+
+  it("derives precinct counts from county_results when top-level values are null", () => {
+    const results = mockElectionResultsResponse({
+      precincts_participating: null,
+      precincts_reporting: null,
+      county_results: [
+        mockCountyResult({ precincts_participating: 45, precincts_reporting: 38 }),
+        mockCountyResult({ precincts_participating: 55, precincts_reporting: 50 }),
+      ],
+    })
+
+    render(<RaceWideSummary results={results} />)
+
+    expect(screen.getByText("88% reporting")).toBeInTheDocument()
+    expect(screen.getByText(/88 of 100 precincts reporting/)).toBeInTheDocument()
   })
 
   it("handles zero total votes gracefully", () => {

@@ -137,11 +137,19 @@ describe("elections API client", () => {
       )
     })
 
-    it("passes county filter param", async () => {
+    it("strips ' County' suffix from county filter param", async () => {
       await getPrecinctGeoJSON("abc-123", "Bibb County")
       expect(mockGet).toHaveBeenCalledWith(
         "elections/abc-123/results/geojson/precincts",
-        { searchParams: { county: "Bibb County" } },
+        { searchParams: { county: "Bibb" } },
+      )
+    })
+
+    it("passes bare county name unchanged", async () => {
+      await getPrecinctGeoJSON("abc-123", "Bibb")
+      expect(mockGet).toHaveBeenCalledWith(
+        "elections/abc-123/results/geojson/precincts",
+        { searchParams: { county: "Bibb" } },
       )
     })
   })

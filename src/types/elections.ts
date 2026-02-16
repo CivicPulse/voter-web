@@ -180,6 +180,8 @@ export interface PrecinctResultGeoProperties {
   county_name: string
   reporting_status: string
   candidates: CandidateResult[]
+  /** Whether this feature has matched election result data (set by client-side merge) */
+  has_results?: boolean
 }
 
 /** Precinct-level election results GeoJSON */
@@ -239,12 +241,26 @@ export function getVotePercentage(candidateVotes: number, totalVotes: number): n
   return (candidateVotes / totalVotes) * 100
 }
 
+/** Resolve race-wide precinct counts, falling back to county_results sum when top-level values are null */
+export function resolvePrecinctCounts(
+  results: ElectionResultsResponse,
+): { participating: number; reporting: number } {
+  return {
+    participating:
+      results.precincts_participating ??
+      results.county_results.reduce((sum, c) => sum + c.precincts_participating, 0),
+    reporting:
+      results.precincts_reporting ??
+      results.county_results.reduce((sum, c) => sum + c.precincts_reporting, 0),
+  }
+}
+
 /** Calculate reporting percentage for a county or race */
 export function getReportingPercentage(
   reporting: number | null | undefined,
   participating: number | null | undefined,
 ): number {
-  if (!participating) return 0
+  if (participating == null || participating === 0) return 0
   return ((reporting ?? 0) / participating) * 100
 }
 
