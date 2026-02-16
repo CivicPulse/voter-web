@@ -1,11 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from "react"
 import type { UseFormReturn } from "react-hook-form"
 import type { ElectionFormValues } from "@/lib/schemas/election-form"
+import type { AutoFillableField } from "@/types/sos-feed"
 import { isSosUrl, fetchSosFeed, extractAutoFillData } from "@/api/sos-feed"
 import { toast } from "sonner"
-
-/** Fields that can be auto-filled from the SOS feed */
-type AutoFillableField = "name" | "election_date" | "election_type" | "district"
 
 interface UseSosFeedAutoFillOptions {
   form: UseFormReturn<ElectionFormValues>
@@ -16,7 +14,9 @@ interface UseSosFeedAutoFillOptions {
 interface UseSosFeedAutoFillReturn {
   isFetching: boolean
   fetchError: string | null
+  /** True for 5 seconds after a successful auto-fill, for UI feedback */
   isAutoFilled: boolean
+  /** React key for Select remount — incremented when election_type changes to force re-render */
   selectKey: number
 }
 
@@ -63,6 +63,7 @@ export function useSosFeedAutoFill({
 
       abortControllerRef.current?.abort()
       const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10_000)
       abortControllerRef.current = controller
 
       setIsFetching(true)
@@ -75,18 +76,21 @@ export function useSosFeedAutoFill({
 
         const data = extractAutoFillData(feed)
         const edited = userEditedFieldsRef.current
+        const populated: string[] = []
 
         if (!edited.has("name") && data.name) {
           form.setValue("name", data.name, {
             shouldValidate: true,
             shouldDirty: true,
           })
+          populated.push("name")
         }
         if (!edited.has("election_date") && data.election_date) {
           form.setValue("election_date", data.election_date, {
             shouldValidate: true,
             shouldDirty: true,
           })
+          populated.push("date")
         }
         if (!edited.has("election_type") && data.election_type) {
           form.setValue("election_type", data.election_type, {
@@ -94,12 +98,14 @@ export function useSosFeedAutoFill({
             shouldDirty: true,
           })
           setSelectKey((k) => k + 1)
+          populated.push("type")
         }
         if (!edited.has("district") && data.district) {
           form.setValue("district", data.district, {
             shouldValidate: true,
             shouldDirty: true,
           })
+          populated.push("district")
         }
 
         lastFetchedUrlRef.current = url
@@ -112,16 +118,28 @@ export function useSosFeedAutoFill({
           5000,
         )
 
-        toast.success("Election details loaded", {
-          description:
-            "Fields populated from SOS feed. You can edit any field.",
-        })
+        if (populated.length > 0) {
+          toast.success("Election details loaded", {
+            description: `Populated ${populated.join(", ")} from SOS feed. You can edit any field.`,
+          })
+        } else {
+          toast.success("Election details loaded", {
+            description:
+              "No new fields were populated (already filled or not available in feed).",
+          })
+        }
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError")
           return
 
         let message: string
         if (
+          error instanceof DOMException &&
+          error.name === "TimeoutError"
+        ) {
+          message =
+            "SOS feed request timed out. The server may be slow or unavailable."
+        } else if (
           error instanceof TypeError &&
           error.message.includes("Failed to fetch") &&
           navigator.onLine
@@ -145,6 +163,7 @@ export function useSosFeedAutoFill({
           description: message,
         })
       } finally {
+        clearTimeout(timeoutId)
         if (abortControllerRef.current === controller) {
           setIsFetching(false)
         }
@@ -160,7 +179,10 @@ export function useSosFeedAutoFill({
     const subscription = form.watch((value, { name }) => {
       if (name !== "data_source_url") return
       const url = value.data_source_url
-      if (!url || !isSosUrl(url)) return
+      if (!url || !isSosUrl(url)) {
+        setFetchError(null)
+        return
+      }
 
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
       debounceTimerRef.current = setTimeout(() => doFetch(url), debounceMs)

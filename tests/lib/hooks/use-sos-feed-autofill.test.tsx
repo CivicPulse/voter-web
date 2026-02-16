@@ -79,7 +79,7 @@ describe("useSosFeedAutoFill", () => {
 
     expect(mockFetch).toHaveBeenCalledWith(
       VALID_SOS_URL,
-      expect.objectContaining({ redirect: "error" }),
+      expect.objectContaining({ redirect: "follow" }),
     )
     expect(result.current.form.getValues("election_date")).toBe("2026-01-20")
     expect(result.current.form.getValues("election_type")).toBe("special")
@@ -179,6 +179,37 @@ describe("useSosFeedAutoFill", () => {
     })
 
     expect(toast.error).toHaveBeenCalled()
+  })
+
+  it("clears fetchError when URL changes to non-SOS", async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 500,
+      statusText: "Internal Server Error",
+    })
+
+    const { result } = setupFormAndHook()
+
+    // Trigger a fetch error
+    act(() => {
+      result.current.form.setValue("data_source_url", VALID_SOS_URL)
+    })
+
+    await waitFor(() => {
+      expect(result.current.autoFill.fetchError).toBeTruthy()
+    })
+
+    // Change to a non-SOS URL — error should clear
+    act(() => {
+      result.current.form.setValue(
+        "data_source_url",
+        "https://example.com/data.json",
+      )
+    })
+
+    await waitFor(() => {
+      expect(result.current.autoFill.fetchError).toBeNull()
+    })
   })
 
   it("preserves user-edited fields during auto-fill", async () => {

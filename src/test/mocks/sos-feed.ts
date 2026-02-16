@@ -1,4 +1,5 @@
 import type {
+  SosFeedRawResponse,
   SosFeedResponse,
   SosFeedBallotItem,
   SosFeedResults,
@@ -46,6 +47,13 @@ export function mockSosFeedResponse(
     localResults: [],
     ...overrides,
   }
+}
+
+/** Create a raw SOS feed response (nullable fields, as received from the wire) */
+export function mockSosFeedRawResponse(
+  overrides?: Partial<SosFeedRawResponse>,
+): SosFeedRawResponse {
+  return { ...mockSosFeedResponse(), ...overrides }
 }
 
 /** A multi-contest SOS feed with several ballot items */

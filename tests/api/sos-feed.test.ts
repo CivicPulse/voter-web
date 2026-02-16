@@ -8,10 +8,14 @@ import {
 } from "@/api/sos-feed"
 import {
   mockSosFeedResponse,
+  mockSosFeedRawResponse,
   mockSosFeedBallotItem,
   mockSosFeedResults,
   mockMultiContestSosFeedResponse,
 } from "@/test/mocks/sos-feed"
+
+const VALID_SOS_URL =
+  "https://results.sos.ga.gov/cdn/results/Georgia/export-test.json"
 
 // ============================================================================
 // isSosUrl
@@ -95,14 +99,12 @@ describe("fetchSosFeed", () => {
       json: () => Promise.resolve(feed),
     })
 
-    const result = await fetchSosFeed(
-      "https://results.sos.ga.gov/cdn/results/Georgia/export-test.json",
-    )
+    const result = await fetchSosFeed(VALID_SOS_URL)
 
     expect(result).toEqual(feed)
     expect(mockFetch).toHaveBeenCalledWith(
-      "https://results.sos.ga.gov/cdn/results/Georgia/export-test.json",
-      expect.objectContaining({ redirect: "error" }),
+      VALID_SOS_URL,
+      expect.objectContaining({ redirect: "follow" }),
     )
   })
 
@@ -114,15 +116,18 @@ describe("fetchSosFeed", () => {
     })
 
     const controller = new AbortController()
-    await fetchSosFeed(
-      "https://results.sos.ga.gov/cdn/results/Georgia/export-test.json",
-      controller.signal,
-    )
+    await fetchSosFeed(VALID_SOS_URL, controller.signal)
 
     expect(mockFetch).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({ signal: controller.signal }),
     )
+  })
+
+  it("throws on non-SOS URL", async () => {
+    await expect(
+      fetchSosFeed("https://example.com/data.json"),
+    ).rejects.toThrow("Invalid URL: must be an HTTPS URL on results.sos.ga.gov")
   })
 
   it("throws on non-200 response", async () => {
@@ -132,57 +137,72 @@ describe("fetchSosFeed", () => {
       statusText: "Not Found",
     })
 
-    await expect(
-      fetchSosFeed(
-        "https://results.sos.ga.gov/cdn/results/Georgia/export-test.json",
-      ),
-    ).rejects.toThrow("SOS feed request failed: 404 Not Found")
+    await expect(fetchSosFeed(VALID_SOS_URL)).rejects.toThrow(
+      "SOS feed request failed: 404 Not Found",
+    )
+  })
+
+  it("throws user-friendly error on invalid JSON response", async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.reject(new SyntaxError("Unexpected token <")),
+    })
+
+    await expect(fetchSosFeed(VALID_SOS_URL)).rejects.toThrow(
+      "SOS feed returned invalid data (not valid JSON)",
+    )
   })
 
   it("throws on missing electionName", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: () =>
-        Promise.resolve(
-          mockSosFeedResponse({ electionName: null }),
-        ),
+        Promise.resolve(mockSosFeedRawResponse({ electionName: null })),
     })
 
-    await expect(
-      fetchSosFeed(
-        "https://results.sos.ga.gov/cdn/results/Georgia/export-test.json",
-      ),
-    ).rejects.toThrow("Invalid SOS feed: missing required fields")
+    await expect(fetchSosFeed(VALID_SOS_URL)).rejects.toThrow(
+      "Invalid SOS feed: missing required fields",
+    )
   })
 
   it("throws on missing electionDate", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: () =>
-        Promise.resolve(
-          mockSosFeedResponse({ electionDate: null }),
-        ),
+        Promise.resolve(mockSosFeedRawResponse({ electionDate: null })),
     })
 
-    await expect(
-      fetchSosFeed(
-        "https://results.sos.ga.gov/cdn/results/Georgia/export-test.json",
-      ),
-    ).rejects.toThrow("Invalid SOS feed: missing required fields")
+    await expect(fetchSosFeed(VALID_SOS_URL)).rejects.toThrow(
+      "Invalid SOS feed: missing required fields",
+    )
   })
 
   it("throws on missing results", async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: () =>
-        Promise.resolve(mockSosFeedResponse({ results: null })),
+        Promise.resolve(mockSosFeedRawResponse({ results: null })),
     })
 
-    await expect(
-      fetchSosFeed(
-        "https://results.sos.ga.gov/cdn/results/Georgia/export-test.json",
-      ),
-    ).rejects.toThrow("Invalid SOS feed: missing required fields")
+    await expect(fetchSosFeed(VALID_SOS_URL)).rejects.toThrow(
+      "Invalid SOS feed: missing required fields",
+    )
+  })
+
+  it("throws on malformed results.ballotItems (not array or null)", async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve(
+          mockSosFeedRawResponse({
+            results: { id: "x", name: "x", ballotItems: "bad" as never, reportingStatuses: [] },
+          }),
+        ),
+    })
+
+    await expect(fetchSosFeed(VALID_SOS_URL)).rejects.toThrow(
+      "Invalid SOS feed: missing required fields",
+    )
   })
 })
 
@@ -263,14 +283,6 @@ describe("extractDistrict", () => {
     )
   })
 
-  it("returns empty string when both ballotItems and electionName are null", () => {
-    const feed = mockSosFeedResponse({
-      electionName: null,
-      results: mockSosFeedResults({ ballotItems: [] }),
-    })
-    expect(extractDistrict(feed)).toBe("")
-  })
-
   it("filters out ballot items with null names", () => {
     const feed = mockSosFeedResponse({
       results: mockSosFeedResults({
@@ -281,13 +293,6 @@ describe("extractDistrict", () => {
       }),
     })
     expect(extractDistrict(feed)).toBe("State Senate - District 18")
-  })
-
-  it("returns election name when results is null", () => {
-    const feed = mockSosFeedResponse({ results: null })
-    expect(extractDistrict(feed)).toBe(
-      "January 20, 2026 - Special Election",
-    )
   })
 })
 
@@ -314,14 +319,6 @@ describe("extractAutoFillData", () => {
     })
     const result = extractAutoFillData(feed)
 
-    expect(result.election_type).toBeNull()
-  })
-
-  it("handles feed with null electionName", () => {
-    const feed = mockSosFeedResponse({ electionName: null })
-    const result = extractAutoFillData(feed)
-
-    expect(result.name).toBe("")
     expect(result.election_type).toBeNull()
   })
 
