@@ -13,12 +13,15 @@ import type {
   CountyResultGeoProperties,
   MapDataLayer,
 } from "@/types/elections"
+import { DistrictOutlineLayer } from "@/components/elections/DistrictOutlineLayer"
 
 interface ElectionResultsMapProps {
   geoJSON: CountyResultFeatureCollection
   activeLayer: MapDataLayer
   selectedCounty: string | null
   onCountyClick: (countyName: string) => void
+  districtGeometry?: Polygon | MultiPolygon | null
+  showDistrictOutline?: boolean
   className?: string
 }
 
@@ -167,6 +170,8 @@ export function ElectionResultsMap({
   activeLayer,
   selectedCounty,
   onCountyClick,
+  districtGeometry,
+  showDistrictOutline = true,
   className,
 }: ElectionResultsMapProps) {
   return (
@@ -187,6 +192,9 @@ export function ElectionResultsMap({
         selectedCounty={selectedCounty}
         onCountyClick={onCountyClick}
       />
+      {showDistrictOutline && districtGeometry && (
+        <DistrictOutlineLayer geometry={districtGeometry} />
+      )}
     </MapContainer>
   )
 }

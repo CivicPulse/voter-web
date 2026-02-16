@@ -13,6 +13,7 @@ import type {
 import { useMergedPrecinctGeoJSON } from "@/lib/hooks/use-merged-precinct-geojson"
 import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
 import { useDistrictBoundary } from "@/hooks/useDistrictBoundary"
+import { DistrictOutlineLayer } from "@/components/elections/DistrictOutlineLayer"
 import { DISTRICT_COLORS } from "@/lib/colors"
 import type { CountyFeatureCollection, CountyProperties } from "@/types/boundaries"
 import {
@@ -127,33 +128,6 @@ function CountyOverlayLayer({
   )
 }
 
-function DistrictOutlineLayer({
-  geometry,
-}: Readonly<{
-  geometry: Polygon | MultiPolygon
-}>) {
-  const geoJsonData = useMemo(
-    () => ({
-      type: "Feature" as const,
-      geometry,
-      properties: {},
-    }),
-    [geometry],
-  )
-
-  const style = useCallback(
-    (): PathOptions => ({
-      color: "#7c3aed",
-      weight: 5,
-      fillOpacity: 0,
-      opacity: 0.9,
-      dashArray: "12 6",
-    }),
-    [],
-  )
-
-  return <GeoJSON data={geoJsonData} style={style} interactive={false} />
-}
 
 function PrecinctLayer({
   geoJSON,

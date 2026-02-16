@@ -3,6 +3,7 @@ import { createFileRoute, useParams } from "@tanstack/react-router"
 import { Loader2, Map, Grid3X3 } from "lucide-react"
 import { useRaceResults } from "@/lib/hooks/use-race-results"
 import { useCountyResultsGeoJSON } from "@/lib/hooks/use-race-geojson"
+import { useDistrictBoundary } from "@/hooks/useDistrictBoundary"
 import { ElectionResultsMap } from "@/components/elections/ElectionResultsMap"
 import { ElectionResultsSection } from "@/components/elections/ElectionResultsSection"
 import { PrecinctMapView } from "@/components/elections/PrecinctMapView"
@@ -13,6 +14,8 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@/components/ui/toggle-group"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
 import type { MapDataLayer } from "@/types/elections"
 
 type MapView = "county" | "precinct"
@@ -42,6 +45,11 @@ function RaceResultsPage() {
   const [activeLayer, setActiveLayer] = useState<MapDataLayer>("leading_candidate")
   const [selectedCounty, setSelectedCounty] = useState<string | null>(null)
   const [mapView, setMapView] = useState<MapView>("county")
+  const [showDistrictOutline, setShowDistrictOutline] = useState(true)
+
+  const districtName = raceData?.election.district ?? ""
+  const { geometry: districtGeometry, boundaryType } =
+    useDistrictBoundary(districtName)
 
   const countyNames = useMemo(
     () =>
@@ -122,10 +130,29 @@ function RaceResultsPage() {
         </ToggleGroup>
 
         {mapView === "county" && (
-          <MapLayerSelector
-            activeLayer={activeLayer}
-            onLayerChange={setActiveLayer}
-          />
+          <div className="flex items-center gap-4">
+            {boundaryType && (
+              <div className="flex items-center gap-1.5">
+                <Checkbox
+                  id="county-map-district-outline"
+                  checked={showDistrictOutline}
+                  onCheckedChange={(checked) =>
+                    setShowDistrictOutline(checked === true)
+                  }
+                />
+                <Label
+                  htmlFor="county-map-district-outline"
+                  className="text-sm cursor-pointer"
+                >
+                  District outline
+                </Label>
+              </div>
+            )}
+            <MapLayerSelector
+              activeLayer={activeLayer}
+              onLayerChange={setActiveLayer}
+            />
+          </div>
         )}
       </div>
 
@@ -145,6 +172,8 @@ function RaceResultsPage() {
             activeLayer={activeLayer}
             selectedCounty={selectedCounty}
             onCountyClick={handleCountyClick}
+            districtGeometry={districtGeometry}
+            showDistrictOutline={showDistrictOutline}
           />
         </div>
       )}
