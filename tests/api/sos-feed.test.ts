@@ -127,7 +127,7 @@ describe("fetchSosFeed", () => {
   it("throws on non-SOS URL", async () => {
     await expect(
       fetchSosFeed("https://example.com/data.json"),
-    ).rejects.toThrow("Invalid URL: must be an HTTPS URL on results.sos.ga.gov")
+    ).rejects.toThrow(/Invalid URL: must be an HTTPS URL on results\.sos\.ga\.gov/)
   })
 
   it("throws on non-200 response", async () => {
@@ -149,7 +149,7 @@ describe("fetchSosFeed", () => {
     })
 
     await expect(fetchSosFeed(VALID_SOS_URL)).rejects.toThrow(
-      "SOS feed returned invalid data (not valid JSON)",
+      /SOS feed returned invalid data \(not valid JSON\)/,
     )
   })
 
@@ -161,7 +161,7 @@ describe("fetchSosFeed", () => {
     })
 
     await expect(fetchSosFeed(VALID_SOS_URL)).rejects.toThrow(
-      "Invalid SOS feed: missing required fields",
+      /Invalid SOS feed: missing required fields/,
     )
   })
 
@@ -173,7 +173,7 @@ describe("fetchSosFeed", () => {
     })
 
     await expect(fetchSosFeed(VALID_SOS_URL)).rejects.toThrow(
-      "Invalid SOS feed: missing required fields",
+      /Invalid SOS feed: missing required fields/,
     )
   })
 
@@ -185,7 +185,7 @@ describe("fetchSosFeed", () => {
     })
 
     await expect(fetchSosFeed(VALID_SOS_URL)).rejects.toThrow(
-      "Invalid SOS feed: missing required fields",
+      /Invalid SOS feed: missing required fields/,
     )
   })
 
@@ -201,7 +201,7 @@ describe("fetchSosFeed", () => {
     })
 
     await expect(fetchSosFeed(VALID_SOS_URL)).rejects.toThrow(
-      "Invalid SOS feed: missing required fields",
+      /Invalid SOS feed: missing required fields/,
     )
   })
 })

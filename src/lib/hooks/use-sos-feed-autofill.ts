@@ -39,6 +39,7 @@ export function useSosFeedAutoFill({
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const autoFilledTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const userEditedFieldsRef = useRef<Set<AutoFillableField>>(new Set())
+  const timedOutRef = useRef(false)
 
   // Track user edits to auto-fillable fields (excluding data_source_url)
   useEffect(() => {
@@ -66,7 +67,11 @@ export function useSosFeedAutoFill({
 
       abortControllerRef.current?.abort()
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10_000)
+      timedOutRef.current = false
+      const timeoutId = setTimeout(() => {
+        timedOutRef.current = true
+        controller.abort()
+      }, 10_000)
       abortControllerRef.current = controller
 
       setIsFetching(true)
@@ -135,17 +140,21 @@ export function useSosFeedAutoFill({
           })
         }
       } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError")
+        if (error instanceof DOMException && error.name === "AbortError") {
+          if (timedOutRef.current) {
+            const message =
+              "SOS feed request timed out. The server may be slow or unavailable."
+            setMultiRaceCount(null)
+            setFetchError(message)
+            toast.error("Could not load election details", {
+              description: message,
+            })
+          }
           return
+        }
 
         let message: string
         if (
-          error instanceof DOMException &&
-          error.name === "TimeoutError"
-        ) {
-          message =
-            "SOS feed request timed out. The server may be slow or unavailable."
-        } else if (
           error instanceof TypeError &&
           error.message.includes("Failed to fetch") &&
           navigator.onLine
@@ -187,8 +196,15 @@ export function useSosFeedAutoFill({
       if (name !== "data_source_url") return
       const url = value.data_source_url
       if (!url || !isSosUrl(url)) {
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current)
+          debounceTimerRef.current = null
+        }
+        abortControllerRef.current?.abort()
+        abortControllerRef.current = null
         setFetchError(null)
         setMultiRaceCount(null)
+        setIsFetching(false)
         return
       }
 
