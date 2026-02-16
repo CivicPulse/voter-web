@@ -14,21 +14,25 @@ import type {
  */
 export function useMultiCountyPrecinctBoundaries(countyNames: string[]) {
   const queries = useQueries({
-    queries: countyNames.map((county) => ({
-      queryKey: ["boundaries", "county_precinct", "geojson", county],
-      queryFn: () =>
-        api
-          .get("boundaries/geojson", {
-            searchParams: {
-              boundary_type: "county_precinct",
-              county,
-            },
-          })
-          .json<BoundaryFeatureCollection>(),
-      staleTime: 1000 * 60 * 60,
-      gcTime: 1000 * 60 * 60 * 2,
-      enabled: countyNames.length > 0,
-    })),
+    queries: countyNames.map((county) => {
+      // API expects bare county name (e.g. "Crawford") without " County" suffix
+      const bareCounty = county.replace(/ County$/i, "")
+      return {
+        queryKey: ["boundaries", "county_precinct", "geojson", bareCounty],
+        queryFn: () =>
+          api
+            .get("boundaries/geojson", {
+              searchParams: {
+                boundary_type: "county_precinct",
+                county: bareCounty,
+              },
+            })
+            .json<BoundaryFeatureCollection>(),
+        staleTime: 1000 * 60 * 60,
+        gcTime: 1000 * 60 * 60 * 2,
+        enabled: countyNames.length > 0,
+      }
+    }),
   })
 
   const isLoading = queries.some((q) => q.isLoading)
