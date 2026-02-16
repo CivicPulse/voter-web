@@ -7,6 +7,7 @@ import { ActiveElectionBanner } from "@/components/ActiveElectionBanner"
 import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import { useActiveElections } from "@/lib/hooks/use-active-elections"
+import { useElectedOfficialsByBoundaryType } from "@/lib/hooks/use-elected-officials"
 import { StateCensusProfileCard } from "@/components/StateCensusProfileCard"
 import {
   Drawer,
@@ -35,6 +36,9 @@ function Index() {
   const { data: overlayData, isLoading: isOverlayLoading } =
     useBoundaryTypeGeoJSON(overlay ?? null, null)
   const { data: activeElections } = useActiveElections()
+  const { data: electedOfficials } = useElectedOfficialsByBoundaryType(
+    overlay ?? null,
+  )
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   return (
@@ -45,6 +49,7 @@ function Index() {
           data={data ?? null}
           overlayData={overlayData}
           activeElections={activeElections}
+          electedOfficials={electedOfficials}
           isCountiesLoading={isCountiesLoading}
           isOverlayLoading={isOverlayLoading}
           className="rounded-none border-0"

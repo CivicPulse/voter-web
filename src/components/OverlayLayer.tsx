@@ -7,6 +7,7 @@ import type {
   BoundaryFeatureProperties,
 } from "@/types/boundary"
 import type { Election } from "@/types/elections"
+import type { ElectedOfficialSummaryResponse } from "@/types/elected-officials"
 import { electionsForDistrict } from "@/lib/hooks/use-active-elections"
 import { escapeHtml } from "@/lib/utils"
 
@@ -39,9 +40,29 @@ const OVERLAY_HOVER_STYLE: PathOptions = {
   opacity: 1,
 }
 
+function formatOfficialLine(o: ElectedOfficialSummaryResponse): string {
+  const party = o.party
+    ? ` <span style="color:#6b7280;">(${escapeHtml(o.party)})</span>`
+    : ""
+  return `<p style="font-size:11px;margin-top:2px;"><span style="font-weight:500;">${escapeHtml(o.full_name)}</span>${party}</p>`
+}
+
+function buildOfficialsPopupHtml(
+  officials: ElectedOfficialSummaryResponse[],
+): string {
+  if (officials.length === 0) return ""
+  const lines = officials.slice(0, 2).map(formatOfficialLine).join("")
+  const overflow =
+    officials.length > 2
+      ? `<p style="font-size:10px;color:#9ca3af;margin-top:2px;">+${officials.length - 2} more</p>`
+      : ""
+  return `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e5e7eb;">${lines}${overflow}</div>`
+}
+
 interface OverlayLayerProps {
   data: BoundaryFeatureCollection
   activeElections?: Election[]
+  electedOfficials?: Map<string, ElectedOfficialSummaryResponse[]>
   onDistrictDblClick?: (
     featureId: string,
     boundaryType: string,
@@ -52,6 +73,7 @@ interface OverlayLayerProps {
 export function OverlayLayer({
   data,
   activeElections,
+  electedOfficials,
   onDistrictDblClick,
 }: Readonly<OverlayLayerProps>) {
   const featureIndexMap = useMemo(() => {
@@ -118,11 +140,18 @@ export function OverlayLayer({
           </span>`
         : ""
 
+      const normalizedId =
+        props.boundary_identifier.replace(/^0+/, "") ||
+        props.boundary_identifier
+      const officials = electedOfficials?.get(normalizedId) ?? []
+      const officialsHtml = buildOfficialsPopupHtml(officials)
+
       layer.bindPopup(
         `<div class="p-1">
           <p class="font-semibold text-sm">${escapeHtml(displayName)}</p>
           <p class="text-xs text-muted-foreground capitalize">${escapeHtml(typeName)}</p>
           ${electionBadge}
+          ${officialsHtml}
         </div>`,
       )
 
@@ -152,12 +181,12 @@ export function OverlayLayer({
         },
       })
     },
-    [featureIndexMap, hasElectionForName, onDistrictDblClick],
+    [featureIndexMap, hasElectionForName, electedOfficials, onDistrictDblClick],
   )
 
   return (
     <GeoJSON
-      key={`${data.features[0]?.properties?.boundary_type}-${data.features.length}-${electionDistrictNames.size}`}
+      key={`${data.features[0]?.properties?.boundary_type}-${data.features.length}-${electionDistrictNames.size}-${electedOfficials?.size ?? 0}`}
       data={data}
       style={style}
       onEachFeature={onEachFeature}

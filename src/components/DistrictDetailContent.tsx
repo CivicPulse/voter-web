@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/drawer"
 import { DistrictDetailMap } from "@/components/DistrictDetailMap"
 import { ActiveElectionBanner } from "@/components/ActiveElectionBanner"
+import { ElectedOfficialsCard } from "@/components/ElectedOfficialsCard"
 import { useCountyBoundary } from "@/hooks/useCountyBoundary"
 import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
 import {
@@ -185,6 +186,10 @@ export function DistrictDetailContent({
                     </dl>
                   </CardContent>
                 </Card>
+                <ElectedOfficialsCard
+                  boundaryType={district.boundary_type}
+                  districtIdentifier={district.boundary_identifier}
+                />
               </div>
               <button
                 type="button"
