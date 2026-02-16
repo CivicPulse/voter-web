@@ -94,7 +94,8 @@ export async function getPrecinctGeoJSON(
 ): Promise<PrecinctResultFeatureCollection> {
   const searchParams: Record<string, string> = {}
   if (county) {
-    searchParams.county = county
+    // API expects bare county name (e.g. "Houston") without " County" suffix
+    searchParams.county = county.replace(/ County$/i, "")
   }
 
   return api

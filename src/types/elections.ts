@@ -90,8 +90,8 @@ export interface ElectionResultsResponse {
   election_id: string
   candidates: CandidateResult[]
   county_results: CountyResult[]
-  total_precincts_participating: number
-  total_precincts_reporting: number
+  precincts_participating: number | null
+  precincts_reporting: number | null
 }
 
 // ============================================================================
@@ -177,7 +177,7 @@ export type CountyResultFeatureCollection = FeatureCollection<
 export interface PrecinctResultGeoProperties {
   precinct_id: string
   precinct_name: string
-  county: string
+  county_name: string
   reporting_status: string
   candidates: CandidateResult[]
 }
@@ -240,9 +240,12 @@ export function getVotePercentage(candidateVotes: number, totalVotes: number): n
 }
 
 /** Calculate reporting percentage for a county or race */
-export function getReportingPercentage(reporting: number, participating: number): number {
-  if (participating === 0) return 0
-  return (reporting / participating) * 100
+export function getReportingPercentage(
+  reporting: number | null | undefined,
+  participating: number | null | undefined,
+): number {
+  if (!participating) return 0
+  return ((reporting ?? 0) / participating) * 100
 }
 
 /** Determine if an election is actively polling */

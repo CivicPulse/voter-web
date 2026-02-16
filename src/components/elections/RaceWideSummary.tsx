@@ -12,9 +12,18 @@ interface RaceWideSummaryProps {
 
 export function RaceWideSummary({ results }: RaceWideSummaryProps) {
   const totalVotes = getTotalVotes(results.candidates)
+
+  // Compute totals from county_results when top-level values are null
+  const precinctsParticipating =
+    results.precincts_participating ??
+    results.county_results.reduce((sum, c) => sum + c.precincts_participating, 0)
+  const precinctsReporting =
+    results.precincts_reporting ??
+    results.county_results.reduce((sum, c) => sum + c.precincts_reporting, 0)
+
   const reportingPct = getReportingPercentage(
-    results.total_precincts_reporting,
-    results.total_precincts_participating,
+    precinctsReporting,
+    precinctsParticipating,
   )
 
   return (
@@ -26,8 +35,8 @@ export function RaceWideSummary({ results }: RaceWideSummaryProps) {
         </Badge>
       </div>
       <div className="text-sm text-muted-foreground mb-3">
-        {results.total_precincts_reporting} of{" "}
-        {results.total_precincts_participating} precincts reporting
+        {precinctsReporting} of{" "}
+        {precinctsParticipating} precincts reporting
         {" · "}
         {totalVotes.toLocaleString()} total votes
       </div>

@@ -118,7 +118,7 @@ function PrecinctLayer({
       layer.bindTooltip(
         `<div class="text-sm">
           <div class="font-semibold">${props.precinct_name}</div>
-          <div class="text-muted-foreground">${props.county}</div>
+          <div class="text-muted-foreground">${props.county_name}</div>
           ${candidateLines}
         </div>`,
         { sticky: true },
@@ -144,8 +144,18 @@ function PrecinctLayer({
     [style],
   )
 
+  // React-Leaflet GeoJSON doesn't re-render on data prop changes;
+  // key forces a remount when feature data changes
+  const dataKey = useMemo(() => {
+    const features = filteredGeoJSON.features
+    const first = features[0]?.properties.precinct_id ?? ""
+    const last = features[features.length - 1]?.properties.precinct_id ?? ""
+    return `precincts-${features.length}-${first}-${last}`
+  }, [filteredGeoJSON])
+
   return (
     <GeoJSON
+      key={dataKey}
       data={filteredGeoJSON}
       style={style as (feature?: Feature) => PathOptions}
       onEachFeature={
@@ -206,8 +216,9 @@ export function PrecinctMapView({
         )}
       </div>
 
-      {/* Map */}
-      <div className="relative h-[350px] sm:h-[500px] md:h-[600px] rounded-lg overflow-hidden">
+      {/* Map — z-0 creates a stacking context so Leaflet's internal
+           z-indices (400+) don't compete with the county dropdown portal */}
+      <div className="relative z-0 h-[350px] sm:h-[500px] md:h-[600px] rounded-lg overflow-hidden">
         <MapContainer
           center={GA_CENTER}
           zoom={GA_ZOOM}

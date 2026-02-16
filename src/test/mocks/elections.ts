@@ -124,8 +124,8 @@ export function mockElectionResultsResponse(
       }),
     ],
     county_results: [mockCountyResult()],
-    total_precincts_participating: 120,
-    total_precincts_reporting: 95,
+    precincts_participating: 120,
+    precincts_reporting: 95,
     ...overrides,
   }
 }
@@ -234,7 +234,7 @@ export function mockPrecinctGeoJSON(): PrecinctResultFeatureCollection {
         properties: {
           precinct_id: "precinct-001",
           precinct_name: "Bibb Precinct 1",
-          county: "Bibb County",
+          county_name: "Bibb County",
           reporting_status: "Reported",
           candidates: [
             mockCandidateResult({ vote_count: 350 }),
