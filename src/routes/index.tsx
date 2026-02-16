@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { z } from "zod"
 import { AlertCircle, ChevronDown, ChevronUp } from "lucide-react"
 import { GeorgiaCountyMap } from "@/components/GeorgiaCountyMap"
+import { ActiveElectionBanner } from "@/components/ActiveElectionBanner"
 import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import { useActiveElections } from "@/lib/hooks/use-active-elections"
@@ -49,6 +50,13 @@ function Index() {
           className="rounded-none border-0"
         />
       </div>
+
+      {/* Active election banner — floating on map */}
+      {activeElections && activeElections.length > 0 && (
+        <div className="absolute left-3 right-3 top-3 z-[1000] sm:left-auto sm:right-3 sm:max-w-sm">
+          <ActiveElectionBanner elections={activeElections} className="space-y-2" />
+        </div>
+      )}
 
       {/* Error overlay on map */}
       {isError && (

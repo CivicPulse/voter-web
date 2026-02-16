@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { getElections } from "@/lib/api/elections"
 import type { Election } from "@/types/elections"
+import { categorizeRace } from "@/types/elections"
 
 /**
  * Fetches all active elections (status = "active") for use as indicators
@@ -48,4 +49,25 @@ export function electionsForDistrict(
     const district = normalize(e.district)
     return district === normalized || district.includes(normalized) || normalized.includes(district)
   })
+}
+
+/** Map race category → boundary type for overlay indicators */
+const CATEGORY_TO_BOUNDARY_TYPE: Record<string, string> = {
+  federal: "congressional",
+  state_senate: "state_senate",
+  state_house: "state_house",
+}
+
+/**
+ * Derive the set of boundary types that have at least one active election.
+ * Used to show indicator badges on the LayerBar overlay buttons.
+ */
+export function electionBoundaryTypes(elections: Election[]): Set<string> {
+  const types = new Set<string>()
+  for (const e of elections) {
+    const category = categorizeRace(e.district)
+    const boundaryType = CATEGORY_TO_BOUNDARY_TYPE[category]
+    if (boundaryType) types.add(boundaryType)
+  }
+  return types
 }
