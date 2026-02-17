@@ -2,6 +2,7 @@ import { useMemo, useState } from "react"
 import { createFileRoute, Link, useParams } from "@tanstack/react-router"
 import { ChevronRight, Loader2, Map, Grid3X3 } from "lucide-react"
 import { useRaceResults } from "@/lib/hooks/use-race-results"
+import { useResultsNotification } from "@/lib/hooks/use-results-notification"
 import { useCountyResultsGeoJSON } from "@/lib/hooks/use-race-geojson"
 import { useDistrictBoundary } from "@/hooks/useDistrictBoundary"
 import { ElectionResultsMap } from "@/components/elections/ElectionResultsMap"
@@ -42,6 +43,8 @@ function RaceResultsPage() {
     isLoading: raceLoading,
     error: raceError,
   } = useRaceResults(electionId)
+
+  useResultsNotification(raceData?.results)
 
   const {
     data: geoJSON,
