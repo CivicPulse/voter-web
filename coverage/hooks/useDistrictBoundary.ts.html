@@ -3,15 +3,15 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for lib/hooks/use-race-results.ts</title>
+    <title>Code coverage report for hooks/useDistrictBoundary.ts</title>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="../../prettify.css" />
-    <link rel="stylesheet" href="../../base.css" />
-    <link rel="shortcut icon" type="image/x-icon" href="../../favicon.png" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style type='text/css'>
         .coverage-summary .sorter {
-            background-image: url(../../sort-arrow-sprite.png);
+            background-image: url(../sort-arrow-sprite.png);
         }
     </style>
 </head>
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../index.html">All files</a> / <a href="index.html">lib/hooks</a> use-race-results.ts</h1>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">hooks</a> useDistrictBoundary.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">27.77% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>10/10</span>
+                <span class='fraction'>5/18</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">83.33% </span>
+                <span class="strong">14.28% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>5/6</span>
+                <span class='fraction'>2/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">25% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>1/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">26.66% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>9/9</span>
+                <span class='fraction'>4/15</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -110,99 +110,102 @@
 <a name='L45'></a><a href='#L45'>45</a>
 <a name='L46'></a><a href='#L46'>46</a>
 <a name='L47'></a><a href='#L47'>47</a>
-<a name='L48'></a><a href='#L48'>48</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">33x</span>
-<span class="cline-any cline-yes">33x</span>
-<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useQuery } from "@tanstack/react-query"
-import {
-  getElectionDetail,
-  getElectionResults,
-} from "@/lib/api/elections"
-import type { Election, ElectionResultsResponse } from "@/types/elections"
-import { toast } from "sonner"
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useMemo } from "react"
+import type { MultiPolygon, Polygon } from "geojson"
+import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
+import { categorizeRace } from "@/types/elections"
 &nbsp;
-export interface RaceResultsData {
-  election: Election
-  results: ElectionResultsResponse
+/** Map race category → boundary type for fetching district geometry */
+const CATEGORY_TO_BOUNDARY_TYPE: Record&lt;string, string&gt; = {
+  federal: "congressional",
+  state_senate: "state_senate",
+  state_house: "state_house",
 }
 &nbsp;
 /**
- * Hook to fetch both election detail and results for a specific race.
- * Combines two API calls into a single query for the race results page.
- *
- * Auto-refreshes at the election's configured interval when status is "active".
- * Stops polling when the election is finalized.
+ * Extract the district number from a district name string.
+ * e.g. "State Senate District 18" → "018", "US Congressional District 5" → "005"
+ * Boundary feature names are zero-padded 3-digit numbers (e.g. "018").
  */
-export function useRaceResults(electionId: string) {
-  return useQuery({
-    queryKey: ["elections", "results", electionId],
-    queryFn: async (): Promise&lt;RaceResultsData&gt; =&gt; {
-      const [election, results] = await Promise.all([
-        getElectionDetail(electionId),
-        getElectionResults(electionId),
-      ])
-      return { election, results }
-    },
-    enabled: !!electionId,
-    staleTime: 30 * 1000,
-    retry: (failureCount) =&gt; {
-      if (failureCount === 0) {
-        toast.warning("Connection issue", {
-          description: "Having trouble loading race results. Retrying...",
-        })
-      }
-      return failureCount &lt; 2
-    },
-    refetchInterval: (query) =&gt; {
-      const data = query.state.data
-      if (data?.election.status !== "active") return false
-      return (data.election.refresh_interval_seconds ?? <span class="branch-1 cbranch-no" title="branch not covered" >20) * 1</span>000
-    },
-  })
+export function extractDistrictNumber(districtName: string): string | null {
+  const result = /(\d+)\s*$/.exec(districtName)
+  if (!result) return null
+  return result[1].padStart(3, "0")
+}
+&nbsp;
+/**
+ * Fetch the boundary geometry for the election's district.
+ * Returns null geometry for local races (no boundary type mapping).
+ */
+export function <span class="fstat-no" title="function not covered" >useDistrictBoundary(d</span>istrictName: string) {
+  const <span class="cstat-no" title="statement not covered" >category = categorizeRace(districtName)</span>
+  const boundaryType = <span class="cstat-no" title="statement not covered" >CATEGORY_TO_BOUNDARY_TYPE[category] ?? null</span>
+&nbsp;
+  const { data, isLoading <span class="cstat-no" title="statement not covered" >} = useBoundaryTypeGeoJSON(boundaryType, null)</span>
+&nbsp;
+  const <span class="cstat-no" title="statement not covered" >geometry = useMemo(<span class="fstat-no" title="function not covered" >() =&gt; {</span></span>
+<span class="cstat-no" title="statement not covered" >    if (!data || !boundaryType) <span class="cstat-no" title="statement not covered" >return null</span></span>
+&nbsp;
+    const districtNumber = <span class="cstat-no" title="statement not covered" >extractDistrictNumber(districtName)</span>
+<span class="cstat-no" title="statement not covered" >    if (!districtNumber) <span class="cstat-no" title="statement not covered" >return null</span></span>
+&nbsp;
+    const match = <span class="cstat-no" title="statement not covered" >data.features.find(</span>
+<span class="fstat-no" title="function not covered" >      (f</span>) =&gt; <span class="cstat-no" title="statement not covered" >f.properties?.name === districtNumber,</span>
+    )
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    return (match?.geometry as Polygon | MultiPolygon) ?? null</span>
+  }, [data, boundaryType, districtName])
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  return { geometry, isLoading: boundaryType ? isLoading : false, boundaryType }</span>
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -213,14 +216,14 @@ export function useRaceResults(electionId: string) {
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
                 at 2026-02-17T17:55:38.460Z
             </div>
-        <script src="../../prettify.js"></script>
+        <script src="../prettify.js"></script>
         <script>
             window.onload = function () {
                 prettyPrint();
             };
         </script>
-        <script src="../../sorter.js"></script>
-        <script src="../../block-navigation.js"></script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
     </body>
 </html>
     
