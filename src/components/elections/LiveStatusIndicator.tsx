@@ -7,6 +7,8 @@ interface LiveStatusIndicatorProps {
   status: ElectionStatus
   lastRefreshedAt: string | null
   refreshIntervalSeconds: number
+  /** Timestamp (ms) of the last successful data fetch from TanStack Query */
+  dataUpdatedAt: number
 }
 
 function formatTimestamp(iso: string): string {
@@ -17,16 +19,15 @@ function formatTimestamp(iso: string): string {
 }
 
 function calculateRemaining(
-  lastRefreshedAt: string,
+  dataUpdatedAt: number,
   intervalSeconds: number,
 ): number {
-  const lastRefresh = new Date(lastRefreshedAt).getTime()
-  const nextRefresh = lastRefresh + intervalSeconds * 1000
+  const nextRefresh = dataUpdatedAt + intervalSeconds * 1000
   return Math.max(0, Math.ceil((nextRefresh - Date.now()) / 1000))
 }
 
 function useCountdown(
-  lastRefreshedAt: string | null,
+  dataUpdatedAt: number,
   intervalSeconds: number,
   isActive: boolean,
 ) {
@@ -34,19 +35,19 @@ function useCountdown(
   const [tick, setTick] = useState(0)
 
   useEffect(() => {
-    if (!isActive || !lastRefreshedAt) return
+    if (!isActive) return
     const timer = setInterval(() => setTick((t) => t + 1), 1000)
     return () => clearInterval(timer)
-  }, [lastRefreshedAt, intervalSeconds, isActive])
+  }, [dataUpdatedAt, intervalSeconds, isActive])
 
   // tick is in the dependency array to trigger recalculation each second
   return useMemo(
     () => {
-      if (!isActive || !lastRefreshedAt) return null
-      return calculateRemaining(lastRefreshedAt, intervalSeconds)
+      if (!isActive) return null
+      return calculateRemaining(dataUpdatedAt, intervalSeconds)
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [tick, isActive, lastRefreshedAt, intervalSeconds],
+    [tick, isActive, dataUpdatedAt, intervalSeconds],
   )
 }
 
@@ -54,10 +55,11 @@ export function LiveStatusIndicator({
   status,
   lastRefreshedAt,
   refreshIntervalSeconds,
+  dataUpdatedAt,
 }: LiveStatusIndicatorProps) {
   const isActive = status === "active"
   const secondsUntilRefresh = useCountdown(
-    lastRefreshedAt,
+    dataUpdatedAt,
     refreshIntervalSeconds,
     isActive,
   )

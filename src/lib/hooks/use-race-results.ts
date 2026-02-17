@@ -41,7 +41,7 @@ export function useRaceResults(electionId: string) {
     refetchInterval: (query) => {
       const data = query.state.data
       if (data?.election.status !== "active") return false
-      return (data.election.refresh_interval_seconds ?? 120) * 1000
+      return (data.election.refresh_interval_seconds ?? 20) * 1000
     },
   })
 }
