@@ -9,7 +9,6 @@ import { useDistrictBoundary } from "@/hooks/useDistrictBoundary"
 import { ElectionResultsMap } from "@/components/elections/ElectionResultsMap"
 import { ElectionResultsSection } from "@/components/elections/ElectionResultsSection"
 import { PrecinctMapView } from "@/components/elections/PrecinctMapView"
-import { MapLayerSelector } from "@/components/elections/MapLayerSelector"
 import { CertificationBadge } from "@/components/elections/CertificationBadge"
 import { LiveStatusIndicator } from "@/components/elections/LiveStatusIndicator"
 import { NotificationToggle } from "@/components/elections/NotificationToggle"
@@ -19,7 +18,6 @@ import {
 } from "@/components/ui/toggle-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import type { MapDataLayer } from "@/types/elections"
 import { buildCandidateColorMap } from "@/lib/candidate-colors"
 
 type MapView = "county" | "precinct"
@@ -62,7 +60,6 @@ function RaceResultsPage() {
     results: raceData?.results,
   })
 
-  const [activeLayer, setActiveLayer] = useState<MapDataLayer>("leading_candidate")
   const [selectedCounty, setSelectedCounty] = useState<string | null>(null)
   const [mapView, setMapView] = useState<MapView>("county")
   const [showDistrictOutline, setShowDistrictOutline] = useState(true)
@@ -218,10 +215,6 @@ function RaceResultsPage() {
                 </Label>
               </div>
             )}
-            <MapLayerSelector
-              activeLayer={activeLayer}
-              onLayerChange={setActiveLayer}
-            />
           </div>
         )}
       </div>
@@ -240,7 +233,6 @@ function RaceResultsPage() {
         <div className="h-[350px] sm:h-[500px] md:h-[600px] rounded-lg overflow-hidden">
           <ElectionResultsMap
             geoJSON={geoJSON}
-            activeLayer={activeLayer}
             selectedCounty={selectedCounty}
             onCountyClick={handleCountyClick}
             districtGeometry={districtGeometry}
