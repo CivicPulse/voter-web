@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useEffect } from "react"
-import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
+import { MapContainer, TileLayer, GeoJSON, Pane, useMap } from "react-leaflet"
 import type { Layer, PathOptions } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
 import { AlertCircle, Loader2 } from "lucide-react"
@@ -40,6 +40,9 @@ const HOVER_STYLE: PathOptions = {
   fillOpacity: 0.7,
 }
 
+// Must stay below Leaflet's default overlayPane (z-index 400) so precincts remain interactive
+const COUNTY_OVERLAY_Z_INDEX = 350
+
 // Default center: Georgia
 const GA_CENTER: [number, number] = [32.6791, -83.6233]
 const GA_ZOOM = 7
@@ -64,17 +67,6 @@ function FitBoundsToPrecincts({
     )
   }, [map, geoJSON])
 
-  return null
-}
-
-function MapPanes() {
-  const map = useMap()
-  useEffect(() => {
-    if (!map.getPane("county-overlay")) {
-      const pane = map.createPane("county-overlay")
-      pane.style.zIndex = "350"
-    }
-  }, [map])
   return null
 }
 
@@ -137,7 +129,6 @@ function CountyOverlayLayer({
       onEachFeature={
         onEachFeature as (feature: Feature, layer: Layer) => void
       }
-      pane="county-overlay"
     />
   )
 }
@@ -325,16 +316,17 @@ export function PrecinctMapView({
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <MapPanes />
           {hasRenderableFeatures && geoJSON ? (
             <>
               <FitBoundsToPrecincts geoJSON={geoJSON} />
               {showCountyOverlay && filteredCountyBoundaries && (
-                <CountyOverlayLayer
-                  counties={filteredCountyBoundaries}
-                  countyNames={countyNames}
-                  onCountyDblClick={handleCountyDblClick}
-                />
+                <Pane name="county-overlay" style={{ zIndex: COUNTY_OVERLAY_Z_INDEX }}>
+                  <CountyOverlayLayer
+                    counties={filteredCountyBoundaries}
+                    countyNames={countyNames}
+                    onCountyDblClick={handleCountyDblClick}
+                  />
+                </Pane>
               )}
               <PrecinctLayer geoJSON={geoJSON} dataUpdatedAt={dataUpdatedAt} candidateColorMap={candidateColorMap} />
               {/* District outline renders above precincts for visibility;
