@@ -67,6 +67,17 @@ function FitBoundsToPrecincts({
   return null
 }
 
+function MapPanes() {
+  const map = useMap()
+  useEffect(() => {
+    if (!map.getPane("county-overlay")) {
+      const pane = map.createPane("county-overlay")
+      pane.style.zIndex = "350"
+    }
+  }, [map])
+  return null
+}
+
 function CountyOverlayLayer({
   counties,
   countyNames,
@@ -126,6 +137,7 @@ function CountyOverlayLayer({
       onEachFeature={
         onEachFeature as (feature: Feature, layer: Layer) => void
       }
+      pane="county-overlay"
     />
   )
 }
@@ -313,6 +325,7 @@ export function PrecinctMapView({
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+          <MapPanes />
           {hasRenderableFeatures && geoJSON ? (
             <>
               <FitBoundsToPrecincts geoJSON={geoJSON} />
