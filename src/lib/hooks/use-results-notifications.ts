@@ -8,11 +8,12 @@ import { getTotalVotes, getLeadingCandidate } from "@/types/elections"
  * the actual vote counts or reporting status change — not on every refetch.
  */
 function buildResultsFingerprint(results: ElectionResultsResponse): string {
+  const sorted = [...results.candidates].sort(
+    (a, b) => (a.ballot_order ?? 0) - (b.ballot_order ?? 0) || a.id.localeCompare(b.id),
+  )
   const parts: string[] = [
     `p:${results.precincts_reporting ?? 0}/${results.precincts_participating ?? 0}`,
-    ...results.candidates.map(
-      (c) => `${c.id}:${c.vote_count}`,
-    ),
+    ...sorted.map((c) => `${c.id}:${c.vote_count}`),
   ]
   return parts.join("|")
 }
@@ -61,6 +62,19 @@ export function useResultsNotifications({
   const [permission, setPermission] = useState(getNotificationPermission)
   const prevFingerprintRef = useRef<string | null>(null)
   const initialDataReceivedRef = useRef(false)
+  const [prevElectionId, setPrevElectionId] = useState<string | undefined>(results?.election_id)
+
+  // Reset user opt-in when the election changes (adjusting state during render)
+  if (results?.election_id !== prevElectionId) {
+    setPrevElectionId(results?.election_id)
+    setUserEnabled(false)
+  }
+
+  // Reset tracking refs when the election changes
+  useEffect(() => {
+    prevFingerprintRef.current = null
+    initialDataReceivedRef.current = false
+  }, [results?.election_id])
 
   // Effective enabled: user opted in AND election is still active
   const enabled = userEnabled && isActive
@@ -160,6 +174,11 @@ export function useResultsNotifications({
               "Please allow notifications in your browser settings to use this feature.",
           })
         }
+      }).catch(() => {
+        toast.error("Notification permission error", {
+          description:
+            "Unable to request notification permissions. Please check your browser settings.",
+        })
       })
       return
     }

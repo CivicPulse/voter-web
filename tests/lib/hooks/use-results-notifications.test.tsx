@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { renderHook, act } from "@testing-library/react"
+import { renderHook, act, waitFor } from "@testing-library/react"
 import { useResultsNotifications } from "@/lib/hooks/use-results-notifications"
 import { mockElectionResultsResponse } from "@/test/mocks/elections"
 
@@ -82,11 +82,13 @@ describe("useResultsNotifications", () => {
     })
 
     expect(NotificationMock.requestPermission).toHaveBeenCalled()
-    expect(mockToast.success).toHaveBeenCalledWith(
-      "Notifications enabled",
-      expect.objectContaining({
-        description: expect.stringContaining("notified"),
-      }),
+    await waitFor(() =>
+      expect(mockToast.success).toHaveBeenCalledWith(
+        "Notifications enabled",
+        expect.objectContaining({
+          description: expect.stringContaining("notified"),
+        }),
+      ),
     )
   })
 
@@ -156,11 +158,13 @@ describe("useResultsNotifications", () => {
       result.current.toggle()
     })
 
-    expect(mockToast.error).toHaveBeenCalledWith(
-      "Notifications blocked",
-      expect.objectContaining({
-        description: expect.stringContaining("browser settings"),
-      }),
+    await waitFor(() =>
+      expect(mockToast.error).toHaveBeenCalledWith(
+        "Notifications blocked",
+        expect.objectContaining({
+          description: expect.stringContaining("browser settings"),
+        }),
+      ),
     )
   })
 
@@ -271,7 +275,7 @@ describe("useResultsNotifications", () => {
     setupNotificationMock("granted")
 
     const results = mockElectionResultsResponse()
-    const { result } = renderHook(
+    const { result, rerender } = renderHook(
       ({ isActive }) =>
         useResultsNotifications({
           electionName: "Test Race",
@@ -287,7 +291,7 @@ describe("useResultsNotifications", () => {
     expect(result.current.enabled).toBe(true)
 
     // Election becomes finalized
-    // Note: we can't directly test the derived state change via rerender
-    // because userEnabled stays true but enabled = userEnabled && isActive
+    rerender({ isActive: false })
+    expect(result.current.enabled).toBe(false)
   })
 })
