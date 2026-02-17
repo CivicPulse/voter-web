@@ -41,6 +41,7 @@ function RaceResultsPage() {
     data: raceData,
     isLoading: raceLoading,
     error: raceError,
+    dataUpdatedAt,
   } = useRaceResults(electionId)
 
   const {
@@ -124,6 +125,7 @@ function RaceResultsPage() {
           status={election.status}
           lastRefreshedAt={election.last_refreshed_at}
           refreshIntervalSeconds={election.refresh_interval_seconds ?? 120}
+          dataUpdatedAt={dataUpdatedAt}
         />
       </div>
 
