@@ -12,6 +12,7 @@ import {
   Users,
   Landmark,
   Building2,
+  Volume2,
 } from "lucide-react"
 import {
   Card,
@@ -387,6 +388,36 @@ function LicensingSection() {
                 >
                   Creative Commons Attribution-ShareAlike 4.0 International (CC
                   BY-SA 4.0)
+                </a>
+                .
+              </p>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="flex gap-3">
+            <Volume2 className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium">Notification Sound</h3>
+              <p className="text-sm text-muted-foreground">
+                "Tannoy chime 01.wav" by{" "}
+                <a
+                  href="https://freesound.org/s/245954/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline-offset-4 hover:underline"
+                >
+                  kwahmah_02
+                </a>
+                , licensed under{" "}
+                <a
+                  href="https://creativecommons.org/licenses/by/3.0/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline-offset-4 hover:underline"
+                >
+                  Creative Commons Attribution 3.0
                 </a>
                 .
               </p>
