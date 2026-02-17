@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest"
 import {
   buildCandidateColorMap,
+  getCountyFillColor,
+  NEUTRAL_COLOR,
   PARTY_SHADE_PALETTES,
 } from "@/lib/candidate-colors"
 import { mockCandidateResult } from "@/test/mocks/elections"
@@ -115,5 +117,111 @@ describe("buildCandidateColorMap", () => {
     ]
     const map = buildCandidateColorMap(candidates)
     expect(map.get("ind1")!.fill).toBe("#7c3aed")
+  })
+})
+
+describe("getCountyFillColor", () => {
+  it("returns neutral color for empty candidates array", () => {
+    expect(getCountyFillColor([])).toEqual(NEUTRAL_COLOR)
+  })
+
+  it("returns neutral color when all candidates have zero votes", () => {
+    const candidates = [
+      mockCandidateResult({ id: "a", political_party: "Dem", vote_count: 0 }),
+      mockCandidateResult({ id: "b", political_party: "Rep", vote_count: 0 }),
+    ]
+    expect(getCountyFillColor(candidates)).toEqual(NEUTRAL_COLOR)
+  })
+
+  it("returns neutral color when top two candidates are tied", () => {
+    const candidates = [
+      mockCandidateResult({ id: "a", political_party: "Dem", vote_count: 500 }),
+      mockCandidateResult({ id: "b", political_party: "Rep", vote_count: 500 }),
+    ]
+    expect(getCountyFillColor(candidates)).toEqual(NEUTRAL_COLOR)
+  })
+
+  it("returns party color for single candidate with votes", () => {
+    const candidates = [
+      mockCandidateResult({ id: "a", political_party: "Dem", vote_count: 100 }),
+    ]
+    // Single candidate → 100% margin → shade index 0 (most vivid)
+    expect(getCountyFillColor(candidates)).toEqual(PARTY_SHADE_PALETTES.Dem[0])
+  })
+
+  it("returns most vivid shade for margin > 60%", () => {
+    // margin = (850 - 150) / 1000 * 100 = 70%
+    const candidates = [
+      mockCandidateResult({ id: "a", political_party: "Rep", vote_count: 850 }),
+      mockCandidateResult({ id: "b", political_party: "Dem", vote_count: 150 }),
+    ]
+    expect(getCountyFillColor(candidates)).toEqual(PARTY_SHADE_PALETTES.Rep[0])
+  })
+
+  it("returns shade index 1 for margin between 40% and 60%", () => {
+    // margin = (710 - 290) / 1000 * 100 = 42%
+    const candidates = [
+      mockCandidateResult({ id: "a", political_party: "Dem", vote_count: 710 }),
+      mockCandidateResult({ id: "b", political_party: "Rep", vote_count: 290 }),
+    ]
+    expect(getCountyFillColor(candidates)).toEqual(PARTY_SHADE_PALETTES.Dem[1])
+  })
+
+  it("returns shade index 2 for margin between 25% and 40%", () => {
+    // margin = (650 - 350) / 1000 * 100 = 30%
+    const candidates = [
+      mockCandidateResult({ id: "a", political_party: "Rep", vote_count: 650 }),
+      mockCandidateResult({ id: "b", political_party: "Dem", vote_count: 350 }),
+    ]
+    expect(getCountyFillColor(candidates)).toEqual(PARTY_SHADE_PALETTES.Rep[2])
+  })
+
+  it("returns shade index 3 for margin between 10% and 25%", () => {
+    // margin = (600 - 400) / 1000 * 100 = 20%
+    const candidates = [
+      mockCandidateResult({ id: "a", political_party: "Dem", vote_count: 600 }),
+      mockCandidateResult({ id: "b", political_party: "Rep", vote_count: 400 }),
+    ]
+    expect(getCountyFillColor(candidates)).toEqual(PARTY_SHADE_PALETTES.Dem[3])
+  })
+
+  it("returns lightest shade for margin <= 10%", () => {
+    // margin = (530 - 470) / 1000 * 100 = 6%
+    const candidates = [
+      mockCandidateResult({ id: "a", political_party: "Rep", vote_count: 530 }),
+      mockCandidateResult({ id: "b", political_party: "Dem", vote_count: 470 }),
+    ]
+    expect(getCountyFillColor(candidates)).toEqual(PARTY_SHADE_PALETTES.Rep[4])
+  })
+
+  it("uses default gray palette for unknown party", () => {
+    // margin = (810 - 190) / 1000 * 100 = 62% → index 0
+    const candidates = [
+      mockCandidateResult({ id: "a", political_party: "Unknown", vote_count: 810 }),
+      mockCandidateResult({ id: "b", political_party: "Dem", vote_count: 190 }),
+    ]
+    const result = getCountyFillColor(candidates)
+    // DEFAULT_SHADE_PALETTE[0] — most vivid gray
+    expect(result.fill).toBe("#9ca3af")
+    expect(result.border).toBe("#6b7280")
+  })
+
+  it("determines leader regardless of input order", () => {
+    const candidates = [
+      mockCandidateResult({ id: "b", political_party: "Rep", vote_count: 150 }),
+      mockCandidateResult({ id: "a", political_party: "Dem", vote_count: 850 }),
+    ]
+    // margin = (850 - 150) / 1000 * 100 = 70% → index 0
+    expect(getCountyFillColor(candidates)).toEqual(PARTY_SHADE_PALETTES.Dem[0])
+  })
+
+  it("handles three-way race using top two candidates for margin", () => {
+    // margin = (500 - 300) / 1000 * 100 = 20% → index 3
+    const candidates = [
+      mockCandidateResult({ id: "a", political_party: "Dem", vote_count: 500 }),
+      mockCandidateResult({ id: "b", political_party: "Rep", vote_count: 300 }),
+      mockCandidateResult({ id: "c", political_party: "Ind", vote_count: 200 }),
+    ]
+    expect(getCountyFillColor(candidates)).toEqual(PARTY_SHADE_PALETTES.Dem[3])
   })
 })

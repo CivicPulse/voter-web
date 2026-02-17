@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react"
+import { useCallback, useMemo, useEffect } from "react"
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
 import type { Layer, PathOptions } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
@@ -17,15 +17,6 @@ import { useDistrictBoundary } from "@/hooks/useDistrictBoundary"
 import { DistrictOutlineLayer } from "@/components/elections/DistrictOutlineLayer"
 import { DISTRICT_COLORS } from "@/lib/colors"
 import type { CountyFeatureCollection, CountyProperties } from "@/types/boundaries"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 
 interface PrecinctMapViewProps {
@@ -34,6 +25,10 @@ interface PrecinctMapViewProps {
   districtName: string
   candidateColorMap?: CandidateColorMap
   className?: string
+  selectedCounty: string | undefined
+  onCountySelect: (county: string | undefined) => void
+  showCountyOverlay: boolean
+  showDistrictOutline: boolean
 }
 
 function isReported(status: string): boolean {
@@ -262,13 +257,11 @@ export function PrecinctMapView({
   districtName,
   candidateColorMap,
   className,
+  selectedCounty,
+  onCountySelect,
+  showCountyOverlay,
+  showDistrictOutline,
 }: PrecinctMapViewProps) {
-  const [selectedCounty, setSelectedCounty] = useState<string | undefined>(
-    undefined,
-  )
-  const [showCountyOverlay, setShowCountyOverlay] = useState(true)
-  const [showDistrictOutline, setShowDistrictOutline] = useState(true)
-
   const {
     data: geoJSON,
     isLoading,
@@ -279,14 +272,9 @@ export function PrecinctMapView({
     boundaryProgress,
   } = useMergedPrecinctGeoJSON(electionId, countyNames, selectedCounty)
 
-  const { data: allCountyBoundaries, isError: isCountyBoundaryError } = useCountyBoundaries()
-  const { geometry: districtGeometry, boundaryType } =
+  const { data: allCountyBoundaries } = useCountyBoundaries()
+  const { geometry: districtGeometry } =
     useDistrictBoundary(districtName)
-
-  const sortedCounties = useMemo(
-    () => [...countyNames].sort((a, b) => a.localeCompare(b)),
-    [countyNames],
-  )
 
   const filteredCountyBoundaries = useMemo(() => {
     if (!allCountyBoundaries) return null
@@ -302,9 +290,9 @@ export function PrecinctMapView({
 
   const handleCountyDblClick = useCallback(
     (countyFullName: string) => {
-      setSelectedCounty(countyFullName)
+      onCountySelect(countyFullName)
     },
-    [],
+    [onCountySelect],
   )
 
   const hasRenderableFeatures = useMemo(
@@ -313,80 +301,7 @@ export function PrecinctMapView({
   )
 
   return (
-    <div className={cn("flex flex-col gap-3", className)}>
-      {/* Controls row: county filter + layer toggles */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <Select
-          value={selectedCounty ?? "all"}
-          onValueChange={(v) =>
-            setSelectedCounty(v === "all" ? undefined : v)
-          }
-        >
-          <SelectTrigger className="w-[220px]">
-            <SelectValue placeholder="Filter by county" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All counties</SelectItem>
-            {sortedCounties.map((county) => (
-              <SelectItem key={county} value={county}>
-                {county}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {isLoading && (
-          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-        )}
-        {isLoadingBoundaries && !isLoading && boundaryProgress.total <= 1 && (
-          <span className="text-xs text-muted-foreground">
-            Loading precinct boundaries…
-          </span>
-        )}
-        {isBoundaryError && !isLoadingBoundaries && (
-          <span className="text-xs text-destructive flex items-center gap-1">
-            <AlertCircle className="h-3 w-3" />
-            Some boundary data unavailable
-          </span>
-        )}
-
-        {/* Layer toggles */}
-        <div className="flex items-center gap-4 ml-auto">
-          <div className="flex items-center gap-1.5">
-            <Checkbox
-              id="county-overlay"
-              checked={showCountyOverlay}
-              disabled={isCountyBoundaryError}
-              onCheckedChange={(checked) =>
-                setShowCountyOverlay(checked === true)
-              }
-            />
-            <Label htmlFor="county-overlay" className="text-sm cursor-pointer">
-              Counties
-            </Label>
-          </div>
-          {boundaryType && (
-            <div className="flex items-center gap-1.5">
-              <Checkbox
-                id="district-outline"
-                checked={showDistrictOutline}
-                onCheckedChange={(checked) =>
-                  setShowDistrictOutline(checked === true)
-                }
-              />
-              <Label
-                htmlFor="district-outline"
-                className="text-sm cursor-pointer"
-              >
-                District outline
-              </Label>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Map — z-0 creates a stacking context so Leaflet's internal
-           z-indices (400+) don't compete with the county dropdown portal */}
-      <div className="relative z-0 h-[350px] sm:h-[500px] md:h-[600px] rounded-lg overflow-hidden">
+    <div className={cn("relative z-0 h-[350px] sm:h-[500px] md:h-[600px] rounded-lg overflow-hidden", className)}>
         <MapContainer
           center={GA_CENTER}
           zoom={GA_ZOOM}
@@ -417,6 +332,13 @@ export function PrecinctMapView({
             </>
           ) : null}
         </MapContainer>
+
+        {/* Initial loading overlay */}
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-lg">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        )}
 
         {/* Error / empty state overlay */}
         {!isLoading && isElectionError && (
@@ -458,7 +380,22 @@ export function PrecinctMapView({
             </span>
           </div>
         )}
+
+        {/* Single-county boundary loading indicator */}
+        {isLoadingBoundaries && !isLoading && boundaryProgress.total <= 1 && (
+          <div className="absolute bottom-4 right-4 z-[1000] flex items-center gap-1.5 rounded-lg bg-background/90 px-3 py-2 shadow-md border text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Loading precinct boundaries&hellip;</span>
+          </div>
+        )}
+
+        {/* Boundary error overlay */}
+        {isBoundaryError && !isLoadingBoundaries && hasRenderableFeatures && (
+          <div className="absolute top-4 right-4 z-[1000] flex items-center gap-1.5 rounded-lg bg-background/90 px-3 py-2 shadow-md border text-sm">
+            <AlertCircle className="h-4 w-4 text-destructive" />
+            <span className="text-destructive">Some boundary data unavailable</span>
+          </div>
+        )}
       </div>
-    </div>
   )
 }

@@ -198,9 +198,6 @@ export type PrecinctResultFeatureCollection = FeatureCollection<
 // Filter and UI State Types
 // ============================================================================
 
-/** Map data layer options for the choropleth */
-export type MapDataLayer = "leading_candidate" | "precincts_reporting" | "total_votes"
-
 /** Race category for filtering the race list */
 export type RaceCategory = "federal" | "state_senate" | "state_house" | "local" | "all"
 
