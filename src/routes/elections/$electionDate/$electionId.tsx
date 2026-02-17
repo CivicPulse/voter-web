@@ -6,6 +6,7 @@ import { useResultsNotification } from "@/lib/hooks/use-results-notification"
 import { useResultsNotifications } from "@/lib/hooks/use-results-notifications"
 import { useCountyResultsGeoJSON } from "@/lib/hooks/use-race-geojson"
 import { useDistrictBoundary } from "@/hooks/useDistrictBoundary"
+import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
 import { ElectionResultsMap } from "@/components/elections/ElectionResultsMap"
 import { ElectionResultsSection } from "@/components/elections/ElectionResultsSection"
 import { PrecinctMapView } from "@/components/elections/PrecinctMapView"
@@ -16,6 +17,13 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@/components/ui/toggle-group"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { buildCandidateColorMap } from "@/lib/candidate-colors"
@@ -63,15 +71,25 @@ function RaceResultsPage() {
   const [selectedCounty, setSelectedCounty] = useState<string | null>(null)
   const [mapView, setMapView] = useState<MapView>("county")
   const [showDistrictOutline, setShowDistrictOutline] = useState(true)
+  const [precinctCountyFilter, setPrecinctCountyFilter] = useState<
+    string | undefined
+  >(undefined)
+  const [showCountyOverlay, setShowCountyOverlay] = useState(true)
 
   const districtName = raceData?.election.district ?? ""
   const { geometry: districtGeometry, boundaryType } =
     useDistrictBoundary(districtName)
+  const { isError: isCountyBoundaryError } = useCountyBoundaries()
 
   const countyNames = useMemo(
     () =>
       raceData?.results.county_results.map((c) => c.county_name) ?? [],
     [raceData?.results.county_results],
+  )
+
+  const sortedCounties = useMemo(
+    () => [...countyNames].sort((a, b) => a.localeCompare(b)),
+    [countyNames],
   )
 
   const candidateColorMap = useMemo(
@@ -177,8 +195,8 @@ function RaceResultsPage() {
         />
       </div>
 
-      {/* Controls row: view toggle + layer selector */}
-      <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+      {/* Controls row: view toggle + county filter + layer toggles */}
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
         <ToggleGroup
           type="single"
           value={mapView}
@@ -196,27 +214,64 @@ function RaceResultsPage() {
           </ToggleGroupItem>
         </ToggleGroup>
 
-        {mapView === "county" && (
-          <div className="flex items-center gap-4">
-            {boundaryType && (
-              <div className="flex items-center gap-1.5">
-                <Checkbox
-                  id="county-map-district-outline"
-                  checked={showDistrictOutline}
-                  onCheckedChange={(checked) =>
-                    setShowDistrictOutline(checked === true)
-                  }
-                />
-                <Label
-                  htmlFor="county-map-district-outline"
-                  className="text-sm cursor-pointer"
-                >
-                  District outline
-                </Label>
-              </div>
-            )}
-          </div>
+        {mapView === "precinct" && (
+          <Select
+            value={precinctCountyFilter ?? "all"}
+            onValueChange={(v) =>
+              setPrecinctCountyFilter(v === "all" ? undefined : v)
+            }
+          >
+            <SelectTrigger className="w-[220px]">
+              <SelectValue placeholder="Filter by county" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All counties</SelectItem>
+              {sortedCounties.map((county) => (
+                <SelectItem key={county} value={county}>
+                  {county}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         )}
+
+        <div className="flex items-center gap-4 ml-auto">
+          {mapView === "precinct" && (
+            <div className="flex items-center gap-1.5">
+              <Checkbox
+                id="county-overlay"
+                checked={showCountyOverlay}
+                disabled={isCountyBoundaryError}
+                onCheckedChange={(checked) =>
+                  setShowCountyOverlay(checked === true)
+                }
+              />
+              <Label
+                htmlFor="county-overlay"
+                className="text-sm cursor-pointer"
+              >
+                Counties
+              </Label>
+            </div>
+          )}
+          {boundaryType && (
+            <div className="flex items-center gap-1.5">
+              <Checkbox
+                id="district-outline"
+                checked={showDistrictOutline}
+                onCheckedChange={(checked) =>
+                  setShowDistrictOutline(checked === true)
+                }
+              />
+              <Label
+                htmlFor="district-outline"
+                className="text-sm cursor-pointer"
+              >
+                District outline
+              </Label>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Map views */}
@@ -226,6 +281,10 @@ function RaceResultsPage() {
           countyNames={countyNames}
           districtName={election.district}
           candidateColorMap={candidateColorMap}
+          selectedCounty={precinctCountyFilter}
+          onCountySelect={setPrecinctCountyFilter}
+          showCountyOverlay={showCountyOverlay}
+          showDistrictOutline={showDistrictOutline}
         />
       )}
 
