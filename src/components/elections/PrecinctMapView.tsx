@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useEffect } from "react"
-import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
+import { MapContainer, TileLayer, GeoJSON, Pane, useMap } from "react-leaflet"
 import type { Layer, PathOptions } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
 import { AlertCircle, Loader2 } from "lucide-react"
@@ -39,6 +39,9 @@ const HOVER_STYLE: PathOptions = {
   weight: 3,
   fillOpacity: 0.7,
 }
+
+// Must stay below Leaflet's default overlayPane (z-index 400) so precincts remain interactive
+const COUNTY_OVERLAY_Z_INDEX = 350
 
 // Default center: Georgia
 const GA_CENTER: [number, number] = [32.6791, -83.6233]
@@ -317,11 +320,13 @@ export function PrecinctMapView({
             <>
               <FitBoundsToPrecincts geoJSON={geoJSON} />
               {showCountyOverlay && filteredCountyBoundaries && (
-                <CountyOverlayLayer
-                  counties={filteredCountyBoundaries}
-                  countyNames={countyNames}
-                  onCountyDblClick={handleCountyDblClick}
-                />
+                <Pane name="county-overlay" style={{ zIndex: COUNTY_OVERLAY_Z_INDEX }}>
+                  <CountyOverlayLayer
+                    counties={filteredCountyBoundaries}
+                    countyNames={countyNames}
+                    onCountyDblClick={handleCountyDblClick}
+                  />
+                </Pane>
               )}
               <PrecinctLayer geoJSON={geoJSON} dataUpdatedAt={dataUpdatedAt} candidateColorMap={candidateColorMap} />
               {/* District outline renders above precincts for visibility;
