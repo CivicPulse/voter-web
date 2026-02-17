@@ -53,6 +53,9 @@ const DEFAULT_SHADE_PALETTE: { fill: string; border: string }[] = [
   { fill: "#f9fafb", border: "#f3f4f6" },
 ]
 
+/** Neutral color for counties with no votes or tied results */
+export const NEUTRAL_COLOR = { fill: "#d1d5db", border: "#9ca3af" }
+
 /**
  * Build a color map assigning each candidate a unique shade based on
  * party affiliation and intra-party vote ranking.
@@ -83,4 +86,46 @@ export function buildCandidateColorMap(
   }
 
   return colorMap
+}
+
+/**
+ * Map vote-margin percentage to a shade palette index.
+ * Higher margin → lower index (more vivid color).
+ */
+function getMarginShadeIndex(marginPct: number): number {
+  if (marginPct > 60) return 0
+  if (marginPct > 40) return 1
+  if (marginPct > 25) return 2
+  if (marginPct > 10) return 3
+  return 4
+}
+
+/**
+ * Compute the fill color for a county based on per-county vote results.
+ *
+ * Returns neutral gray when total votes are zero or the top two candidates
+ * are tied. Otherwise returns the leading candidate's party color with
+ * shade intensity proportional to the margin of victory.
+ */
+export function getCountyFillColor(
+  candidates: CandidateResult[],
+): { fill: string; border: string } {
+  if (candidates.length === 0) return NEUTRAL_COLOR
+
+  const totalVotes = candidates.reduce((sum, c) => sum + c.vote_count, 0)
+  if (totalVotes === 0) return NEUTRAL_COLOR
+
+  const sorted = [...candidates].sort((a, b) => b.vote_count - a.vote_count)
+  const leader = sorted[0]
+  const runnerUp = sorted[1]
+
+  if (leader.vote_count === runnerUp?.vote_count) return NEUTRAL_COLOR
+
+  const runnerUpVotes = runnerUp?.vote_count ?? 0
+  const marginPct = ((leader.vote_count - runnerUpVotes) / totalVotes) * 100
+  const shadeIndex = getMarginShadeIndex(marginPct)
+
+  const palette =
+    PARTY_SHADE_PALETTES[leader.political_party] ?? DEFAULT_SHADE_PALETTE
+  return palette[shadeIndex] ?? palette.at(-1)!
 }

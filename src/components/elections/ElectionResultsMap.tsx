@@ -5,15 +5,13 @@ import type { Feature, MultiPolygon, Polygon } from "geojson"
 import { cn } from "@/lib/utils"
 import { safeBbox } from "@/lib/geo"
 import {
-  getPartyColor,
-  getLeadingCandidate,
   getReportingPercentage,
 } from "@/types/elections"
 import type {
   CountyResultFeatureCollection,
   CountyResultGeoProperties,
 } from "@/types/elections"
-import type { CandidateColorMap } from "@/lib/candidate-colors"
+import { getCountyFillColor } from "@/lib/candidate-colors"
 import { DistrictOutlineLayer } from "@/components/elections/DistrictOutlineLayer"
 
 interface ElectionResultsMapProps {
@@ -22,7 +20,6 @@ interface ElectionResultsMapProps {
   onCountyClick: (countyName: string) => void
   districtGeometry?: Polygon | MultiPolygon | null
   showDistrictOutline?: boolean
-  candidateColorMap?: CandidateColorMap
   className?: string
 }
 
@@ -54,7 +51,6 @@ function CountyLayer({
   geoJSON,
   selectedCounty,
   onCountyClick,
-  candidateColorMap,
 }: Omit<ElectionResultsMapProps, "className">) {
   const style = useCallback(
     (feature?: Feature<Polygon | MultiPolygon, CountyResultGeoProperties>) => {
@@ -62,10 +58,7 @@ function CountyLayer({
       const props = feature.properties
       const isSelected = props.county_name === selectedCounty
 
-      const leader = getLeadingCandidate(props.candidates ?? [])
-      const mapped = leader ? candidateColorMap?.get(leader.id) : undefined
-      const fillColor = mapped?.fill
-        ?? getPartyColor(props.leading_candidate_party).fill
+      const { fill: fillColor } = getCountyFillColor(props.candidates ?? [])
       const fillOpacity = isSelected ? 0.85 : 0.6
 
       return {
@@ -76,7 +69,7 @@ function CountyLayer({
         opacity: 0.8,
       } satisfies PathOptions
     },
-    [candidateColorMap, selectedCounty],
+    [selectedCounty],
   )
 
   const onEachFeature = useCallback(
@@ -151,7 +144,6 @@ export function ElectionResultsMap({
   onCountyClick,
   districtGeometry,
   showDistrictOutline = true,
-  candidateColorMap,
   className,
 }: ElectionResultsMapProps) {
   return (
@@ -170,7 +162,6 @@ export function ElectionResultsMap({
         geoJSON={geoJSON}
         selectedCounty={selectedCounty}
         onCountyClick={onCountyClick}
-        candidateColorMap={candidateColorMap}
       />
       {showDistrictOutline && districtGeometry && (
         <DistrictOutlineLayer geometry={districtGeometry} />

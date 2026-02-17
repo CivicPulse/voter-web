@@ -237,7 +237,6 @@ function RaceResultsPage() {
             onCountyClick={handleCountyClick}
             districtGeometry={districtGeometry}
             showDistrictOutline={showDistrictOutline}
-            candidateColorMap={candidateColorMap}
           />
         </div>
       )}
