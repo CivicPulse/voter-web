@@ -2,7 +2,7 @@ import { useCallback, useMemo, useEffect } from "react"
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
 import type { Layer, PathOptions } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, Loader2 } from "lucide-react"
 import { cn, escapeHtml, stripCountySuffix } from "@/lib/utils"
 import { safeBbox, featuresWithGeometry } from "@/lib/geo"
 import { getPartyColor, getLeadingCandidate } from "@/types/elections"
@@ -266,6 +266,7 @@ export function PrecinctMapView({
     data: geoJSON,
     isLoading,
     isLoadingBoundaries,
+    isBoundaryError,
     isElectionError,
     dataUpdatedAt,
     boundaryProgress,
@@ -332,6 +333,13 @@ export function PrecinctMapView({
           ) : null}
         </MapContainer>
 
+        {/* Initial loading overlay */}
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-lg">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        )}
+
         {/* Error / empty state overlay */}
         {!isLoading && isElectionError && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-lg">
@@ -370,6 +378,22 @@ export function PrecinctMapView({
             <span className="text-xs text-muted-foreground">
               {boundaryProgress.loaded} / {boundaryProgress.total} counties
             </span>
+          </div>
+        )}
+
+        {/* Single-county boundary loading indicator */}
+        {isLoadingBoundaries && !isLoading && boundaryProgress.total <= 1 && (
+          <div className="absolute bottom-4 right-4 z-[1000] flex items-center gap-1.5 rounded-lg bg-background/90 px-3 py-2 shadow-md border text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Loading precinct boundaries&hellip;</span>
+          </div>
+        )}
+
+        {/* Boundary error overlay */}
+        {isBoundaryError && !isLoadingBoundaries && hasRenderableFeatures && (
+          <div className="absolute top-4 right-4 z-[1000] flex items-center gap-1.5 rounded-lg bg-background/90 px-3 py-2 shadow-md border text-sm">
+            <AlertCircle className="h-4 w-4 text-destructive" />
+            <span className="text-destructive">Some boundary data unavailable</span>
           </div>
         )}
       </div>
