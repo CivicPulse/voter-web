@@ -3,6 +3,7 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router"
 import { ChevronRight, Loader2, Map, Grid3X3, Volume2 } from "lucide-react"
 import { useRaceResults } from "@/lib/hooks/use-race-results"
 import { useResultsNotification } from "@/lib/hooks/use-results-notification"
+import { useResultsNotifications } from "@/lib/hooks/use-results-notifications"
 import { useCountyResultsGeoJSON } from "@/lib/hooks/use-race-geojson"
 import { useDistrictBoundary } from "@/hooks/useDistrictBoundary"
 import { ElectionResultsMap } from "@/components/elections/ElectionResultsMap"
@@ -11,6 +12,7 @@ import { PrecinctMapView } from "@/components/elections/PrecinctMapView"
 import { MapLayerSelector } from "@/components/elections/MapLayerSelector"
 import { CertificationBadge } from "@/components/elections/CertificationBadge"
 import { LiveStatusIndicator } from "@/components/elections/LiveStatusIndicator"
+import { NotificationToggle } from "@/components/elections/NotificationToggle"
 import {
   ToggleGroup,
   ToggleGroupItem,
@@ -53,6 +55,12 @@ function RaceResultsPage() {
     data: geoJSON,
     isLoading: geoLoading,
   } = useCountyResultsGeoJSON(electionId)
+
+  const notifications = useResultsNotifications({
+    electionName: raceData?.election.name ?? "",
+    isActive: raceData?.election.status === "active",
+    results: raceData?.results,
+  })
 
   const [activeLayer, setActiveLayer] = useState<MapDataLayer>("leading_candidate")
   const [selectedCounty, setSelectedCounty] = useState<string | null>(null)
@@ -124,7 +132,17 @@ function RaceResultsPage() {
             <h1 className="text-2xl font-bold">{election.name}</h1>
             <p className="text-sm text-muted-foreground">{election.district}</p>
           </div>
-          <CertificationBadge status={election.status} />
+          <div className="flex items-center gap-2">
+            {election.status === "active" && (
+              <NotificationToggle
+                enabled={notifications.enabled}
+                permission={notifications.permission}
+                supported={notifications.supported}
+                onToggle={notifications.toggle}
+              />
+            )}
+            <CertificationBadge status={election.status} />
+          </div>
         </div>
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <LiveStatusIndicator
