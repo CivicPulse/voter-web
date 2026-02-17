@@ -40,6 +40,7 @@ function buildResultsFingerprint(results: ElectionResultsResponse): string {
  */
 export function useResultsNotification(
   results: ElectionResultsResponse | undefined,
+  enabled: boolean,
 ): void {
   const prevFingerprint = useRef<string | null>(null)
 
@@ -56,7 +57,9 @@ export function useResultsNotification(
 
     if (fingerprint !== prevFingerprint.current) {
       prevFingerprint.current = fingerprint
-      playNotificationSound()
+      if (enabled) {
+        playNotificationSound()
+      }
     }
-  }, [results])
+  }, [results, enabled])
 }

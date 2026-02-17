@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { createFileRoute, Link, useParams } from "@tanstack/react-router"
-import { ChevronRight, Loader2, Map, Grid3X3 } from "lucide-react"
+import { ChevronRight, Loader2, Map, Grid3X3, Volume2 } from "lucide-react"
 import { useRaceResults } from "@/lib/hooks/use-race-results"
 import { useResultsNotification } from "@/lib/hooks/use-results-notification"
 import { useCountyResultsGeoJSON } from "@/lib/hooks/use-race-geojson"
@@ -45,7 +45,9 @@ function RaceResultsPage() {
     dataUpdatedAt,
   } = useRaceResults(electionId)
 
-  useResultsNotification(raceData?.results)
+  const [soundEnabled, setSoundEnabled] = useState(true)
+
+  useResultsNotification(raceData?.results, soundEnabled)
 
   const {
     data: geoJSON,
@@ -124,12 +126,30 @@ function RaceResultsPage() {
           </div>
           <CertificationBadge status={election.status} />
         </div>
-        <LiveStatusIndicator
-          status={election.status}
-          lastRefreshedAt={election.last_refreshed_at}
-          refreshIntervalSeconds={election.refresh_interval_seconds ?? 20}
-          dataUpdatedAt={dataUpdatedAt}
-        />
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <LiveStatusIndicator
+            status={election.status}
+            lastRefreshedAt={election.last_refreshed_at}
+            refreshIntervalSeconds={election.refresh_interval_seconds ?? 20}
+            dataUpdatedAt={dataUpdatedAt}
+          />
+          {election.status === "active" && (
+            <div className="flex items-center gap-1.5">
+              <Checkbox
+                id="notification-sound"
+                checked={soundEnabled}
+                onCheckedChange={(checked) => setSoundEnabled(checked === true)}
+              />
+              <Label
+                htmlFor="notification-sound"
+                className="text-sm cursor-pointer flex items-center gap-1"
+              >
+                <Volume2 className="h-3.5 w-3.5" />
+                Sound alerts
+              </Label>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Inline results */}
