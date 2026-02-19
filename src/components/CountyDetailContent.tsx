@@ -5,7 +5,7 @@ import {
   ChevronDown,
   ChevronUp,
   Info,
-  MapPin,
+  Users,
 } from "lucide-react"
 import {
   Card,
@@ -332,51 +332,80 @@ export function CountyDetailContent({
                   />
                 )}
 
+                {county.voter_stats != null && county.voter_stats.total > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        Registered Voters
+                      </CardTitle>
+                      <CardDescription>
+                        Based on latest voter registration import
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <dl>
+                          <dt className="text-sm font-medium text-muted-foreground">
+                            Total
+                          </dt>
+                          <dd className="text-2xl font-semibold">
+                            {county.voter_stats.total.toLocaleString()}
+                          </dd>
+                        </dl>
+                        {county.voter_stats.by_status.length > 0 && (
+                          <>
+                            <Separator />
+                            <dl>
+                              <dt className="mb-1 text-sm font-medium text-muted-foreground">
+                                By Status
+                              </dt>
+                              <dd className="text-sm text-muted-foreground">
+                                {county.voter_stats.by_status
+                                  .map((s) => {
+                                    const label =
+                                      s.status === "A"
+                                        ? "Active"
+                                        : s.status === "I"
+                                          ? "Inactive"
+                                          : s.status
+                                    return `${label}: ${s.count.toLocaleString()}`
+                                  })
+                                  .join(" · ")}
+                              </dd>
+                            </dl>
+                          </>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 <Separator />
 
                 {isAuthenticated ? (
-                  <div className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <MapPin className="h-5 w-5" />
-                          Voter Data
-                        </CardTitle>
-                        <CardDescription>
-                          Registered voter information for {county.name} County
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                          Voter data will appear here.
-                        </p>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Analysis</CardTitle>
-                        <CardDescription>
-                          Analytical data for {county.name} County
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                          Analysis data will appear here.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </div>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Analysis</CardTitle>
+                      <CardDescription>
+                        Analytical data for {county.name} County
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">
+                        Analysis data will appear here.
+                      </p>
+                    </CardContent>
+                  </Card>
                 ) : (
                   <Card className="border-dashed">
                     <CardContent className="flex flex-col items-center justify-center py-10">
                       <Lock className="mb-3 h-8 w-8 text-muted-foreground" />
                       <p className="text-sm font-medium">
-                        Sign in to view voter data
+                        Sign in to view analysis
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Voter registration data, analysis, and exports require
-                        authentication.
+                        Detailed analysis and exports require authentication.
                       </p>
                     </CardContent>
                   </Card>
