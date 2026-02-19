@@ -190,6 +190,21 @@ export const precinctGeoJSONResponse = {
   ],
 }
 
+/**
+ * Variant with reporting_status "Election Night Complete" — regression test
+ * for the bug where precincts with this status were not colored by candidate.
+ */
+export const precinctGeoJSONElectionNightComplete = {
+  ...precinctGeoJSONResponse,
+  features: precinctGeoJSONResponse.features.map((f) => ({
+    ...f,
+    properties: {
+      ...f.properties,
+      reporting_status: "Election Night Complete",
+    },
+  })),
+}
+
 // ---------------------------------------------------------------------------
 // GET /boundaries/geojson?boundary_type=county_precinct&county=...
 // ---------------------------------------------------------------------------

@@ -9,6 +9,7 @@ import {
   isActiveElection,
   getTotalVotes,
   getLeadingCandidate,
+  isReported,
   groupElectionsByDate,
   PARTY_COLORS,
   DEFAULT_PARTY_COLOR,
@@ -244,6 +245,32 @@ describe("getLeadingCandidate", () => {
   it("returns the candidate when only one exists", () => {
     const candidates = [mockCandidateResult({ id: "solo", vote_count: 50 })]
     expect(getLeadingCandidate(candidates)?.id).toBe("solo")
+  })
+})
+
+describe("isReported", () => {
+  it('returns true for "Reported"', () => {
+    expect(isReported("Reported")).toBe(true)
+  })
+
+  it('returns true for "Fully Reported"', () => {
+    expect(isReported("Fully Reported")).toBe(true)
+  })
+
+  it('returns true for "Election Night Complete"', () => {
+    expect(isReported("Election Night Complete")).toBe(true)
+  })
+
+  it('returns false for "Not Reported"', () => {
+    expect(isReported("Not Reported")).toBe(false)
+  })
+
+  it("returns false for empty string", () => {
+    expect(isReported("")).toBe(false)
+  })
+
+  it("returns false for unknown status", () => {
+    expect(isReported("Pending")).toBe(false)
   })
 })
 
