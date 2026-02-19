@@ -38,7 +38,7 @@ export function VoterSearchFilters({ params }: VoterSearchFiltersProps) {
       }
     }, 300)
     return () => clearTimeout(timer)
-  }, [searchInput, params, navigate])
+  }, [searchInput, params])
 
   const updateFilter = (updates: Partial<VoterSearchParams>) => {
     navigate({
