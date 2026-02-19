@@ -188,7 +188,7 @@ export function DistrictDetailContent({
                     </dl>
                   </CardContent>
                 </Card>
-                {district.voter_stats != null && (
+                {district.voter_stats != null && district.voter_stats.total > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
