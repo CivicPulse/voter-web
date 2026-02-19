@@ -19,6 +19,7 @@ import { Route as VotersIndexRouteImport } from './routes/voters/index'
 import { Route as LookupIndexRouteImport } from './routes/lookup/index'
 import { Route as ElectionsIndexRouteImport } from './routes/elections/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as VotersVoterIdRouteImport } from './routes/voters/$voterId'
 import { Route as LookupResultsRouteImport } from './routes/lookup/results'
 import { Route as ElectionsElectionDateRouteImport } from './routes/elections/$electionDate'
 import { Route as DistrictsDistrictIdRouteImport } from './routes/districts/$districtId'
@@ -85,6 +86,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const VotersVoterIdRoute = VotersVoterIdRouteImport.update({
+  id: '/$voterId',
+  path: '/$voterId',
+  getParentRoute: () => VotersRoute,
 } as any)
 const LookupResultsRoute = LookupResultsRouteImport.update({
   id: '/lookup/results',
@@ -182,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
   '/elections/$electionDate': typeof ElectionsElectionDateRouteWithChildren
   '/lookup/results': typeof LookupResultsRoute
+  '/voters/$voterId': typeof VotersVoterIdRoute
   '/admin/': typeof AdminIndexRoute
   '/elections/': typeof ElectionsIndexRoute
   '/lookup/': typeof LookupIndexRoute
@@ -206,6 +213,7 @@ export interface FileRoutesByTo {
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
   '/lookup/results': typeof LookupResultsRoute
+  '/voters/$voterId': typeof VotersVoterIdRoute
   '/admin': typeof AdminIndexRoute
   '/elections': typeof ElectionsIndexRoute
   '/lookup': typeof LookupIndexRoute
@@ -235,6 +243,7 @@ export interface FileRoutesById {
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
   '/elections/$electionDate': typeof ElectionsElectionDateRouteWithChildren
   '/lookup/results': typeof LookupResultsRoute
+  '/voters/$voterId': typeof VotersVoterIdRoute
   '/admin/': typeof AdminIndexRoute
   '/elections/': typeof ElectionsIndexRoute
   '/lookup/': typeof LookupIndexRoute
@@ -265,6 +274,7 @@ export interface FileRouteTypes {
     | '/districts/$districtId'
     | '/elections/$electionDate'
     | '/lookup/results'
+    | '/voters/$voterId'
     | '/admin/'
     | '/elections/'
     | '/lookup/'
@@ -289,6 +299,7 @@ export interface FileRouteTypes {
     | '/counties/$countyId'
     | '/districts/$districtId'
     | '/lookup/results'
+    | '/voters/$voterId'
     | '/admin'
     | '/elections'
     | '/lookup'
@@ -317,6 +328,7 @@ export interface FileRouteTypes {
     | '/districts/$districtId'
     | '/elections/$electionDate'
     | '/lookup/results'
+    | '/voters/$voterId'
     | '/admin/'
     | '/elections/'
     | '/lookup/'
@@ -421,6 +433,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/voters/$voterId': {
+      id: '/voters/$voterId'
+      path: '/$voterId'
+      fullPath: '/voters/$voterId'
+      preLoaderRoute: typeof VotersVoterIdRouteImport
+      parentRoute: typeof VotersRoute
     }
     '/lookup/results': {
       id: '/lookup/results'
@@ -593,10 +612,12 @@ const ElectionsRouteWithChildren = ElectionsRoute._addFileChildren(
 )
 
 interface VotersRouteChildren {
+  VotersVoterIdRoute: typeof VotersVoterIdRoute
   VotersIndexRoute: typeof VotersIndexRoute
 }
 
 const VotersRouteChildren: VotersRouteChildren = {
+  VotersVoterIdRoute: VotersVoterIdRoute,
   VotersIndexRoute: VotersIndexRoute,
 }
 
