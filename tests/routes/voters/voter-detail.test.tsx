@@ -7,14 +7,21 @@ const mockUseVoterDetail = vi.fn()
 const mockUseVoterGeocodedLocations = vi.fn()
 const mockUsePointLookup = vi.fn()
 
+vi.mock("@/lib/hooks/use-user-role", () => ({
+  useUserRole: vi.fn(() => ({ data: { role: "viewer" } })),
+}))
+
 vi.mock("@/hooks/useVoters", () => ({
   useVoterDetail: (...args: unknown[]) => mockUseVoterDetail(...args),
+  useTriggerGeocode: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+  useDeleteGeocodedLocation: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }))
 
 vi.mock("@/hooks/useAddressLookup", () => ({
   useVoterGeocodedLocations: (...args: unknown[]) =>
     mockUseVoterGeocodedLocations(...args),
   usePointLookup: (...args: unknown[]) => mockUsePointLookup(...args),
+  useSetPrimaryLocation: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }))
 
 vi.mock("@tanstack/react-router", () => ({

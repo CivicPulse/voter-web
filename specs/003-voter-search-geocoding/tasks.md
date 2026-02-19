@@ -96,8 +96,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T029 [US3] Add geocode trigger button to GeocodedLocationsCard with role-based visibility (hidden for viewers), loading spinner during useTriggerGeocode mutation, disabled state while in-flight, success/error toast notifications, and display of provider errors/no-match results in src/routes/voters/_components/GeocodedLocationsCard.tsx
-- [ ] T030 [US3] Update unit tests for GeocodedLocationsCard: geocode button visible for admin/analyst, hidden for viewer, loading state during geocoding, error toast on failure, provider error results display in tests/routes/voters/_components/GeocodedLocationsCard.test.tsx
+- [x] T029 [US3] Add geocode trigger button to GeocodedLocationsCard with role-based visibility (hidden for viewers), loading spinner during useTriggerGeocode mutation, disabled state while in-flight, success/error toast notifications, and display of provider errors/no-match results in src/routes/voters/_components/GeocodedLocationsCard.tsx
+- [x] T030 [US3] Update unit tests for GeocodedLocationsCard: geocode button visible for admin/analyst, hidden for viewer, loading state during geocoding, error toast on failure, provider error results display in tests/routes/voters/_components/GeocodedLocationsCard.test.tsx
 - [ ] T031 [US3] E2E test for geocoding flow: click geocode button as admin, verify loading indicator, verify results appear with provider details; verify button hidden as viewer in e2e/voter-detail.spec.ts
 
 **Checkpoint**: User Stories 1, 2, AND 3 are complete — staff can search, view details, and admins can trigger geocoding.
@@ -112,9 +112,9 @@
 
 ### Implementation for User Story 4
 
-- [ ] T032 [US4] Add "Set as Official" action button to each non-primary location row in GeocodedLocationsCard with role-based visibility, wired to existing useSetPrimaryLocation hook, success/error toasts in src/routes/voters/_components/GeocodedLocationsCard.tsx
-- [ ] T033 [US4] Wire district assignments auto-refresh in voter detail page: after setPrimaryLocation mutation succeeds, invalidate point-lookup query so DistrictAssignmentsCard re-fetches districts for the new official location coordinates in src/routes/voters/$voterId.tsx
-- [ ] T034 [US4] Update unit tests for set official action: button visible for admin/analyst, hidden for viewer, optimistic UI update, district refresh after success, error preservation on failure in tests/routes/voters/_components/GeocodedLocationsCard.test.tsx
+- [x] T032 [US4] Add "Set as Official" action button to each non-primary location row in GeocodedLocationsCard with role-based visibility, wired to existing useSetPrimaryLocation hook, success/error toasts in src/routes/voters/_components/GeocodedLocationsCard.tsx
+- [x] T033 [US4] Wire district assignments auto-refresh in voter detail page: after setPrimaryLocation mutation succeeds, invalidate point-lookup query so DistrictAssignmentsCard re-fetches districts for the new official location coordinates in src/routes/voters/$voterId.tsx
+- [x] T034 [US4] Update unit tests for set official action: button visible for admin/analyst, hidden for viewer, optimistic UI update, district refresh after success, error preservation on failure in tests/routes/voters/_components/GeocodedLocationsCard.test.tsx
 - [ ] T035 [US4] E2E test for set official flow: click "Set as Official", verify location highlighted, verify district assignments refresh; verify action hidden as viewer in e2e/voter-detail.spec.ts
 
 **Checkpoint**: User Stories 1–4 complete — full search, detail, geocoding, and official location selection workflow is functional.
@@ -129,9 +129,9 @@
 
 ### Implementation for User Story 5
 
-- [ ] T036 [US5] Add "Remove" action button to each location row in GeocodedLocationsCard with role-based visibility, confirmation dialog (shadcn AlertDialog or Dialog), wired to useDeleteGeocodedLocation hook, success/error toasts in src/routes/voters/_components/GeocodedLocationsCard.tsx
-- [ ] T037 [US5] Handle removing the official location: after delete mutation succeeds for a primary location, clear district assignments and show "no official location" message in src/routes/voters/$voterId.tsx
-- [ ] T038 [US5] Update unit tests for remove action: button visible for admin/analyst, hidden for viewer, confirmation dialog appears, location removed on confirm, cancel preserves state, removing official location clears districts, removing last remaining location shows empty state with no map in tests/routes/voters/_components/GeocodedLocationsCard.test.tsx
+- [x] T036 [US5] Add "Remove" action button to each location row in GeocodedLocationsCard with role-based visibility, confirmation dialog (shadcn AlertDialog or Dialog), wired to useDeleteGeocodedLocation hook, success/error toasts in src/routes/voters/_components/GeocodedLocationsCard.tsx
+- [x] T037 [US5] Handle removing the official location: after delete mutation succeeds for a primary location, clear district assignments and show "no official location" message in src/routes/voters/$voterId.tsx
+- [x] T038 [US5] Update unit tests for remove action: button visible for admin/analyst, hidden for viewer, confirmation dialog appears, location removed on confirm, cancel preserves state, removing official location clears districts, removing last remaining location shows empty state with no map in tests/routes/voters/_components/GeocodedLocationsCard.test.tsx
 - [ ] T039 [US5] E2E test for remove flow: click "Remove", verify confirmation dialog, confirm and verify location removed; cancel and verify location preserved; remove official location and verify districts cleared in e2e/voter-detail.spec.ts
 
 **Checkpoint**: All 5 user stories complete — the full voter search, detail, geocoding, official location, and removal workflow is functional.
