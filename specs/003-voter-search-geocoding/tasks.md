@@ -19,10 +19,10 @@
 
 **Purpose**: Create the shared types, API functions, and test utilities that all user stories depend on.
 
-- [ ] T001 Create voter type definitions (VoterSummary, VoterDetail, VoterSearchResponse, VoterFilterOptions, VoterSearchParams, DistrictTypeOption, DistrictOption) in src/types/voter.ts per contracts/voter-api.md
-- [ ] T002 Create voter API wrapper functions (searchVoters, getVoterDetail, getVoterFilters, triggerVoterGeocode, deleteGeocodedLocation) using shared ky client in src/api/voters.ts per contracts/voter-api.md
-- [ ] T003 [P] Create unit test mock factories for voter data (mockVoterSummary, mockVoterDetail, mockVoterSearchResponse, mockVoterFilterOptions, mockVoterGeocodedLocation) in src/test/mocks/voters.ts following existing pattern in src/test/mocks/elections.ts
-- [ ] T004 [P] Unit tests for all voter API functions (searchVoters, getVoterDetail, getVoterFilters, triggerVoterGeocode, deleteGeocodedLocation) in tests/api/voters.test.ts
+- [x] T001 Create voter type definitions (VoterSummary, VoterDetail, VoterSearchResponse, VoterFilterOptions, VoterSearchParams, DistrictTypeOption, DistrictOption) in src/types/voter.ts per contracts/voter-api.md
+- [x] T002 Create voter API wrapper functions (searchVoters, getVoterDetail, getVoterFilters, triggerVoterGeocode, deleteGeocodedLocation) using shared ky client in src/api/voters.ts per contracts/voter-api.md
+- [x] T003 [P] Create unit test mock factories for voter data (mockVoterSummary, mockVoterDetail, mockVoterSearchResponse, mockVoterFilterOptions, mockVoterGeocodedLocation) in src/test/mocks/voters.ts following existing pattern in src/test/mocks/elections.ts
+- [x] T004 [P] Unit tests for all voter API functions (searchVoters, getVoterDetail, getVoterFilters, triggerVoterGeocode, deleteGeocodedLocation) in tests/api/voters.test.ts
 
 ---
 
