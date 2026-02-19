@@ -35,6 +35,16 @@ export interface PrecinctMetadata {
   precinct_area: number
 }
 
+export interface VoterStatsByStatus {
+  status: string
+  count: number
+}
+
+export interface VoterStats {
+  total: number
+  by_status: VoterStatsByStatus[]
+}
+
 export interface BoundaryDetailResponse {
   id: string
   name: string
@@ -48,6 +58,7 @@ export interface BoundaryDetailResponse {
   properties: Record<string, unknown> | null
   county_metadata: CountyMetadata | null
   precinct_metadata: PrecinctMetadata | null
+  voter_stats: VoterStats | null
 }
 
 export interface BoundaryTypesResponse {

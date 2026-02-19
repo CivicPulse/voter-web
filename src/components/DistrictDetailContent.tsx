@@ -4,6 +4,7 @@ import {
   ChevronDown,
   ChevronUp,
   Info,
+  Users,
 } from "lucide-react"
 import {
   Card,
@@ -12,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 import {
   Drawer,
   DrawerContent,
@@ -186,6 +188,54 @@ export function DistrictDetailContent({
                     </dl>
                   </CardContent>
                 </Card>
+                {district.voter_stats != null && district.voter_stats.total > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        Registered Voters
+                      </CardTitle>
+                      <CardDescription>
+                        Based on latest voter registration import
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <dl>
+                          <dt className="text-sm font-medium text-muted-foreground">
+                            Total
+                          </dt>
+                          <dd className="text-2xl font-semibold">
+                            {district.voter_stats.total.toLocaleString()}
+                          </dd>
+                        </dl>
+                        {district.voter_stats.by_status.length > 0 && (
+                          <>
+                            <Separator />
+                            <dl>
+                              <dt className="mb-1 text-sm font-medium text-muted-foreground">
+                                By Status
+                              </dt>
+                              <dd className="text-sm text-muted-foreground">
+                                {district.voter_stats.by_status
+                                  .map((s) => {
+                                    const label =
+                                      s.status === "A"
+                                        ? "Active"
+                                        : s.status === "I"
+                                          ? "Inactive"
+                                          : s.status
+                                    return `${label}: ${s.count.toLocaleString()}`
+                                  })
+                                  .join(" · ")}
+                              </dd>
+                            </dl>
+                          </>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
                 <ElectedOfficialsCard
                   boundaryType={district.boundary_type}
                   districtIdentifier={district.boundary_identifier}
