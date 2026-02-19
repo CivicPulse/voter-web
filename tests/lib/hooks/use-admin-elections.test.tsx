@@ -430,6 +430,35 @@ describe("useRefreshElection", () => {
     )
   })
 
+  it("invalidates admin elections queries on success", async () => {
+    const refreshData = mockRefreshResponse()
+    mockedRefreshElection.mockResolvedValueOnce(refreshData)
+
+    const queryClient = createTestQueryClient()
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries")
+
+    function Wrapper({ children }: { children: ReactNode }) {
+      return (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      )
+    }
+
+    const { result } = renderHook(() => useRefreshElection(), {
+      wrapper: Wrapper,
+    })
+
+    result.current.mutate("election-123")
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["admin", "elections"],
+    })
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ["elections"],
+    })
+  })
+
   it("shows session expired toast on AuthenticationError", async () => {
     mockedRefreshElection.mockRejectedValueOnce(new AuthenticationError())
 
