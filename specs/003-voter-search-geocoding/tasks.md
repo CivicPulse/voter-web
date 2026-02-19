@@ -36,6 +36,7 @@
 - [ ] T006 Unit tests for all voter hooks in tests/hooks/useVoters.test.ts
 - [ ] T007 [P] Add "Voters" nav item (Users icon from Lucide) to both desktop and mobile navigation in src/routes/__root.tsx, visible to all authenticated users, positioned alongside Elections/Counties/Districts
 - [ ] T008 [P] Create voters layout route with auth guard (beforeLoad with requireAuth) in src/routes/voters.tsx following pattern in src/routes/admin.tsx
+- [ ] T008a [P] Unit tests for voters layout route (auth guard redirects unauthenticated users, authenticated users render child routes) in tests/routes/voters/voters-layout.test.tsx
 - [ ] T009 [P] Create E2E mock fixtures with voter search, detail, filters, geocoded locations, and point-lookup route intercepts in e2e/fixtures/voter-api.ts following pattern in e2e/fixtures/election-api.ts
 - [ ] T010 [P] Add mock voter data (voter summaries, voter detail, filter options, geocoded locations, district assignments) to e2e/fixtures/mock-data.ts
 
@@ -73,13 +74,13 @@
 
 - [ ] T018 [P] [US2] Create VoterRegistrationCard component displaying name (with middle name and suffix), address (line 1, line 2, city, state, zip), county, voter ID, registration date, and status badge using shadcn Card in src/routes/voters/_components/VoterRegistrationCard.tsx
 - [ ] T019 [P] [US2] Create GeocodedLocationMap component using React-Leaflet (MapContainer, TileLayer, Marker) with distinct pin colors for official vs. non-official locations, auto-fit bounds, and OpenStreetMap tiles in src/routes/voters/_components/GeocodedLocationMap.tsx following pattern in src/components/CountyDetailMap.tsx
-- [ ] T020 [P] [US2] Create GeocodedLocationsCard component (read-only for this story) displaying locations in a table (provider, confidence score, formatted address, coordinates) with official location visually highlighted (badge/row highlight), and empty state message when no locations in src/routes/voters/_components/GeocodedLocationsCard.tsx
+- [ ] T020 [P] [US2] Create GeocodedLocationsCard component (read-only for this story) displaying locations in a table (provider, confidence score, formatted address, coordinates) with official location visually highlighted (badge/row highlight), and empty state message when no locations (geocode trigger CTA deferred to US3/T029) in src/routes/voters/_components/GeocodedLocationsCard.tsx
 - [ ] T021 [P] [US2] Create DistrictAssignmentsCard component displaying districts grouped by boundary type (county, precinct, congressional, state senate, state house, commission, school district) using shadcn Card with badges, and empty/no-official-location states in src/routes/voters/_components/DistrictAssignmentsCard.tsx
 - [ ] T022 [US2] Create voter detail page composing VoterRegistrationCard, GeocodedLocationsCard, GeocodedLocationMap, and DistrictAssignmentsCard, wired to useVoterDetail, useVoterGeocodedLocations, and usePointLookup hooks in src/routes/voters/$voterId.tsx. Include loading skeleton, 404 error handling, and back-to-search link.
 - [ ] T023 [P] [US2] Unit tests for VoterRegistrationCard (renders all fields including optional middle name/suffix, formats dates, shows status badge) in tests/routes/voters/_components/VoterRegistrationCard.test.tsx
 - [ ] T024 [P] [US2] Unit tests for GeocodedLocationMap (renders map container, shows markers for locations, highlights official location pin, handles empty locations, fits bounds) in tests/routes/voters/_components/GeocodedLocationMap.test.tsx
 - [ ] T025 [P] [US2] Unit tests for GeocodedLocationsCard (renders location table, highlights official location, shows empty state) in tests/routes/voters/_components/GeocodedLocationsCard.test.tsx
-- [ ] T026 [P] [US2] Unit tests for DistrictAssignmentsCard (renders districts grouped by type, shows empty state, shows no-official-location message) in tests/routes/voters/_components/DistrictAssignmentsCard.test.tsx
+- [ ] T026 [P] [US2] Unit tests for DistrictAssignmentsCard (renders districts grouped by type, shows empty state when no official location, shows "no matching districts" message when official location exists but point-lookup returns zero results) in tests/routes/voters/_components/DistrictAssignmentsCard.test.tsx
 - [ ] T027 [US2] Unit tests for voter detail page (renders all sections, handles loading/error/404 states, fetches voter and locations) in tests/routes/voters/voter-detail.test.tsx
 - [ ] T028 [US2] E2E test for voter detail view (navigate from search, verify registration info, verify geocoded locations table and map, verify district assignments, test 404 page for invalid voter ID) in e2e/voter-detail.spec.ts
 
@@ -130,7 +131,7 @@
 
 - [ ] T036 [US5] Add "Remove" action button to each location row in GeocodedLocationsCard with role-based visibility, confirmation dialog (shadcn AlertDialog or Dialog), wired to useDeleteGeocodedLocation hook, success/error toasts in src/routes/voters/_components/GeocodedLocationsCard.tsx
 - [ ] T037 [US5] Handle removing the official location: after delete mutation succeeds for a primary location, clear district assignments and show "no official location" message in src/routes/voters/$voterId.tsx
-- [ ] T038 [US5] Update unit tests for remove action: button visible for admin/analyst, hidden for viewer, confirmation dialog appears, location removed on confirm, cancel preserves state, removing official location clears districts in tests/routes/voters/_components/GeocodedLocationsCard.test.tsx
+- [ ] T038 [US5] Update unit tests for remove action: button visible for admin/analyst, hidden for viewer, confirmation dialog appears, location removed on confirm, cancel preserves state, removing official location clears districts, removing last remaining location shows empty state with no map in tests/routes/voters/_components/GeocodedLocationsCard.test.tsx
 - [ ] T039 [US5] E2E test for remove flow: click "Remove", verify confirmation dialog, confirm and verify location removed; cancel and verify location preserved; remove official location and verify districts cleared in e2e/voter-detail.spec.ts
 
 **Checkpoint**: All 5 user stories complete — the full voter search, detail, geocoding, official location, and removal workflow is functional.

@@ -51,7 +51,7 @@ A staff member has found a voter in search results and needs to review their ful
 2. **Given** a voter has geocoded locations, **When** the detail page loads, **Then** all geocoded locations are displayed in a tabular list showing the provider name, confidence score, formatted address, and coordinates, and on a map as location pins.
 3. **Given** a voter has an official (primary) geocoded location set, **When** the detail page loads, **Then** the official location is visually distinguished from other locations in both the list (e.g., highlighted or labeled) and on the map (e.g., distinct pin color or size).
 4. **Given** a voter has an official location with district assignments, **When** the detail page loads, **Then** all overlapping districts are displayed (county, precinct, congressional, state senate, state house, commission, school district).
-5. **Given** a voter has no geocoded locations, **When** the detail page loads, **Then** the geocoding section displays a message indicating no locations are available, and (for admin/analyst users) offers the option to trigger geocoding.
+5. **Given** a voter has no geocoded locations, **When** the detail page loads, **Then** the geocoding section displays a message indicating no locations are available. (Note: the geocode trigger button in this empty state is delivered by User Story 3.)
 6. **Given** a voter has no official location set, **When** the detail page loads, **Then** the district assignments section indicates that districts cannot be determined until an official location is selected.
 
 ---
