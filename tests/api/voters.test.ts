@@ -32,21 +32,38 @@ beforeEach(() => {
 })
 
 describe("searchVoters", () => {
-  it("calls GET /voters with search params", async () => {
-    const response = mockVoterSearchResponse()
-    mockJson.mockResolvedValue(response)
+  it("calls GET /voters with search params and transforms response", async () => {
+    const expected = mockVoterSearchResponse()
+    // Backend returns { items: [...], pagination: {...} }
+    mockJson.mockResolvedValue({
+      items: expected.voters,
+      pagination: {
+        total: expected.total,
+        page: expected.page,
+        page_size: expected.page_size,
+        total_pages: expected.total_pages,
+      },
+    })
 
     const result = await searchVoters({ q: "Smith", page: 2 })
 
     expect(mockGet).toHaveBeenCalledWith("voters", {
       searchParams: { q: "Smith", page: "2" },
     })
-    expect(result).toEqual(response)
+    expect(result).toEqual(expected)
   })
 
   it("omits undefined params from search params", async () => {
-    const response = mockVoterSearchResponse()
-    mockJson.mockResolvedValue(response)
+    const expected = mockVoterSearchResponse()
+    mockJson.mockResolvedValue({
+      items: expected.voters,
+      pagination: {
+        total: expected.total,
+        page: expected.page,
+        page_size: expected.page_size,
+        total_pages: expected.total_pages,
+      },
+    })
 
     await searchVoters({})
 
@@ -56,8 +73,16 @@ describe("searchVoters", () => {
   })
 
   it("passes all filter params when provided", async () => {
-    const response = mockVoterSearchResponse()
-    mockJson.mockResolvedValue(response)
+    const expected = mockVoterSearchResponse()
+    mockJson.mockResolvedValue({
+      items: expected.voters,
+      pagination: {
+        total: expected.total,
+        page: expected.page,
+        page_size: expected.page_size,
+        total_pages: expected.total_pages,
+      },
+    })
 
     await searchVoters({
       q: "Jane",

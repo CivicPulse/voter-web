@@ -1,11 +1,23 @@
 import { api } from "@/api/client"
 import type {
+  VoterSummary,
   VoterSearchResponse,
   VoterDetail,
   VoterFilterOptions,
   VoterSearchParams,
 } from "@/types/voter"
 import type { VoterGeocodedLocation } from "@/types/lookup"
+
+/** Raw paginated response shape returned by the backend */
+interface RawVoterSearchResponse {
+  items: VoterSummary[]
+  pagination: {
+    total: number
+    page: number
+    page_size: number
+    total_pages: number
+  }
+}
 
 export async function searchVoters(
   params: VoterSearchParams,
@@ -20,7 +32,14 @@ export async function searchVoters(
   if (params.sort_order) searchParams.sort_order = params.sort_order
   if (params.page) searchParams.page = String(params.page)
 
-  return api.get("voters", { searchParams }).json<VoterSearchResponse>()
+  const raw = await api
+    .get("voters", { searchParams })
+    .json<RawVoterSearchResponse>()
+
+  return {
+    voters: raw.items,
+    ...raw.pagination,
+  }
 }
 
 export async function getVoterDetail(
