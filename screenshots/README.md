@@ -1,5 +1,7 @@
 # UI Changes for Finalized Elections Feature
 
+![UI Changes Screenshot](https://github.com/user-attachments/assets/f112ea8c-c130-4fd8-a358-6519aacca63f)
+
 ## Summary
 This feature enables admins to:
 1. Manually refresh finalized elections (previously disabled)
