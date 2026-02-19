@@ -47,6 +47,7 @@ function AdminElectionDetailPage() {
   const refreshMutation = useRefreshElection()
 
   const [showFinalizeDialog, setShowFinalizeDialog] = useState(false)
+  const [showReactivateDialog, setShowReactivateDialog] = useState(false)
 
   if (isLoading) {
     return (
@@ -127,6 +128,20 @@ function AdminElectionDetailPage() {
     refreshMutation.mutate(electionId)
   }
 
+  const handleReactivate = () => {
+    updateMutation.mutate(
+      {
+        electionId,
+        data: { status: "active" },
+      },
+      {
+        onSuccess: () => {
+          setShowReactivateDialog(false)
+        },
+      },
+    )
+  }
+
   return (
     <div className="max-w-2xl space-y-6">
       <div>
@@ -180,7 +195,7 @@ function AdminElectionDetailPage() {
         <Button
           variant="outline"
           onClick={handleRefresh}
-          disabled={isFinalized || refreshMutation.isPending}
+          disabled={refreshMutation.isPending}
         >
           {refreshMutation.isPending ? (
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -205,6 +220,24 @@ function AdminElectionDetailPage() {
             onClick={() => setShowFinalizeDialog(true)}
           >
             Finalize
+          </Button>
+        </div>
+      )}
+
+      {/* Reactivate button */}
+      {isFinalized && (
+        <div className="flex items-center gap-3 border border-blue-300 rounded-lg p-4 bg-blue-50 dark:bg-blue-950/20">
+          <div className="flex-1">
+            <p className="font-medium">Reactivate Election</p>
+            <p className="text-sm text-muted-foreground">
+              Change status back to active. Auto-refresh will resume.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => setShowReactivateDialog(true)}
+          >
+            Reactivate
           </Button>
         </div>
       )}
@@ -257,6 +290,43 @@ function AdminElectionDetailPage() {
             </Button>
             <Button onClick={handleFinalize} disabled={updateMutation.isPending}>
               {updateMutation.isPending ? "Finalizing..." : "Confirm Finalize"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reactivation confirmation dialog */}
+      <Dialog open={showReactivateDialog} onOpenChange={setShowReactivateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-blue-500" />
+              Reactivate Election
+            </DialogTitle>
+            <DialogDescription>
+              This action will change the election status back to active.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-2 text-sm">
+            <p>
+              Reactivating <span className="font-semibold">{election.name}</span>{" "}
+              will:
+            </p>
+            <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+              <li>Resume auto-refresh polling</li>
+              <li>Display &quot;Unofficial Results&quot; badge to users</li>
+              <li>Enable manual refresh</li>
+            </ul>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowReactivateDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleReactivate} disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? "Reactivating..." : "Confirm Reactivate"}
             </Button>
           </DialogFooter>
         </DialogContent>
