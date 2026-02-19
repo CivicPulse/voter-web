@@ -300,6 +300,19 @@ export function getLeadingCandidate(candidates: CandidateResult[]): CandidateRes
   return candidates.reduce((leader, c) => (c.vote_count > leader.vote_count ? c : leader))
 }
 
+/** Reporting statuses that indicate a precinct has vote data worth displaying */
+export const REPORTED_STATUSES = new Set([
+  "Reported",
+  "Fully Reported",
+  "Partially Reported",
+  "Election Night Complete",
+])
+
+/** Returns true if the precinct reporting status indicates it has vote data to display */
+export function isReported(status: string): boolean {
+  return REPORTED_STATUSES.has(status)
+}
+
 // ============================================================================
 // Feed Import Types
 // ============================================================================
