@@ -188,7 +188,7 @@ export function DistrictDetailContent({
                     </dl>
                   </CardContent>
                 </Card>
-                {district.voter_stats !== null && (
+                {district.voter_stats != null && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -200,19 +200,19 @@ export function DistrictDetailContent({
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <dl className="space-y-3">
-                        <div>
+                      <div className="space-y-3">
+                        <dl>
                           <dt className="text-sm font-medium text-muted-foreground">
                             Total
                           </dt>
                           <dd className="text-2xl font-semibold">
                             {district.voter_stats.total.toLocaleString()}
                           </dd>
-                        </div>
+                        </dl>
                         {district.voter_stats.by_status.length > 0 && (
                           <>
                             <Separator />
-                            <div>
+                            <dl>
                               <dt className="mb-1 text-sm font-medium text-muted-foreground">
                                 By Status
                               </dt>
@@ -229,10 +229,10 @@ export function DistrictDetailContent({
                                   })
                                   .join(" · ")}
                               </dd>
-                            </div>
+                            </dl>
                           </>
                         )}
-                      </dl>
+                      </div>
                     </CardContent>
                   </Card>
                 )}
