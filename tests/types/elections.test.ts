@@ -257,6 +257,10 @@ describe("isReported", () => {
     expect(isReported("Fully Reported")).toBe(true)
   })
 
+  it('returns true for "Partially Reported"', () => {
+    expect(isReported("Partially Reported")).toBe(true)
+  })
+
   it('returns true for "Election Night Complete"', () => {
     expect(isReported("Election Night Complete")).toBe(true)
   })

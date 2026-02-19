@@ -304,6 +304,7 @@ export function getLeadingCandidate(candidates: CandidateResult[]): CandidateRes
 const REPORTED_STATUSES = new Set([
   "Reported",
   "Fully Reported",
+  "Partially Reported",
   "Election Night Complete",
 ])
 
