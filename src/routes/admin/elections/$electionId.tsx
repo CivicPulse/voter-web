@@ -26,6 +26,7 @@ import {
   RefreshCw,
   Loader2,
   AlertTriangle,
+  Info,
 } from "lucide-react"
 
 export const Route = createFileRoute("/admin/elections/$electionId")({
@@ -278,7 +279,6 @@ function AdminElectionDetailPage() {
             <ul className="list-disc list-inside space-y-1 text-muted-foreground">
               <li>Stop all auto-refresh polling</li>
               <li>Display &quot;Official Results&quot; badge to users</li>
-              <li>Disable manual refresh</li>
             </ul>
           </div>
           <DialogFooter>
@@ -300,7 +300,7 @@ function AdminElectionDetailPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-blue-500" />
+              <Info className="h-5 w-5 text-blue-500" />
               Reactivate Election
             </DialogTitle>
             <DialogDescription>
@@ -315,7 +315,6 @@ function AdminElectionDetailPage() {
             <ul className="list-disc list-inside space-y-1 text-muted-foreground">
               <li>Resume auto-refresh polling</li>
               <li>Display &quot;Unofficial Results&quot; badge to users</li>
-              <li>Enable manual refresh</li>
             </ul>
           </div>
           <DialogFooter>

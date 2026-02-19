@@ -32,9 +32,7 @@ blob-report/
 playwright/.cache/
 
 # Screenshots (Playwright MCP, UI verification, etc.)
-screenshots/*.png
-screenshots/*.jpg
-screenshots/*.jpeg
+screenshots/
 .playwright-mcp/*.png
 /*.png
 imgs/

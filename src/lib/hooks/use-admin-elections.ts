@@ -157,6 +157,7 @@ export function useRefreshElection() {
   return useMutation({
     mutationFn: (electionId: string) => refreshElection(electionId),
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "elections"] })
       queryClient.invalidateQueries({ queryKey: ["elections"] })
       toast.success("Election refreshed", {
         description: `${data.counties_updated} counties updated, ${data.precincts_reporting}/${data.precincts_participating} precincts reporting.`,
