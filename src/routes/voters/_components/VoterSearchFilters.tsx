@@ -21,11 +21,6 @@ export function VoterSearchFilters({ params }: VoterSearchFiltersProps) {
   const { data: filters } = useVoterFilters()
   const [searchInput, setSearchInput] = useState(params.q ?? "")
 
-  // Sync local search input with URL params when they change externally
-  useEffect(() => {
-    setSearchInput(params.q ?? "")
-  }, [params.q])
-
   // Debounced search — update URL after 300ms of inactivity
   useEffect(() => {
     const timer = setTimeout(() => {

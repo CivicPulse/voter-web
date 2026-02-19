@@ -142,12 +142,12 @@
 
 **Purpose**: Quality assurance, linting, coverage verification, and visual verification across all user stories.
 
-- [ ] T040 [P] Run ESLint on all new files and fix any linting issues (`npm run lint`)
-- [ ] T041 [P] Run TypeScript type-check on entire project and fix any type errors (`tsc -b`)
-- [ ] T042 Run full unit test suite with coverage and verify ≥95% on all new files (`npm test -- --run --coverage`)
+- [x] T040 [P] Run ESLint on all new files and fix any linting issues (`npm run lint`)
+- [x] T041 [P] Run TypeScript type-check on entire project and fix any type errors (`tsc -b`)
+- [x] T042 Run full unit test suite with coverage and verify ≥95% on all new files (`npm test -- --run --coverage`)
 - [ ] T043 Run full E2E test suite and fix any failures (`npm run build && npm run test:e2e`)
-- [ ] T044 Visual verification with Playwright MCP: navigate to /voters search page, take screenshot, verify layout and search UI render correctly. Save to screenshots/voter-search.png
-- [ ] T045 Visual verification with Playwright MCP: navigate to /voters/{id} detail page, take screenshot, verify registration card, map, locations table, and districts render correctly. Save to screenshots/voter-detail.png
+- [x] T044 Visual verification with Playwright MCP: navigate to /voters search page, take screenshot, verify layout and search UI render correctly. Save to screenshots/voter-search.png
+- [x] T045 Visual verification with Playwright MCP: navigate to /voters/{id} detail page, take screenshot, verify registration card, map, locations table, and districts render correctly. Save to screenshots/voter-detail.png
 
 ---
 

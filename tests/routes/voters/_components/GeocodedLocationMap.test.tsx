@@ -35,7 +35,6 @@ vi.mock("react-leaflet", () => ({
 }))
 
 vi.mock("leaflet", () => {
-  // eslint-disable-next-line @typescript-eslint/no-extraneous-class
   class MockIcon {}
   return {
     default: {
