@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-router"
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
 import { useEffect, useMemo, useState } from "react"
-import { HelpCircle, Loader2, LogIn, LogOut, Menu, Search, User, Vote } from "lucide-react"
+import { HelpCircle, Loader2, LogIn, LogOut, Menu, Search, User, Users, Vote } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -112,6 +112,17 @@ function MobileNav({
                 >
                   <Search className="h-4 w-4" />
                   Address Lookup
+                </Link>
+              </SheetClose>
+            )}
+            {isAuthenticated && (
+              <SheetClose asChild>
+                <Link
+                  to="/voters"
+                  className="[&.active]:font-bold py-2 text-sm flex items-center gap-2"
+                >
+                  <Users className="h-4 w-4" />
+                  Voters
                 </Link>
               </SheetClose>
             )}
@@ -362,6 +373,15 @@ function RootLayout() {
                 aria-label="Address lookup"
               >
                 <Search className="h-4 w-4" />
+              </Link>
+            )}
+            {isAuthenticated && (
+              <Link
+                to="/voters"
+                className="[&.active]:font-bold shrink-0 flex items-center gap-1"
+              >
+                <Users className="h-4 w-4" />
+                Voters
               </Link>
             )}
             {isAdmin && <AdminNavMenu />}

@@ -32,13 +32,13 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T005 Create voter TanStack Query hooks (useVoterSearch, useVoterDetail, useVoterFilters, useTriggerGeocode, useDeleteGeocodedLocation) with query keys, caching, invalidation, and error handling in src/hooks/useVoters.ts following patterns in src/hooks/useAddressLookup.ts
-- [ ] T006 Unit tests for all voter hooks in tests/hooks/useVoters.test.ts
-- [ ] T007 [P] Add "Voters" nav item (Users icon from Lucide) to both desktop and mobile navigation in src/routes/__root.tsx, visible to all authenticated users, positioned alongside Elections/Counties/Districts
-- [ ] T008 [P] Create voters layout route with auth guard (beforeLoad with requireAuth) in src/routes/voters.tsx following pattern in src/routes/admin.tsx
-- [ ] T008a [P] Unit tests for voters layout route (auth guard redirects unauthenticated users, authenticated users render child routes) in tests/routes/voters/voters-layout.test.tsx
-- [ ] T009 [P] Create E2E mock fixtures with voter search, detail, filters, geocoded locations, and point-lookup route intercepts in e2e/fixtures/voter-api.ts following pattern in e2e/fixtures/election-api.ts
-- [ ] T010 [P] Add mock voter data (voter summaries, voter detail, filter options, geocoded locations, district assignments) to e2e/fixtures/mock-data.ts
+- [x] T005 Create voter TanStack Query hooks (useVoterSearch, useVoterDetail, useVoterFilters, useTriggerGeocode, useDeleteGeocodedLocation) with query keys, caching, invalidation, and error handling in src/hooks/useVoters.ts following patterns in src/hooks/useAddressLookup.ts
+- [x] T006 Unit tests for all voter hooks in tests/hooks/useVoters.test.ts
+- [x] T007 [P] Add "Voters" nav item (Users icon from Lucide) to both desktop and mobile navigation in src/routes/__root.tsx, visible to all authenticated users, positioned alongside Elections/Counties/Districts
+- [x] T008 [P] Create voters layout route with auth guard (beforeLoad with requireAuth) in src/routes/voters.tsx following pattern in src/routes/admin.tsx
+- [x] T008a [P] Unit tests for voters layout route (auth guard redirects unauthenticated users, authenticated users render child routes) in tests/routes/voters/voters-layout.test.tsx
+- [x] T009 [P] Create E2E mock fixtures with voter search, detail, filters, geocoded locations, and point-lookup route intercepts in e2e/fixtures/voter-api.ts following pattern in e2e/fixtures/election-api.ts
+- [x] T010 [P] Add mock voter data (voter summaries, voter detail, filter options, geocoded locations, district assignments) to e2e/fixtures/mock-data.ts
 
 **Checkpoint**: Foundation ready — voter hooks, navigation, routing, and test infrastructure in place. User story implementation can begin.
 

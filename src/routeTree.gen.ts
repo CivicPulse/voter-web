@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VotersRouteImport } from './routes/voters'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ElectionsRouteImport } from './routes/elections'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -34,6 +35,11 @@ import { Route as AdminElectionsImportFeedRouteImport } from './routes/admin/ele
 import { Route as AdminElectionsCreateRouteImport } from './routes/admin/elections/create'
 import { Route as AdminElectionsElectionIdRouteImport } from './routes/admin/elections/$electionId'
 
+const VotersRoute = VotersRouteImport.update({
+  id: '/voters',
+  path: '/voters',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -165,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/elections': typeof ElectionsRouteWithChildren
   '/login': typeof LoginRoute
+  '/voters': typeof VotersRoute
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
   '/elections/$electionDate': typeof ElectionsElectionDateRouteWithChildren
@@ -189,6 +196,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/login': typeof LoginRoute
+  '/voters': typeof VotersRoute
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
   '/lookup/results': typeof LookupResultsRoute
@@ -215,6 +223,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/elections': typeof ElectionsRouteWithChildren
   '/login': typeof LoginRoute
+  '/voters': typeof VotersRoute
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
   '/elections/$electionDate': typeof ElectionsElectionDateRouteWithChildren
@@ -243,6 +252,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/elections'
     | '/login'
+    | '/voters'
     | '/counties/$countyId'
     | '/districts/$districtId'
     | '/elections/$electionDate'
@@ -267,6 +277,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/login'
+    | '/voters'
     | '/counties/$countyId'
     | '/districts/$districtId'
     | '/lookup/results'
@@ -292,6 +303,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/elections'
     | '/login'
+    | '/voters'
     | '/counties/$countyId'
     | '/districts/$districtId'
     | '/elections/$electionDate'
@@ -319,6 +331,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   ElectionsRoute: typeof ElectionsRouteWithChildren
   LoginRoute: typeof LoginRoute
+  VotersRoute: typeof VotersRoute
   CountiesCountyIdRoute: typeof CountiesCountyIdRoute
   DistrictsDistrictIdRoute: typeof DistrictsDistrictIdRoute
   LookupResultsRoute: typeof LookupResultsRoute
@@ -329,6 +342,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/voters': {
+      id: '/voters'
+      path: '/voters'
+      fullPath: '/voters'
+      preLoaderRoute: typeof VotersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -561,6 +581,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   ElectionsRoute: ElectionsRouteWithChildren,
   LoginRoute: LoginRoute,
+  VotersRoute: VotersRoute,
   CountiesCountyIdRoute: CountiesCountyIdRoute,
   DistrictsDistrictIdRoute: DistrictsDistrictIdRoute,
   LookupResultsRoute: LookupResultsRoute,
