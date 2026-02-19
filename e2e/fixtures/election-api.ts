@@ -25,6 +25,7 @@ import {
 
 export interface MockOptions {
   resultsOverride?: Record<string, unknown>
+  precinctGeoJSONOverride?: Record<string, unknown>
 }
 
 export async function setupElectionApiMocks(
@@ -32,6 +33,8 @@ export async function setupElectionApiMocks(
   options: MockOptions = {},
 ) {
   const results = options.resultsOverride ?? electionResultsResponse
+  const precinctGeoJSON =
+    options.precinctGeoJSONOverride ?? precinctGeoJSONResponse
 
   // Precinct GeoJSON (most specific — register first)
   await page.route(
@@ -40,7 +43,7 @@ export async function setupElectionApiMocks(
       route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify(precinctGeoJSONResponse),
+        body: JSON.stringify(precinctGeoJSON),
       }),
   )
 

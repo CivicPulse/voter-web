@@ -5,7 +5,7 @@ import type { Feature, MultiPolygon, Polygon } from "geojson"
 import { AlertCircle, Loader2 } from "lucide-react"
 import { cn, escapeHtml, stripCountySuffix } from "@/lib/utils"
 import { safeBbox, featuresWithGeometry } from "@/lib/geo"
-import { getPartyColor, getLeadingCandidate } from "@/types/elections"
+import { getPartyColor, getLeadingCandidate, isReported } from "@/types/elections"
 import type {
   PrecinctResultFeatureCollection,
   PrecinctResultGeoProperties,
@@ -29,10 +29,6 @@ interface PrecinctMapViewProps {
   onCountySelect: (county: string | undefined) => void
   showCountyOverlay: boolean
   showDistrictOutline: boolean
-}
-
-function isReported(status: string): boolean {
-  return status === "Reported" || status === "Fully Reported"
 }
 
 const HOVER_STYLE: PathOptions = {
