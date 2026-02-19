@@ -137,6 +137,56 @@ export function CountyDetailContent({
                 {matchingElections.length > 0 && (
                   <ActiveElectionBanner elections={matchingElections} className="space-y-2" />
                 )}
+
+                {county.voter_stats != null && county.voter_stats.total > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        Registered Voters
+                      </CardTitle>
+                      <CardDescription>
+                        Based on latest voter registration import
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <dl>
+                          <dt className="text-sm font-medium text-muted-foreground">
+                            Total
+                          </dt>
+                          <dd className="text-2xl font-semibold">
+                            {county.voter_stats.total.toLocaleString()}
+                          </dd>
+                        </dl>
+                        {county.voter_stats.by_status.length > 0 && (
+                          <>
+                            <Separator />
+                            <dl>
+                              <dt className="mb-1 text-sm font-medium text-muted-foreground">
+                                By Status
+                              </dt>
+                              <dd className="text-sm text-muted-foreground">
+                                {county.voter_stats.by_status
+                                  .map((s) => {
+                                    const label =
+                                      s.status === "A"
+                                        ? "Active"
+                                        : s.status === "I"
+                                          ? "Inactive"
+                                          : s.status
+                                    return `${label}: ${s.count.toLocaleString()}`
+                                  })
+                                  .join(" · ")}
+                              </dd>
+                            </dl>
+                          </>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -330,55 +380,6 @@ export function CountyDetailContent({
                     fipsCounty={county.county_metadata.fips_county}
                     countyName={county.name}
                   />
-                )}
-
-                {county.voter_stats != null && county.voter_stats.total > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Users className="h-5 w-5" />
-                        Registered Voters
-                      </CardTitle>
-                      <CardDescription>
-                        Based on latest voter registration import
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <dl>
-                          <dt className="text-sm font-medium text-muted-foreground">
-                            Total
-                          </dt>
-                          <dd className="text-2xl font-semibold">
-                            {county.voter_stats.total.toLocaleString()}
-                          </dd>
-                        </dl>
-                        {county.voter_stats.by_status.length > 0 && (
-                          <>
-                            <Separator />
-                            <dl>
-                              <dt className="mb-1 text-sm font-medium text-muted-foreground">
-                                By Status
-                              </dt>
-                              <dd className="text-sm text-muted-foreground">
-                                {county.voter_stats.by_status
-                                  .map((s) => {
-                                    const label =
-                                      s.status === "A"
-                                        ? "Active"
-                                        : s.status === "I"
-                                          ? "Inactive"
-                                          : s.status
-                                    return `${label}: ${s.count.toLocaleString()}`
-                                  })
-                                  .join(" · ")}
-                              </dd>
-                            </dl>
-                          </>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
                 )}
 
                 <Separator />
