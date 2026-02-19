@@ -9,8 +9,8 @@ import {
   isActiveElection,
   getTotalVotes,
   getLeadingCandidate,
-  groupElectionsByDate,
   isReported,
+  groupElectionsByDate,
   PARTY_COLORS,
   DEFAULT_PARTY_COLOR,
 } from "@/types/elections"
@@ -248,6 +248,36 @@ describe("getLeadingCandidate", () => {
   })
 })
 
+describe("isReported", () => {
+  it('returns true for "Reported"', () => {
+    expect(isReported("Reported")).toBe(true)
+  })
+
+  it('returns true for "Fully Reported"', () => {
+    expect(isReported("Fully Reported")).toBe(true)
+  })
+
+  it('returns true for "Partially Reported"', () => {
+    expect(isReported("Partially Reported")).toBe(true)
+  })
+
+  it('returns true for "Election Night Complete"', () => {
+    expect(isReported("Election Night Complete")).toBe(true)
+  })
+
+  it('returns false for "Not Reported"', () => {
+    expect(isReported("Not Reported")).toBe(false)
+  })
+
+  it("returns false for empty string", () => {
+    expect(isReported("")).toBe(false)
+  })
+
+  it("returns false for unknown status", () => {
+    expect(isReported("Pending")).toBe(false)
+  })
+})
+
 describe("groupElectionsByDate", () => {
   it("groups elections by date", () => {
     const elections = [
@@ -311,31 +341,5 @@ describe("groupElectionsByDate", () => {
 
   it("returns empty array for empty input", () => {
     expect(groupElectionsByDate([])).toEqual([])
-  })
-})
-
-describe("isReported", () => {
-  it("returns true for 'Reported'", () => {
-    expect(isReported("Reported")).toBe(true)
-  })
-
-  it("returns true for 'Fully Reported'", () => {
-    expect(isReported("Fully Reported")).toBe(true)
-  })
-
-  it("returns true for 'Partially Reported'", () => {
-    expect(isReported("Partially Reported")).toBe(true)
-  })
-
-  it("returns true for 'Election Night Complete'", () => {
-    expect(isReported("Election Night Complete")).toBe(true)
-  })
-
-  it("returns false for unknown status", () => {
-    expect(isReported("Not Started")).toBe(false)
-  })
-
-  it("returns false for empty string", () => {
-    expect(isReported("")).toBe(false)
   })
 })

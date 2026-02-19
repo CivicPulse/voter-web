@@ -16,6 +16,7 @@ import {
   ELECTION_ID,
   ELECTION_DATE,
   electionResultsWithNullCounts,
+  precinctGeoJSONElectionNightComplete,
 } from "./fixtures/mock-data"
 
 const RACE_URL = `/elections/${ELECTION_DATE}/${ELECTION_ID}`
@@ -150,6 +151,37 @@ test.describe("County dropdown z-index (clickability)", () => {
 
     // Trigger text should reflect the selected county
     await expect(trigger).toContainText("Bibb County")
+  })
+})
+
+// ==========================================================================
+// Bug Fix #4: "Election Night Complete" precincts not colored
+// ==========================================================================
+
+test.describe('Precinct "Election Night Complete" status (color fix)', () => {
+  test("precinct map renders when reporting_status is Election Night Complete", async ({
+    page,
+  }) => {
+    await setupElectionApiMocks(page, {
+      precinctGeoJSONOverride: precinctGeoJSONElectionNightComplete,
+    })
+
+    await page.goto(RACE_URL)
+
+    // Switch to precinct view
+    await page.getByLabel(/precinct/i).click()
+
+    // Give the map time to render
+    await page.waitForTimeout(1000)
+
+    // The "not available" overlay should NOT be visible — precincts should render
+    await expect(
+      page.getByText("Precinct boundaries are not available"),
+    ).not.toBeVisible()
+
+    // Leaflet map container should be present with rendered layers
+    const mapContainer = page.locator(".leaflet-container")
+    await expect(mapContainer).toBeVisible()
   })
 })
 
