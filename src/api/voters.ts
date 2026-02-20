@@ -6,17 +6,25 @@ import type {
   VoterFilterOptions,
   VoterSearchParams,
 } from "@/types/voter"
-import type { VoterGeocodedLocation } from "@/types/lookup"
+
+/** Raw summary item returned by GET /voters (search results) */
+interface RawVoterSummary {
+  id: string
+  voter_registration_number: string
+  first_name: string
+  last_name: string
+  county: string
+  status: string
+  registration_date?: string | null
+}
 
 /** Raw paginated response shape returned by the backend */
 interface RawVoterSearchResponse {
-  items: VoterSummary[]
-  pagination: {
-    total: number
-    page: number
-    page_size: number
-    total_pages: number
-  }
+  items: RawVoterSummary[]
+  pages: number
+  total: number
+  page: number
+  page_size: number
 }
 
 /** Address sub-object returned by the backend for voter detail */
@@ -53,8 +61,12 @@ export async function searchVoters(
   if (params.q) searchParams.q = params.q
   if (params.county) searchParams.county = params.county
   if (params.status) searchParams.status = params.status
-  if (params.district_type) searchParams.district_type = params.district_type
-  if (params.district_id) searchParams.district_id = params.district_id
+  if (params.congressional_district)
+    searchParams.congressional_district = params.congressional_district
+  if (params.state_senate_district)
+    searchParams.state_senate_district = params.state_senate_district
+  if (params.state_house_district)
+    searchParams.state_house_district = params.state_house_district
   if (params.sort_by) searchParams.sort_by = params.sort_by
   if (params.sort_order) searchParams.sort_order = params.sort_order
   if (params.page) searchParams.page = String(params.page)
@@ -64,8 +76,21 @@ export async function searchVoters(
     .json<RawVoterSearchResponse>()
 
   return {
-    voters: raw.items,
-    ...raw.pagination,
+    voters: raw.items.map(
+      (item): VoterSummary => ({
+        id: item.id,
+        voter_id: item.voter_registration_number,
+        first_name: item.first_name,
+        last_name: item.last_name,
+        county: item.county,
+        status: item.status,
+        registration_date: item.registration_date ?? null,
+      }),
+    ),
+    total: raw.total,
+    page: raw.page,
+    page_size: raw.page_size,
+    total_pages: raw.pages,
   }
 }
 
@@ -94,12 +119,6 @@ export async function getVoterDetail(
 
 export async function getVoterFilters(): Promise<VoterFilterOptions> {
   return api.get("voters/filters").json<VoterFilterOptions>()
-}
-
-export async function triggerVoterGeocode(
-  voterId: string,
-): Promise<VoterGeocodedLocation[]> {
-  return api.post(`voters/${voterId}/geocode`).json<VoterGeocodedLocation[]>()
 }
 
 export async function deleteGeocodedLocation(

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { MapPin, Loader2, RotateCw, Star, Trash2 } from "lucide-react"
+import { MapPin, Star, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -28,7 +28,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useUserRole } from "@/lib/hooks/use-user-role"
-import { useTriggerGeocode, useDeleteGeocodedLocation } from "@/hooks/useVoters"
+import { useDeleteGeocodedLocation } from "@/hooks/useVoters"
 import { useSetPrimaryLocation } from "@/hooks/useAddressLookup"
 import type { VoterGeocodedLocation } from "@/types/lookup"
 
@@ -45,22 +45,10 @@ export function GeocodedLocationsCard({
   const canEdit =
     userProfile?.role === "admin" || userProfile?.role === "analyst"
 
-  const geocodeMutation = useTriggerGeocode(voterId)
   const setPrimaryMutation = useSetPrimaryLocation(voterId)
   const deleteMutation = useDeleteGeocodedLocation(voterId)
 
   const [deleteTarget, setDeleteTarget] = useState<VoterGeocodedLocation | null>(null)
-
-  function handleGeocode() {
-    geocodeMutation.mutate(undefined, {
-      onSuccess: () => {
-        toast.success("Geocoding complete — locations updated.")
-      },
-      onError: () => {
-        toast.error("Geocoding failed. Please try again.")
-      },
-    })
-  }
 
   function handleSetOfficial(locationId: string) {
     setPrimaryMutation.mutate(locationId, {
@@ -87,33 +75,14 @@ export function GeocodedLocationsCard({
     })
   }
 
-  const geocodeButton = canEdit ? (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={handleGeocode}
-      disabled={geocodeMutation.isPending}
-    >
-      {geocodeMutation.isPending ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : (
-        <RotateCw className="h-4 w-4" />
-      )}
-      {geocodeMutation.isPending ? "Geocoding..." : "Geocode"}
-    </Button>
-  ) : null
-
   if (locations.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              Geocoded Locations
-            </CardTitle>
-            {geocodeButton}
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <MapPin className="h-5 w-5" />
+            Geocoded Locations
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
@@ -128,13 +97,10 @@ export function GeocodedLocationsCard({
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              Geocoded Locations
-            </CardTitle>
-            {geocodeButton}
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <MapPin className="h-5 w-5" />
+            Geocoded Locations
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -164,10 +130,12 @@ export function GeocodedLocationsCard({
                     </div>
                   </TableCell>
                   <TableCell>
-                    {(loc.confidence_score * 100).toFixed(0)}%
+                    {loc.confidence_score != null
+                      ? `${(loc.confidence_score * 100).toFixed(0)}%`
+                      : "—"}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {loc.input_address}
+                    {loc.input_address ?? "—"}
                   </TableCell>
                   <TableCell className="font-mono text-sm">
                     {loc.latitude.toFixed(6)}, {loc.longitude.toFixed(6)}

@@ -156,10 +156,15 @@ export function VoterTable({ data, params }: VoterTableProps) {
                 {voter.voter_id}
               </TableCell>
               <TableCell>
-                {new Date(voter.registration_date + "T00:00:00").toLocaleDateString(
-                  "en-US",
-                  { year: "numeric", month: "short", day: "numeric" },
-                )}
+                {voter.registration_date
+                  ? new Date(
+                      voter.registration_date + "T00:00:00",
+                    ).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })
+                  : "—"}
               </TableCell>
               <TableCell>
                 <Badge

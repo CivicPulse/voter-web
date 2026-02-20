@@ -4,7 +4,7 @@ export interface VoterSummary {
   last_name: string
   county: string
   voter_id: string
-  registration_date: string
+  registration_date: string | null
   status: string
 }
 
@@ -36,26 +36,20 @@ export interface VoterSearchResponse {
 export interface VoterFilterOptions {
   counties: string[]
   statuses: string[]
-  district_types: DistrictTypeOption[]
-}
-
-export interface DistrictTypeOption {
-  type: string
-  label: string
-  districts: DistrictOption[]
-}
-
-export interface DistrictOption {
-  id: string
-  name: string
+  congressional_districts: string[]
+  state_senate_districts: string[]
+  state_house_districts: string[]
+  residence_cities: string[]
+  residence_zipcodes: string[]
 }
 
 export interface VoterSearchParams {
   q?: string
   county?: string
   status?: string
-  district_type?: string
-  district_id?: string
+  congressional_district?: string
+  state_senate_district?: string
+  state_house_district?: string
   sort_by?: "name" | "county" | "registration_date" | "voter_id"
   sort_order?: "asc" | "desc"
   page?: number

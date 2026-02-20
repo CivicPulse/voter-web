@@ -25,7 +25,9 @@ describe("VoterSearchFilters", () => {
     expect(screen.getByLabelText("Search voters")).toBeInTheDocument()
     expect(screen.getByLabelText("Filter by county")).toBeInTheDocument()
     expect(screen.getByLabelText("Filter by status")).toBeInTheDocument()
-    expect(screen.getByLabelText("Filter by district type")).toBeInTheDocument()
+    expect(screen.getByLabelText("Filter by congressional district")).toBeInTheDocument()
+    expect(screen.getByLabelText("Filter by state senate district")).toBeInTheDocument()
+    expect(screen.getByLabelText("Filter by state house district")).toBeInTheDocument()
   })
 
   it("shows default values in filter selects", () => {
@@ -33,21 +35,9 @@ describe("VoterSearchFilters", () => {
 
     expect(screen.getByText("All Counties")).toBeInTheDocument()
     expect(screen.getByText("All Statuses")).toBeInTheDocument()
-    expect(screen.getByText("All Districts")).toBeInTheDocument()
-  })
-
-  it("shows cascade district select when district type is selected", () => {
-    render(
-      <VoterSearchFilters params={{ district_type: "congressional" }} />,
-    )
-
-    expect(screen.getByLabelText("Filter by district")).toBeInTheDocument()
-  })
-
-  it("does not show cascade district select when no district type is selected", () => {
-    render(<VoterSearchFilters params={{}} />)
-
-    expect(screen.queryByLabelText("Filter by district")).not.toBeInTheDocument()
+    expect(screen.getByText("All Congressional")).toBeInTheDocument()
+    expect(screen.getByText("All State Senate")).toBeInTheDocument()
+    expect(screen.getByText("All State House")).toBeInTheDocument()
   })
 
   it("initializes search input from params", () => {

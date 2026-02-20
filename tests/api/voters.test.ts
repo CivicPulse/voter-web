@@ -3,25 +3,21 @@ import {
   searchVoters,
   getVoterDetail,
   getVoterFilters,
-  triggerVoterGeocode,
   deleteGeocodedLocation,
 } from "@/api/voters"
 import {
   mockVoterSearchResponse,
   mockVoterFilterOptions,
-  mockVoterGeocodedLocation,
 } from "@/test/mocks/voters"
 
 // Mock the ky client
 const mockJson = vi.fn()
 const mockGet = vi.fn(() => ({ json: mockJson }))
-const mockPost = vi.fn(() => ({ json: mockJson }))
 const mockDelete = vi.fn(() => Promise.resolve())
 
 vi.mock("@/api/client", () => ({
   api: {
     get: (...args: unknown[]) => mockGet(...args),
-    post: (...args: unknown[]) => mockPost(...args),
     delete: (...args: unknown[]) => mockDelete(...args),
   },
 }))
@@ -33,15 +29,21 @@ beforeEach(() => {
 describe("searchVoters", () => {
   it("calls GET /voters with search params and transforms response", async () => {
     const expected = mockVoterSearchResponse()
-    // Backend returns { items: [...], pagination: {...} }
+    // Backend returns { items: [...raw items...], pages, total, page, page_size }
     mockJson.mockResolvedValue({
-      items: expected.voters,
-      pagination: {
-        total: expected.total,
-        page: expected.page,
-        page_size: expected.page_size,
-        total_pages: expected.total_pages,
-      },
+      items: expected.voters.map((v) => ({
+        id: v.id,
+        voter_registration_number: v.voter_id,
+        first_name: v.first_name,
+        last_name: v.last_name,
+        county: v.county,
+        status: v.status,
+        registration_date: v.registration_date,
+      })),
+      pages: expected.total_pages,
+      total: expected.total,
+      page: expected.page,
+      page_size: expected.page_size,
     })
 
     const result = await searchVoters({ q: "Smith", page: 2 })
@@ -55,13 +57,19 @@ describe("searchVoters", () => {
   it("omits undefined params from search params", async () => {
     const expected = mockVoterSearchResponse()
     mockJson.mockResolvedValue({
-      items: expected.voters,
-      pagination: {
-        total: expected.total,
-        page: expected.page,
-        page_size: expected.page_size,
-        total_pages: expected.total_pages,
-      },
+      items: expected.voters.map((v) => ({
+        id: v.id,
+        voter_registration_number: v.voter_id,
+        first_name: v.first_name,
+        last_name: v.last_name,
+        county: v.county,
+        status: v.status,
+        registration_date: v.registration_date,
+      })),
+      pages: expected.total_pages,
+      total: expected.total,
+      page: expected.page,
+      page_size: expected.page_size,
     })
 
     await searchVoters({})
@@ -74,21 +82,28 @@ describe("searchVoters", () => {
   it("passes all filter params when provided", async () => {
     const expected = mockVoterSearchResponse()
     mockJson.mockResolvedValue({
-      items: expected.voters,
-      pagination: {
-        total: expected.total,
-        page: expected.page,
-        page_size: expected.page_size,
-        total_pages: expected.total_pages,
-      },
+      items: expected.voters.map((v) => ({
+        id: v.id,
+        voter_registration_number: v.voter_id,
+        first_name: v.first_name,
+        last_name: v.last_name,
+        county: v.county,
+        status: v.status,
+        registration_date: v.registration_date,
+      })),
+      pages: expected.total_pages,
+      total: expected.total,
+      page: expected.page,
+      page_size: expected.page_size,
     })
 
     await searchVoters({
       q: "Jane",
       county: "Bibb",
       status: "Active",
-      district_type: "congressional",
-      district_id: "dist-001",
+      congressional_district: "5",
+      state_senate_district: "18",
+      state_house_district: "145",
       sort_by: "name",
       sort_order: "desc",
       page: 3,
@@ -99,13 +114,38 @@ describe("searchVoters", () => {
         q: "Jane",
         county: "Bibb",
         status: "Active",
-        district_type: "congressional",
-        district_id: "dist-001",
+        congressional_district: "5",
+        state_senate_district: "18",
+        state_house_district: "145",
         sort_by: "name",
         sort_order: "desc",
         page: "3",
       },
     })
+  })
+
+  it("transforms voter_registration_number to voter_id", async () => {
+    mockJson.mockResolvedValue({
+      items: [
+        {
+          id: "v-001",
+          voter_registration_number: "GA-12345678",
+          first_name: "Jane",
+          last_name: "Smith",
+          county: "Bibb",
+          status: "Active",
+          registration_date: "2020-01-15",
+        },
+      ],
+      pages: 1,
+      total: 1,
+      page: 1,
+      page_size: 25,
+    })
+
+    const result = await searchVoters({})
+
+    expect(result.voters[0].voter_id).toBe("GA-12345678")
   })
 })
 
@@ -166,26 +206,6 @@ describe("getVoterFilters", () => {
 
     expect(mockGet).toHaveBeenCalledWith("voters/filters")
     expect(result).toEqual(filters)
-  })
-})
-
-describe("triggerVoterGeocode", () => {
-  it("calls POST /voters/{voterId}/geocode", async () => {
-    const locations = [
-      mockVoterGeocodedLocation(),
-      mockVoterGeocodedLocation({
-        id: "loc-002",
-        source_type: "osm",
-        confidence_score: 0.88,
-        is_primary: false,
-      }),
-    ]
-    mockJson.mockResolvedValue(locations)
-
-    const result = await triggerVoterGeocode("v-001")
-
-    expect(mockPost).toHaveBeenCalledWith("voters/v-001/geocode")
-    expect(result).toEqual(locations)
   })
 })
 

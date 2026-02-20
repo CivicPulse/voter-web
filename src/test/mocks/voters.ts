@@ -3,8 +3,6 @@ import type {
   VoterDetail,
   VoterSearchResponse,
   VoterFilterOptions,
-  DistrictTypeOption,
-  DistrictOption,
 } from "@/types/voter"
 import type { VoterGeocodedLocation } from "@/types/lookup"
 
@@ -77,55 +75,17 @@ export function mockVoterSearchResponse(
   }
 }
 
-export function mockDistrictOption(
-  overrides?: Partial<DistrictOption>,
-): DistrictOption {
-  return {
-    id: "dist-001",
-    name: "District 5",
-    ...overrides,
-  }
-}
-
-export function mockDistrictTypeOption(
-  overrides?: Partial<DistrictTypeOption>,
-): DistrictTypeOption {
-  return {
-    type: "congressional",
-    label: "Congressional",
-    districts: [
-      mockDistrictOption({ id: "dist-001", name: "District 5" }),
-      mockDistrictOption({ id: "dist-002", name: "District 13" }),
-    ],
-    ...overrides,
-  }
-}
-
 export function mockVoterFilterOptions(
   overrides?: Partial<VoterFilterOptions>,
 ): VoterFilterOptions {
   return {
     counties: ["Bibb", "DeKalb", "Fulton", "Gwinnett"],
     statuses: ["Active", "Inactive"],
-    district_types: [
-      mockDistrictTypeOption(),
-      mockDistrictTypeOption({
-        type: "state_senate",
-        label: "State Senate",
-        districts: [
-          mockDistrictOption({ id: "dist-010", name: "District 18" }),
-          mockDistrictOption({ id: "dist-011", name: "District 25" }),
-        ],
-      }),
-      mockDistrictTypeOption({
-        type: "state_house",
-        label: "State House",
-        districts: [
-          mockDistrictOption({ id: "dist-020", name: "District 145" }),
-          mockDistrictOption({ id: "dist-021", name: "District 150" }),
-        ],
-      }),
-    ],
+    congressional_districts: ["5", "10", "13"],
+    state_senate_districts: ["18", "25"],
+    state_house_districts: ["145", "150"],
+    residence_cities: ["Macon", "Atlanta", "Augusta"],
+    residence_zipcodes: ["31201", "30301"],
     ...overrides,
   }
 }

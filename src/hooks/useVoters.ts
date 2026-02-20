@@ -3,7 +3,6 @@ import {
   searchVoters,
   getVoterDetail,
   getVoterFilters,
-  triggerVoterGeocode,
   deleteGeocodedLocation,
 } from "@/api/voters"
 import type { VoterSearchParams } from "@/types/voter"
@@ -35,18 +34,6 @@ export function useVoterFilters() {
     queryFn: getVoterFilters,
     staleTime: 1000 * 60 * 30,
     gcTime: 1000 * 60 * 60,
-  })
-}
-
-export function useTriggerGeocode(voterId: string) {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: () => triggerVoterGeocode(voterId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["voters", voterId, "geocoded-locations"],
-      })
-    },
   })
 }
 

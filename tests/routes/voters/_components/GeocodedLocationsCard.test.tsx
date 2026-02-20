@@ -5,7 +5,6 @@ import { GeocodedLocationsCard } from "@/routes/voters/_components/GeocodedLocat
 import { mockVoterGeocodedLocation } from "@/test/mocks/voters"
 import { useUserRole } from "@/lib/hooks/use-user-role"
 
-const mockMutate = vi.fn()
 const mockSetPrimaryMutate = vi.fn()
 const mockDeleteMutate = vi.fn()
 
@@ -14,10 +13,6 @@ vi.mock("@/lib/hooks/use-user-role", () => ({
 }))
 
 vi.mock("@/hooks/useVoters", () => ({
-  useTriggerGeocode: vi.fn(() => ({
-    mutate: mockMutate,
-    isPending: false,
-  })),
   useDeleteGeocodedLocation: vi.fn(() => ({
     mutate: mockDeleteMutate,
     isPending: false,
@@ -68,6 +63,26 @@ describe("GeocodedLocationsCard", () => {
     expect(screen.getByText("88%")).toBeInTheDocument()
   })
 
+  it("shows dash when confidence_score is null", () => {
+    const locations = [
+      mockVoterGeocodedLocation({ confidence_score: null }),
+    ]
+    render(<GeocodedLocationsCard locations={locations} voterId="v-001" />)
+
+    const cells = screen.getAllByRole("cell")
+    expect(cells.some((c) => c.textContent === "—")).toBe(true)
+  })
+
+  it("shows dash when input_address is null", () => {
+    const locations = [
+      mockVoterGeocodedLocation({ input_address: null }),
+    ]
+    render(<GeocodedLocationsCard locations={locations} voterId="v-001" />)
+
+    const cells = screen.getAllByRole("cell")
+    expect(cells.some((c) => c.textContent === "—")).toBe(true)
+  })
+
   it("highlights official location with badge", () => {
     const locations = [
       mockVoterGeocodedLocation({ is_primary: true }),
@@ -110,46 +125,6 @@ describe("GeocodedLocationsCard", () => {
     expect(
       screen.getByText("123 Main St, Macon, GA 31201"),
     ).toBeInTheDocument()
-  })
-
-  // US3: Geocode trigger
-  describe("geocode button", () => {
-    it("is visible for admin users", () => {
-      setRole("admin")
-      render(<GeocodedLocationsCard locations={[]} voterId="v-001" />)
-
-      expect(
-        screen.getByRole("button", { name: /geocode/i }),
-      ).toBeInTheDocument()
-    })
-
-    it("is visible for analyst users", () => {
-      setRole("analyst")
-      render(<GeocodedLocationsCard locations={[]} voterId="v-001" />)
-
-      expect(
-        screen.getByRole("button", { name: /geocode/i }),
-      ).toBeInTheDocument()
-    })
-
-    it("is hidden for viewer users", () => {
-      setRole("viewer")
-      render(<GeocodedLocationsCard locations={[]} voterId="v-001" />)
-
-      expect(
-        screen.queryByRole("button", { name: /geocode/i }),
-      ).not.toBeInTheDocument()
-    })
-
-    it("triggers geocode mutation on click", async () => {
-      setRole("admin")
-      const user = userEvent.setup()
-      render(<GeocodedLocationsCard locations={[]} voterId="v-001" />)
-
-      await user.click(screen.getByRole("button", { name: /geocode/i }))
-
-      expect(mockMutate).toHaveBeenCalledOnce()
-    })
   })
 
   // US4: Set as Official

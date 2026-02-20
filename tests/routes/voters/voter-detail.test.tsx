@@ -13,7 +13,6 @@ vi.mock("@/lib/hooks/use-user-role", () => ({
 
 vi.mock("@/hooks/useVoters", () => ({
   useVoterDetail: (...args: unknown[]) => mockUseVoterDetail(...args),
-  useTriggerGeocode: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
   useDeleteGeocodedLocation: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }))
 

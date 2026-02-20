@@ -7,21 +7,18 @@ import {
   useVoterSearch,
   useVoterDetail,
   useVoterFilters,
-  useTriggerGeocode,
   useDeleteGeocodedLocation,
 } from "@/hooks/useVoters"
 import {
   mockVoterSearchResponse,
   mockVoterDetail,
   mockVoterFilterOptions,
-  mockVoterGeocodedLocation,
 } from "@/test/mocks/voters"
 
 vi.mock("@/api/voters", () => ({
   searchVoters: vi.fn(),
   getVoterDetail: vi.fn(),
   getVoterFilters: vi.fn(),
-  triggerVoterGeocode: vi.fn(),
   deleteGeocodedLocation: vi.fn(),
 }))
 
@@ -29,14 +26,12 @@ import {
   searchVoters,
   getVoterDetail,
   getVoterFilters,
-  triggerVoterGeocode,
   deleteGeocodedLocation,
 } from "@/api/voters"
 
 const mockedSearchVoters = vi.mocked(searchVoters)
 const mockedGetVoterDetail = vi.mocked(getVoterDetail)
 const mockedGetVoterFilters = vi.mocked(getVoterFilters)
-const mockedTriggerVoterGeocode = vi.mocked(triggerVoterGeocode)
 const mockedDeleteGeocodedLocation = vi.mocked(deleteGeocodedLocation)
 
 function createWrapper() {
@@ -119,27 +114,6 @@ describe("useVoterFilters", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(result.current.data).toEqual(filters)
-  })
-})
-
-describe("useTriggerGeocode", () => {
-  it("triggers geocoding and invalidates location queries", async () => {
-    const locations = [
-      mockVoterGeocodedLocation(),
-      mockVoterGeocodedLocation({ id: "loc-002", source_type: "osm", is_primary: false }),
-    ]
-    mockedTriggerVoterGeocode.mockResolvedValue(locations)
-
-    const wrapper = createWrapper()
-    const { result } = renderHook(
-      () => useTriggerGeocode("v-001"),
-      { wrapper },
-    )
-
-    result.current.mutate()
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(result.current.data).toEqual(locations)
-    expect(mockedTriggerVoterGeocode).toHaveBeenCalledWith("v-001")
   })
 })
 

@@ -52,11 +52,6 @@ export function VoterSearchFilters({ params }: VoterSearchFiltersProps) {
     })
   }
 
-  // Find the selected district type's districts for cascade
-  const selectedDistrictType = filters?.district_types.find(
-    (dt) => dt.type === params.district_type,
-  )
-
   return (
     <div className="flex flex-wrap gap-3">
       <div className="relative flex-1 min-w-[200px]">
@@ -109,47 +104,67 @@ export function VoterSearchFilters({ params }: VoterSearchFiltersProps) {
       </Select>
 
       <Select
-        value={params.district_type ?? "all"}
+        value={params.congressional_district ?? "all"}
         onValueChange={(v) =>
           updateFilter({
-            district_type: v === "all" ? undefined : v,
-            district_id: undefined,
+            congressional_district: v === "all" ? undefined : v,
           })
         }
       >
-        <SelectTrigger className="w-[170px]" aria-label="Filter by district type">
-          <SelectValue placeholder="District Type" />
+        <SelectTrigger className="w-[180px]" aria-label="Filter by congressional district">
+          <SelectValue placeholder="Congressional" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All Districts</SelectItem>
-          {filters?.district_types.map((dt) => (
-            <SelectItem key={dt.type} value={dt.type}>
-              {dt.label}
+          <SelectItem value="all">All Congressional</SelectItem>
+          {filters?.congressional_districts.map((d) => (
+            <SelectItem key={d} value={d}>
+              District {d}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
 
-      {params.district_type && selectedDistrictType && (
-        <Select
-          value={params.district_id ?? "all"}
-          onValueChange={(v) =>
-            updateFilter({ district_id: v === "all" ? undefined : v })
-          }
-        >
-          <SelectTrigger className="w-[170px]" aria-label="Filter by district">
-            <SelectValue placeholder="Select District" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All {selectedDistrictType.label}</SelectItem>
-            {selectedDistrictType.districts.map((d) => (
-              <SelectItem key={d.id} value={d.id}>
-                {d.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
+      <Select
+        value={params.state_senate_district ?? "all"}
+        onValueChange={(v) =>
+          updateFilter({
+            state_senate_district: v === "all" ? undefined : v,
+          })
+        }
+      >
+        <SelectTrigger className="w-[160px]" aria-label="Filter by state senate district">
+          <SelectValue placeholder="State Senate" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All State Senate</SelectItem>
+          {filters?.state_senate_districts.map((d) => (
+            <SelectItem key={d} value={d}>
+              District {d}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={params.state_house_district ?? "all"}
+        onValueChange={(v) =>
+          updateFilter({
+            state_house_district: v === "all" ? undefined : v,
+          })
+        }
+      >
+        <SelectTrigger className="w-[150px]" aria-label="Filter by state house district">
+          <SelectValue placeholder="State House" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All State House</SelectItem>
+          {filters?.state_house_districts.map((d) => (
+            <SelectItem key={d} value={d}>
+              District {d}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   )
 }
