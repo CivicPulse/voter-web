@@ -82,7 +82,9 @@ src/
 │   └── DisambiguationPage.tsx             # NEW — legacy URL collision resolution
 ├── hooks/
 │   ├── useAvailableStates.ts              # NEW — derive states from county boundaries
-│   ├── useDistrictSlugResolver.ts         # MODIFY — add state/county params
+│   ├── useDistrictSlugResolverScoped.ts   # NEW — scoped slug resolution by state/county
+│   ├── useDistrictDisambiguation.ts       # NEW — find all matches for legacy URL resolution
+│   ├── useDistrictSlugResolver.ts         # KEEP — used by legacy route for disambiguation
 │   └── useCountySlugResolver.ts           # KEEP — already multi-state capable
 ├── lib/
 │   ├── slugs.ts                           # MODIFY — update districtSlugPath()

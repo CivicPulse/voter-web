@@ -58,6 +58,7 @@
 - [ ] T010 [US1] Rename `src/components/GeorgiaCountyMap.tsx` to `src/components/StateCountyMap.tsx` — remove `GA_CENTER`/`GA_ZOOM` hardcoding, auto-fit map bounds to data bbox using Turf.js `bbox()` and Leaflet `fitBounds()`, accept state-filtered county features as prop
 - [ ] T011 [P] [US1] Update `src/components/CountyDetailMap.tsx` — replace `GA_CENTER`/`GA_ZOOM` with neutral default center, keep existing `fitBounds` behavior
 - [ ] T012 [P] [US1] Update `src/components/DistrictDetailMap.tsx` — replace `GA_CENTER`/`GA_ZOOM` with neutral default center, keep existing `fitBounds` behavior
+- [ ] T012a [P] [US1] Update `src/components/LayerBar.tsx` to accept a `jurisdictionUnit` prop (default `"County"`) instead of hardcoded string in label text
 - [ ] T013 [US1] Create `src/routes/$state.tsx` — validate `$state` param against `ABBREV_TO_FIPS`, filter county boundaries by state FIPS, render `StateCountyMap`, active election banner, layer bar, drawer with `ElectedOfficialsCard` and `StateCensusProfileCard`
 - [ ] T014 [P] [US1] Write unit tests for `StateCountyMap` in `tests/components/StateCountyMap.test.tsx` — test auto-fit bounds, rendering with filtered county features, prop passing
 - [ ] T015 [US1] Write unit tests for state detail route in `tests/routes/$state.test.tsx` — test valid state param, invalid state rejection, county boundary filtering, overlay search param
@@ -78,7 +79,7 @@
 - [ ] T017 [P] [US2] Create `src/routes/districts/$state/$county/$type/$name.tsx` — county-level district route (4 params), use `useDistrictSlugResolverScoped(state, county, type, name)`, render `DistrictDetailContent` with resolved UUID
 - [ ] T018 [US2] Update `src/components/CountyDetailContent.tsx` — update district links to use new `districtSlugPath()` with state abbreviation and county from route params or resolved from FIPS
 - [ ] T019 [US2] Update `src/components/DistrictDetailContent.tsx` — update navigation links (county links, related district links) to use fully-qualified URLs with state/county context
-- [ ] T020 [US2] Update overlay popup links in map components — district links from overlay popups must include state/county context via `districtSlugPath()` using feature's county association
+- [ ] T020 [US2] Update `handleDistrictDblClick` in `src/components/StateCountyMap.tsx` and `src/components/CountyDetailMap.tsx` to use new `districtSlugPath()` with state abbreviation and county from feature properties, navigating to fully-qualified district routes
 - [ ] T021 [P] [US2] Write unit tests for state-level district route in `tests/routes/districts/state-district.test.tsx` — test slug resolution, DistrictDetailContent rendering, invalid state handling
 - [ ] T022 [P] [US2] Write unit tests for county-level district route in `tests/routes/districts/county-district.test.tsx` — test slug resolution with county filter, rendering, invalid state/county handling
 
@@ -136,10 +137,10 @@
 
 ### Implementation
 
-- [ ] T035 [US5] Add geographic navigation context to Zustand store (e.g., `src/stores/navigationContext.ts` or extend existing store) — track current state abbreviation and county slug from route navigation
-- [ ] T036 [US5] Update voter search page to read navigation context and pre-populate county filter when arriving from a county detail page
-- [ ] T037 [US5] Update election page to support state/county context filtering when navigating from a geographic page
-- [ ] T038 [US5] Write unit tests for navigation context store and filter pre-population behavior
+- [ ] T035 [US5] Add geographic navigation context to Zustand store in `src/stores/navigation-context.ts` — track current state abbreviation and county slug from route navigation
+- [ ] T036 [US5] Update voter search page in `src/routes/voters/index.tsx` to read navigation context and pre-populate county filter when arriving from a county detail page
+- [ ] T037 [US5] Update election page in `src/routes/elections/index.tsx` to support state/county context filtering when navigating from a geographic page
+- [ ] T038 [US5] Write unit tests for navigation context store in `tests/stores/navigation-context.test.ts` and filter pre-population behavior
 
 **Checkpoint**: Voter and election pages respect geographic context from navigation. Filters pre-populate when arriving from county/state pages. Direct navigation shows unfiltered data.
 
@@ -150,11 +151,12 @@
 **Purpose**: E2E tests, visual verification, cleanup of deprecated code, documentation
 
 - [ ] T039 Write E2E test for multi-state navigation in `e2e/multi-state-navigation.spec.ts` — test state page rendering, county navigation from state, district URL resolution for both state-level and county-level
-- [ ] T040 [P] Write E2E test for legacy URL compatibility in `e2e/legacy-url-compat.spec.ts` — test legacy district slug redirect, disambiguation page, legacy UUID county redirect, UUID district still works
+- [ ] T040 [P] Write E2E test for legacy URL compatibility in `e2e/legacy-url-compat.spec.ts` — test legacy district slug redirect, disambiguation page, legacy UUID county redirect, and verify UUID district route (`/districts/{uuid}`) still renders correctly (FR-003 regression)
 - [ ] T041 Run full test suite (`npm test -- --run`) and linter (`npm run lint`) — fix any failures
 - [ ] T042 Visual verification using Playwright MCP — state page map rendering, disambiguation page layout, state selection page, verify screenshots saved to `screenshots/`
 - [ ] T043 Remove deprecated code paths — remove old 2-arg `districtSlugPath` signature if all callers updated, remove any unused Georgia-specific constants
 - [ ] T044 Update CLAUDE.md with new route patterns and any new conventions introduced
+- [ ] T045 Measure page load times for district and county detail routes before and after implementation to validate SC-006 (within 20% of baseline) — use browser DevTools or Lighthouse via Playwright MCP
 
 ---
 
@@ -274,3 +276,4 @@ Task: "Create county-level district route in src/routes/districts/$state/$county
 - All new route files auto-registered by TanStack Router Vite plugin (regenerates `routeTree.gen.ts`)
 - Visual verification with Playwright MCP required after UI changes (per CLAUDE.md)
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence
+- **Deferred tech debt**: `src/components/elections/PrecinctMapView.tsx` and `src/components/elections/ElectionResultsMap.tsx` also hardcode `GA_CENTER`/`GA_ZOOM` but are out of scope for this feature (election routes are not geographic-scoped per spec). Address in a future election-specific feature if needed.

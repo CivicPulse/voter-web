@@ -118,7 +118,7 @@ A user browsing voters or elections sees data that is relevant to their current 
 - **FR-006**: When a legacy slug URL matches multiple records (collision), the system MUST display a disambiguation page showing all matches with links to the correct fully-qualified URLs.
 - **FR-007**: The home page MUST dynamically adapt to show available states based on what data exists, without hardcoding to a single state.
 - **FR-008**: The system MUST support a state-level detail page that displays a county map for the selected state.
-- **FR-009**: All internal navigation links (county-to-district, map clicks, breadcrumbs) MUST generate fully-qualified URLs that include state and county identifiers.
+- **FR-009**: All internal navigation links (county-to-district, map clicks, overlay popups) MUST generate fully-qualified URLs that include state and county identifiers.
 - **FR-010**: The system MUST use human-readable, URL-safe identifiers for states and counties (e.g., two-letter state abbreviations, slugified county names). URLs nest state and county under their existing path segments: `/counties/ga/bibb` for counties, `/districts/ga/bibb/county-commission/005` for county-level districts, and `/districts/ga/state-senate/018` for state-level districts.
 - **FR-011**: The system MUST preserve all existing route paths for admin, login, about, and other non-geographic pages without modification.
 - **FR-012**: The system MUST maintain backward compatibility so that no currently working URL returns a 404 error after this change.
@@ -148,5 +148,5 @@ A user browsing voters or elections sees data that is relevant to their current 
 - **Voters and elections routes** will NOT be restructured with state/county URL prefixes in this feature. They will continue to use their current filter-based scoping, with the enhancement that navigation context can pre-populate filters. Restructuring these routes can be a separate future feature if needed.
 - **Admin routes** remain unchanged — they are not geographic and do not have collision concerns.
 - **The backend API** already supports or will support querying districts, boundaries, and other entities by state and county identifiers. This spec does not prescribe API changes but assumes the necessary data is accessible.
-- **SEO redirects** for legacy URLs will use permanent (301) redirects for single-match cases to preserve search engine rankings.
+- **Legacy URL redirects** are client-side only (`history.replaceState`) since this is an SPA with no server-side rendering. Search engines will index the final fully-qualified URL when they crawl the page content. True HTTP 301 redirects are not possible in this architecture.
 - When only one state has data, the home page will display that state's map directly (no unnecessary state selection step), maintaining the current single-state experience.
