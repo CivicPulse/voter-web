@@ -19,7 +19,7 @@
 
 **Purpose**: Verify branch and project structure are ready for implementation
 
-- [ ] T001 Verify `004-multi-county-routes` branch is checked out and run `npm install` to ensure dependencies are current
+- [X] T001 Verify `004-multi-county-routes` branch is checked out and run `npm install` to ensure dependencies are current
 
 ---
 
@@ -31,17 +31,17 @@
 
 ### Implementation
 
-- [ ] T002 Update `districtSlugPath()` in `src/lib/slugs.ts` — add new 4-arg overload `(name, boundaryType, stateAbbrev, county: string | null)` that generates `/districts/{state}/{countySlug}/{typeSlug}/{nameSlug}` for county-scoped or `/districts/{state}/{typeSlug}/{nameSlug}` for state-scoped districts; keep old 2-arg signature working (deprecated)
-- [ ] T003 [P] Create `src/hooks/useAvailableStates.ts` — depends on `useCountyBoundaries()`, extracts unique state FIPS prefixes from `boundary_identifier` fields, maps via `FIPS_TO_ABBREV` to `{ abbreviation, fipsCode, countyCount }[]`, exposes `isSingleState` convenience flag
-- [ ] T004 [P] Create `src/hooks/useDistrictSlugResolverScoped.ts` — accepts `(stateAbbrev, countySlug | null, typeSlug, nameSlug)`, filters boundary features by state FIPS prefix and optional county slug, returns `{ districtId, isLoading, isNotFound }`
-- [ ] T005 [P] Create `src/hooks/useDistrictDisambiguation.ts` — accepts `(typeSlug, nameSlug)`, finds ALL matching boundaries across states/counties, returns `{ matches: DisambiguationMatch[], isLoading, isSingleMatch }` with fully-qualified URLs
+- [X] T002 Update `districtSlugPath()` in `src/lib/slugs.ts` — add new 4-arg overload `(name, boundaryType, stateAbbrev, county: string | null)` that generates `/districts/{state}/{countySlug}/{typeSlug}/{nameSlug}` for county-scoped or `/districts/{state}/{typeSlug}/{nameSlug}` for state-scoped districts; keep old 2-arg signature working (deprecated)
+- [X] T003 [P] Create `src/hooks/useAvailableStates.ts` — depends on `useCountyBoundaries()`, extracts unique state FIPS prefixes from `boundary_identifier` fields, maps via `FIPS_TO_ABBREV` to `{ abbreviation, fipsCode, countyCount }[]`, exposes `isSingleState` convenience flag
+- [X] T004 [P] Create `src/hooks/useDistrictSlugResolverScoped.ts` — accepts `(stateAbbrev, countySlug | null, typeSlug, nameSlug)`, filters boundary features by state FIPS prefix and optional county slug, returns `{ districtId, isLoading, isNotFound }`
+- [X] T005 [P] Create `src/hooks/useDistrictDisambiguation.ts` — accepts `(typeSlug, nameSlug)`, finds ALL matching boundaries across states/counties, returns `{ matches: DisambiguationMatch[], isLoading, isSingleMatch }` with fully-qualified URLs
 
 ### Tests
 
-- [ ] T006 Update unit tests for `districtSlugPath()` in `tests/lib/slugs.test.ts` — test 4-arg overload for county-scoped and state-scoped URLs, verify deprecated 2-arg still works
-- [ ] T007 [P] Write unit tests for `useAvailableStates` in `tests/hooks/useAvailableStates.test.ts` — test single state, multiple states, loading state, `isSingleState` flag
-- [ ] T008 [P] Write unit tests for `useDistrictSlugResolverScoped` in `tests/hooks/useDistrictSlugResolverScoped.test.ts` — test state-level resolution, county-level resolution, not-found case, loading state
-- [ ] T009 [P] Write unit tests for `useDistrictDisambiguation` in `tests/hooks/useDistrictDisambiguation.test.ts` — test single match, multiple matches, zero matches, fully-qualified URL generation
+- [X] T006 Update unit tests for `districtSlugPath()` in `tests/lib/slugs.test.ts` — test 4-arg overload for county-scoped and state-scoped URLs, verify deprecated 2-arg still works
+- [X] T007 [P] Write unit tests for `useAvailableStates` in `tests/hooks/useAvailableStates.test.ts` — test single state, multiple states, loading state, `isSingleState` flag
+- [X] T008 [P] Write unit tests for `useDistrictSlugResolverScoped` in `tests/hooks/useDistrictSlugResolverScoped.test.ts` — test state-level resolution, county-level resolution, not-found case, loading state
+- [X] T009 [P] Write unit tests for `useDistrictDisambiguation` in `tests/hooks/useDistrictDisambiguation.test.ts` — test single match, multiple matches, zero matches, fully-qualified URL generation
 
 **Checkpoint**: Foundation ready — all new hooks and utilities are implemented and tested. User story implementation can now begin.
 
@@ -55,13 +55,13 @@
 
 ### Implementation
 
-- [ ] T010 [US1] Rename `src/components/GeorgiaCountyMap.tsx` to `src/components/StateCountyMap.tsx` — remove `GA_CENTER`/`GA_ZOOM` hardcoding, auto-fit map bounds to data bbox using Turf.js `bbox()` and Leaflet `fitBounds()`, accept state-filtered county features as prop
-- [ ] T011 [P] [US1] Update `src/components/CountyDetailMap.tsx` — replace `GA_CENTER`/`GA_ZOOM` with neutral default center, keep existing `fitBounds` behavior
-- [ ] T012 [P] [US1] Update `src/components/DistrictDetailMap.tsx` — replace `GA_CENTER`/`GA_ZOOM` with neutral default center, keep existing `fitBounds` behavior
-- [ ] T012a [P] [US1] Update `src/components/LayerBar.tsx` to accept a `jurisdictionUnit` prop (default `"County"`) instead of hardcoded string in label text
-- [ ] T013 [US1] Create `src/routes/$state.tsx` — validate `$state` param against `ABBREV_TO_FIPS`, filter county boundaries by state FIPS, render `StateCountyMap`, active election banner, layer bar, drawer with `ElectedOfficialsCard` and `StateCensusProfileCard`
-- [ ] T014 [P] [US1] Write unit tests for `StateCountyMap` in `tests/components/StateCountyMap.test.tsx` — test auto-fit bounds, rendering with filtered county features, prop passing
-- [ ] T015 [US1] Write unit tests for state detail route in `tests/routes/$state.test.tsx` — test valid state param, invalid state rejection, county boundary filtering, overlay search param
+- [X] T010 [US1] Rename `src/components/GeorgiaCountyMap.tsx` to `src/components/StateCountyMap.tsx` — remove `GA_CENTER`/`GA_ZOOM` hardcoding, auto-fit map bounds to data bbox using Turf.js `bbox()` and Leaflet `fitBounds()`, accept state-filtered county features as prop
+- [X] T011 [P] [US1] Update `src/components/CountyDetailMap.tsx` — replace `GA_CENTER`/`GA_ZOOM` with neutral default center, keep existing `fitBounds` behavior
+- [X] T012 [P] [US1] Update `src/components/DistrictDetailMap.tsx` — replace `GA_CENTER`/`GA_ZOOM` with neutral default center, keep existing `fitBounds` behavior
+- [X] T012a [P] [US1] Update `src/components/LayerBar.tsx` to accept a `jurisdictionUnit` prop (default `"County"`) instead of hardcoded string in label text
+- [X] T013 [US1] Create `src/routes/$state.tsx` — validate `$state` param against `ABBREV_TO_FIPS`, filter county boundaries by state FIPS, render `StateCountyMap`, active election banner, layer bar, drawer with `ElectedOfficialsCard` and `StateCensusProfileCard`
+- [X] T014 [P] [US1] Write unit tests for `StateCountyMap` in `tests/components/StateCountyMap.test.tsx` — test auto-fit bounds, rendering with filtered county features, prop passing
+- [X] T015 [US1] Write unit tests for state detail route in `tests/routes/$state.test.tsx` — test valid state param, invalid state rejection, county boundary filtering, overlay search param
 
 **Checkpoint**: State detail page (`/$state`) is functional. Users can view any state's county map with correct bounds. Map components work for any state, not just Georgia.
 
@@ -75,13 +75,13 @@
 
 ### Implementation
 
-- [ ] T016 [P] [US2] Create `src/routes/districts/$state/$type/$name.tsx` — state-level district route (3 params), use `useDistrictSlugResolverScoped(state, null, type, name)`, render `DistrictDetailContent` with resolved UUID
-- [ ] T017 [P] [US2] Create `src/routes/districts/$state/$county/$type/$name.tsx` — county-level district route (4 params), use `useDistrictSlugResolverScoped(state, county, type, name)`, render `DistrictDetailContent` with resolved UUID
-- [ ] T018 [US2] Update `src/components/CountyDetailContent.tsx` — update district links to use new `districtSlugPath()` with state abbreviation and county from route params or resolved from FIPS
-- [ ] T019 [US2] Update `src/components/DistrictDetailContent.tsx` — update navigation links (county links, related district links) to use fully-qualified URLs with state/county context
-- [ ] T020 [US2] Update `handleDistrictDblClick` in `src/components/StateCountyMap.tsx` and `src/components/CountyDetailMap.tsx` to use new `districtSlugPath()` with state abbreviation and county from feature properties, navigating to fully-qualified district routes
-- [ ] T021 [P] [US2] Write unit tests for state-level district route in `tests/routes/districts/state-district.test.tsx` — test slug resolution, DistrictDetailContent rendering, invalid state handling
-- [ ] T022 [P] [US2] Write unit tests for county-level district route in `tests/routes/districts/county-district.test.tsx` — test slug resolution with county filter, rendering, invalid state/county handling
+- [X] T016 [P] [US2] Create `src/routes/districts/$state/$type/$name.tsx` — state-level district route (3 params), use `useDistrictSlugResolverScoped(state, null, type, name)`, render `DistrictDetailContent` with resolved UUID
+- [X] T017 [P] [US2] Create `src/routes/districts/$state/$county/$type/$name.tsx` — county-level district route (4 params), use `useDistrictSlugResolverScoped(state, county, type, name)`, render `DistrictDetailContent` with resolved UUID
+- [X] T018 [US2] Update `src/components/CountyDetailContent.tsx` — update district links to use new `districtSlugPath()` with state abbreviation and county from route params or resolved from FIPS
+- [X] T019 [US2] Update `src/components/DistrictDetailContent.tsx` — update navigation links (county links, related district links) to use fully-qualified URLs with state/county context
+- [X] T020 [US2] Update `handleDistrictDblClick` in `src/components/StateCountyMap.tsx` and `src/components/CountyDetailMap.tsx` to use new `districtSlugPath()` with state abbreviation and county from feature properties, navigating to fully-qualified district routes
+- [X] T021 [P] [US2] Write unit tests for state-level district route in `tests/routes/districts/state-district.test.tsx` — test slug resolution, DistrictDetailContent rendering, invalid state handling
+- [X] T022 [P] [US2] Write unit tests for county-level district route in `tests/routes/districts/county-district.test.tsx` — test slug resolution with county filter, rendering, invalid state/county handling
 
 **Checkpoint**: All district URLs are collision-free. County-level districts include state+county in URL, state-level include state only. Internal navigation links generate fully-qualified URLs.
 
@@ -97,12 +97,12 @@
 
 ### Implementation
 
-- [ ] T023 [US3] Modify `src/routes/districts/$type/$name.tsx` — replace direct `DistrictDetailContent` rendering with `useDistrictDisambiguation(type, name)`; single match → `navigate(fullyQualifiedUrl, { replace: true })`; multiple → render `DisambiguationPage`; none → render not-found
-- [ ] T024 [P] [US3] Create `src/components/DisambiguationPage.tsx` — receives `DisambiguationMatch[]`, renders list of matches with state/county/district info and links to fully-qualified URLs using shadcn/ui `Card` components
-- [ ] T025 [US3] Modify `src/routes/counties/$countyId.tsx` — detect UUID format, fetch boundary detail to resolve state + county name, redirect to `/counties/$state/$county` with `replace: true`, preserve `overlay` search param through redirect
-- [ ] T026 [P] [US3] Write unit tests for legacy district disambiguation in `tests/routes/districts/legacy-disambiguation.test.tsx` — test single match redirect, multiple match disambiguation page, zero match not-found
-- [ ] T027 [P] [US3] Write unit tests for `DisambiguationPage` in `tests/components/DisambiguationPage.test.tsx` — test rendering with multiple matches, link generation, state/county display
-- [ ] T028 [P] [US3] Write unit tests for legacy county UUID redirect in `tests/routes/counties/legacy-county-redirect.test.tsx` — test redirect with resolved state/county, overlay param preservation, not-found handling
+- [X] T023 [US3] Modify `src/routes/districts/$type/$name.tsx` — replace direct `DistrictDetailContent` rendering with `useDistrictDisambiguation(type, name)`; single match → `navigate(fullyQualifiedUrl, { replace: true })`; multiple → render `DisambiguationPage`; none → render not-found
+- [X] T024 [P] [US3] Create `src/components/DisambiguationPage.tsx` — receives `DisambiguationMatch[]`, renders list of matches with state/county/district info and links to fully-qualified URLs using shadcn/ui `Card` components
+- [X] T025 [US3] Modify `src/routes/counties/$countyId.tsx` — detect UUID format, fetch boundary detail to resolve state + county name, redirect to `/counties/$state/$county` with `replace: true`, preserve `overlay` search param through redirect
+- [X] T026 [P] [US3] Write unit tests for legacy district disambiguation in `tests/routes/districts/legacy-disambiguation.test.tsx` — test single match redirect, multiple match disambiguation page, zero match not-found
+- [X] T027 [P] [US3] Write unit tests for `DisambiguationPage` in `tests/components/DisambiguationPage.test.tsx` — test rendering with multiple matches, link generation, state/county display
+- [X] T028 [P] [US3] Write unit tests for legacy county UUID redirect in `tests/routes/counties/legacy-county-redirect.test.tsx` — test redirect with resolved state/county, overlay param preservation, not-found handling
 
 **Checkpoint**: All legacy URLs work. Single-match slugs redirect transparently. Collisions show disambiguation. UUID routes remain functional. No existing URL returns a 404.
 
@@ -118,12 +118,12 @@
 
 ### Implementation
 
-- [ ] T029 [US4] Modify `src/routes/index.tsx` — use `useAvailableStates()`, single state renders `StateCountyMap` inline (current behavior parameterized), multiple states renders `StateSelectionPage`; remove hardcoded `fipsState="13"`, `stateName="Georgia"`, and Georgia-specific overlay enum
-- [ ] T030 [P] [US4] Create `src/components/StateSelectionPage.tsx` — displays available states as cards or list, each linking to `/$state`, using shadcn/ui components
-- [ ] T031 [US4] Update `src/routes/__root.tsx` — add `useMatch` for `/$state` route, add route matching for new district route patterns, update `handleTypeChange` to navigate to `/$state` overlay on state page, update header title logic for state page context
-- [ ] T032 [P] [US4] Write unit tests for `StateSelectionPage` in `tests/components/StateSelectionPage.test.tsx` — test rendering with multiple states, link generation, state card display
-- [ ] T033 [US4] Write unit tests for updated home page in `tests/routes/index.test.tsx` — test single state auto-display, multiple state selection, `useAvailableStates` integration
-- [ ] T034 [US4] Write unit tests for updated root layout in `tests/routes/__root.test.tsx` — test new route matching, header title for state page, `handleTypeChange` navigation
+- [X] T029 [US4] Modify `src/routes/index.tsx` — use `useAvailableStates()`, single state renders `StateCountyMap` inline (current behavior parameterized), multiple states renders `StateSelectionPage`; remove hardcoded `fipsState="13"`, `stateName="Georgia"`, and Georgia-specific overlay enum
+- [X] T030 [P] [US4] Create `src/components/StateSelectionPage.tsx` — displays available states as cards or list, each linking to `/$state`, using shadcn/ui components
+- [X] T031 [US4] Update `src/routes/__root.tsx` — add `useMatch` for `/$state` route, add route matching for new district route patterns, update `handleTypeChange` to navigate to `/$state` overlay on state page, update header title logic for state page context
+- [X] T032 [P] [US4] Write unit tests for `StateSelectionPage` in `tests/components/StateSelectionPage.test.tsx` — test rendering with multiple states, link generation, state card display
+- [X] T033 [US4] Write unit tests for updated home page in `tests/routes/index.test.tsx` — test single state auto-display, multiple state selection, `useAvailableStates` integration
+- [X] T034 [US4] Write unit tests for updated root layout in `tests/routes/__root.test.tsx` — test new route matching, header title for state page, `handleTypeChange` navigation
 
 **Checkpoint**: Home page adapts to available states. Single state shows map directly. Multiple states show selection. Root layout correctly handles all route patterns.
 
@@ -137,10 +137,10 @@
 
 ### Implementation
 
-- [ ] T035 [US5] Add geographic navigation context to Zustand store in `src/stores/navigation-context.ts` — track current state abbreviation and county slug from route navigation
-- [ ] T036 [US5] Update voter search page in `src/routes/voters/index.tsx` to read navigation context and pre-populate county filter when arriving from a county detail page
-- [ ] T037 [US5] Update election page in `src/routes/elections/index.tsx` to support state/county context filtering when navigating from a geographic page
-- [ ] T038 [US5] Write unit tests for navigation context store in `tests/stores/navigation-context.test.ts` and filter pre-population behavior
+- [X] T035 [US5] Add geographic navigation context to Zustand store in `src/stores/navigation-context.ts` — track current state abbreviation and county slug from route navigation
+- [X] T036 [US5] Update voter search page in `src/routes/voters/index.tsx` to read navigation context and pre-populate county filter when arriving from a county detail page
+- [X] T037 [US5] Update election page in `src/routes/elections/index.tsx` to support state/county context filtering when navigating from a geographic page
+- [X] T038 [US5] Write unit tests for navigation context store in `tests/stores/navigation-context.test.ts` and filter pre-population behavior
 
 **Checkpoint**: Voter and election pages respect geographic context from navigation. Filters pre-populate when arriving from county/state pages. Direct navigation shows unfiltered data.
 
@@ -150,13 +150,13 @@
 
 **Purpose**: E2E tests, visual verification, cleanup of deprecated code, documentation
 
-- [ ] T039 Write E2E test for multi-state navigation in `e2e/multi-state-navigation.spec.ts` — test state page rendering, county navigation from state, district URL resolution for both state-level and county-level
-- [ ] T040 [P] Write E2E test for legacy URL compatibility in `e2e/legacy-url-compat.spec.ts` — test legacy district slug redirect, disambiguation page, legacy UUID county redirect, and verify UUID district route (`/districts/{uuid}`) still renders correctly (FR-003 regression)
-- [ ] T041 Run full test suite (`npm test -- --run`) and linter (`npm run lint`) — fix any failures
-- [ ] T042 Visual verification using Playwright MCP — state page map rendering, disambiguation page layout, state selection page, verify screenshots saved to `screenshots/`
-- [ ] T043 Remove deprecated code paths — remove old 2-arg `districtSlugPath` signature if all callers updated, remove any unused Georgia-specific constants
-- [ ] T044 Update CLAUDE.md with new route patterns and any new conventions introduced
-- [ ] T045 Measure page load times for district and county detail routes before and after implementation to validate SC-006 (within 20% of baseline) — use browser DevTools or Lighthouse via Playwright MCP
+- [X] T039 Write E2E test for multi-state navigation in `e2e/multi-state-navigation.spec.ts` — test state page rendering, county navigation from state, district URL resolution for both state-level and county-level
+- [X] T040 [P] Write E2E test for legacy URL compatibility in `e2e/legacy-url-compat.spec.ts` — test legacy district slug redirect, disambiguation page, legacy UUID county redirect, and verify UUID district route (`/districts/{uuid}`) still renders correctly (FR-003 regression)
+- [X] T041 Run full test suite (`npm test -- --run`) and linter (`npm run lint`) — fix any failures
+- [X] T042 Visual verification using Playwright MCP — state page map rendering, disambiguation page layout, state selection page, verify screenshots saved to `screenshots/`
+- [X] T043 Remove deprecated code paths — remove old 2-arg `districtSlugPath` signature if all callers updated, remove any unused Georgia-specific constants
+- [X] T044 Update CLAUDE.md with new route patterns and any new conventions introduced
+- [X] T045 Measure page load times for district and county detail routes before and after implementation to validate SC-006 (within 20% of baseline) — use browser DevTools or Lighthouse via Playwright MCP
 
 ---
 

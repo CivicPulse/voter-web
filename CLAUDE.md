@@ -65,6 +65,26 @@ Edit `.env` to configure the API base URL if needed (defaults to `http://localho
 - `src/routeTree.gen.ts` is ignored by ESLint and marked read-only in VSCode.
 - **Map visualization:** District overlays use a colorblind-friendly color palette. Double-click on a district to navigate to its detail page.
 
+### URL Routing Patterns
+
+The app supports multi-state, collision-free URL routing:
+
+- **State pages:** `/$state` (e.g., `/ga`) — shows state map with county boundaries
+- **County pages:** `/counties/$state/$county` (e.g., `/counties/ga/bibb`) — slug-based county detail
+- **County pages (legacy):** `/counties/$countyId` — UUID-based, redirects to slug URL
+- **State-level districts:** `/districts/$state/$type/$name` (e.g., `/districts/ga/state-senate/018`)
+- **County-level districts:** `/districts/$state/$county/$type/$name` (e.g., `/districts/ga/bibb/county-commission/005`)
+- **Legacy district slugs:** `/districts/$type/$name` — auto-redirects to fully-qualified URL if single match, shows disambiguation page if multiple matches
+- **Legacy district UUID:** `/districts/$districtId` — still works directly
+
+**Key conventions:**
+
+- District scope is determined by the `county` field: present = county-scoped, null = state-scoped
+- State abbreviation is derived from the first 2 digits of `boundary_identifier` (FIPS code)
+- URL slugs are lowercase, hyphenated (e.g., `county-commission`, `ben-hill`)
+- The `districtSlugPath()` utility in `src/lib/slugs.ts` generates fully-qualified district URLs
+- Navigation context (Zustand store in `src/stores/navigation-context.ts`) tracks geographic context for pre-populating voter/election filters
+
 ## Admin Features
 
 The app includes a comprehensive admin panel for managing users, imports, and exports. Admin routes are protected by role-based access control.
