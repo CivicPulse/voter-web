@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sheet"
 import { LayerBar } from "@/components/LayerBar"
 import { useAuthStore } from "@/stores/authStore"
+import { useNavigationContext } from "@/stores/navigation-context"
 import { useCountyBoundary } from "@/hooks/useCountyBoundary"
 import { useCountySlugResolver } from "@/hooks/useCountySlugResolver"
 import { useDistrictSlugResolver } from "@/hooks/useDistrictSlugResolver"
@@ -26,6 +27,7 @@ import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import { useStatewideOverlayTypes } from "@/hooks/useStatewideOverlayTypes"
 import { useAvailableStates } from "@/hooks/useAvailableStates"
 import { ABBREV_TO_NAME } from "@/lib/states"
+import { resolveHeaderTitle } from "@/lib/resolve-header-title"
 import { useUserRole } from "@/lib/hooks/use-user-role"
 import {
   useActiveElections,
@@ -186,29 +188,6 @@ function MobileNav({
   )
 }
 
-export function resolveHeaderTitle(ctx: {
-  isOnDistrictRoute: boolean
-  district: { name: string; boundary_type: string } | undefined
-  isOnCountyRoute: boolean
-  county: { name: string } | undefined
-  isOnStatePage: boolean
-  stateAbbrev: string | undefined
-  isOnLookupPage: boolean
-  isOnHomePage: boolean
-}): string | null {
-  if (ctx.isOnDistrictRoute && ctx.district) {
-    const typeLabel = ctx.district.boundary_type.replaceAll("_", " ")
-    return `${ctx.district.name} (${typeLabel})`
-  }
-  if (ctx.isOnCountyRoute && ctx.county) return `${ctx.county.name} County`
-  if (ctx.isOnStatePage && ctx.stateAbbrev) {
-    return ABBREV_TO_NAME[ctx.stateAbbrev] ?? ctx.stateAbbrev.toUpperCase()
-  }
-  if (ctx.isOnLookupPage) return "Address Lookup"
-  if (ctx.isOnHomePage) return "Voter Web"
-  return null
-}
-
 function RootLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const user = useAuthStore((state) => state.user)
@@ -332,6 +311,19 @@ function RootLayout() {
     isOnLookupPage: !!(lookupMatch || lookupResultsMatch),
     isOnHomePage,
   })
+
+  // Update navigation context for geographic pages (used by voter/election filters)
+  const setNavContext = useNavigationContext((s) => s.setContext)
+  useEffect(() => {
+    if (isOnCountyRoute && county) {
+      const stateAbbrev = countySlugMatch?.params?.state ?? defaultState?.abbreviation ?? null
+      setNavContext(stateAbbrev, county.name)
+    } else if (isOnStatePage && stateMatch) {
+      setNavContext(stateMatch.params.state, null)
+    } else if (isOnHomePage && defaultState) {
+      setNavContext(defaultState.abbreviation, null)
+    }
+  }, [isOnCountyRoute, county, isOnStatePage, stateMatch, isOnHomePage, defaultState, countySlugMatch, setNavContext])
 
   // Layer bar type change callback
   const handleTypeChange = (type: string | undefined) => {

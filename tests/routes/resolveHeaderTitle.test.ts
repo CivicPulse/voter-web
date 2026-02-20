@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { resolveHeaderTitle } from "@/routes/__root"
+import { resolveHeaderTitle } from "@/lib/resolve-header-title"
 
 const defaults = {
   isOnDistrictRoute: false,

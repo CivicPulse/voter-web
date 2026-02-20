@@ -1,10 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { useEffect, useRef } from "react"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { Loader2, Users } from "lucide-react"
 import { useVoterSearch } from "@/hooks/useVoters"
 import { VoterSearchFilters } from "@/routes/voters/_components/VoterSearchFilters"
 import { VoterTable } from "@/routes/voters/_components/VoterTable"
 import { BulkGeocodeButton } from "@/routes/voters/_components/BulkGeocodeButton"
+import { useNavigationContext } from "@/stores/navigation-context"
 
 const voterSearchSchema = z.object({
   q: z.string().optional().catch(undefined),
@@ -28,7 +30,23 @@ export const Route = createFileRoute("/voters/")({
 
 function VoterSearchPage() {
   const params = Route.useSearch()
+  const navigate = useNavigate()
   const { data, isLoading, error } = useVoterSearch(params)
+
+  // Pre-populate county filter from navigation context (one-time on mount)
+  const navCounty = useNavigationContext((s) => s.countyName)
+  const appliedRef = useRef(false)
+  useEffect(() => {
+    if (appliedRef.current || params.county) return
+    if (navCounty) {
+      appliedRef.current = true
+      navigate({
+        to: "/voters",
+        search: { ...params, county: navCounty },
+        replace: true,
+      })
+    }
+  }, [navCounty, params, navigate])
 
   return (
     <div className="max-w-6xl mx-auto">

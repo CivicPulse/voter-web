@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useState } from "react"
-import { Calendar, ChevronLeft, ChevronRight, Loader2, Vote } from "lucide-react"
+import { Calendar, ChevronLeft, ChevronRight, Loader2, MapPin, Vote } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -13,6 +13,8 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { useElections } from "@/lib/hooks/use-elections"
 import { useElectionFilters } from "@/lib/hooks/use-election-filters"
+import { useNavigationContext } from "@/stores/navigation-context"
+import { ABBREV_TO_NAME } from "@/lib/states"
 import type { ElectionEvent } from "@/types/elections"
 
 export const Route = createFileRoute("/elections/")({
@@ -65,11 +67,26 @@ function ElectionsListPage() {
 
   const { data, isLoading, error } = useElections(electionFilters, page)
 
+  const navState = useNavigationContext((s) => s.stateAbbrev)
+  const navCounty = useNavigationContext((s) => s.countyName)
+  let contextLabel: string | null = null
+  if (navCounty && navState) {
+    contextLabel = `${navCounty} County, ${ABBREV_TO_NAME[navState] ?? navState.toUpperCase()}`
+  } else if (navState) {
+    contextLabel = ABBREV_TO_NAME[navState] ?? navState.toUpperCase()
+  }
+
   return (
     <div className="container mx-auto px-4 py-4 sm:p-6 max-w-3xl">
       <div className="flex items-center gap-3 mb-6">
         <Vote className="h-6 w-6" />
         <h1 className="text-2xl font-bold">Elections</h1>
+        {contextLabel && (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <MapPin className="h-3 w-3" />
+            {contextLabel}
+          </span>
+        )}
       </div>
 
       {/* Filters */}
