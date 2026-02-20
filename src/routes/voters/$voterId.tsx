@@ -67,13 +67,7 @@ function VoterDetailPage() {
         )}
       </div>
 
-      <DistrictAssignmentsCard
-        congressional_district={voter.congressional_district}
-        state_senate_district={voter.state_senate_district}
-        state_house_district={voter.state_house_district}
-        county_precinct={voter.county_precinct}
-        precinct={voter.precinct}
-      />
+      <DistrictAssignmentsCard districts={voter} />
     </div>
   )
 }

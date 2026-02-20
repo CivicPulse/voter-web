@@ -3,6 +3,7 @@ import type {
   VoterDetail,
   VoterSearchResponse,
   VoterFilterOptions,
+  RegisteredDistricts,
 } from "@/types/voter"
 import type { VoterGeocodedLocation } from "@/types/lookup"
 
@@ -43,8 +44,32 @@ export function mockVoterDetail(
     state_senate_district: "18",
     state_house_district: "145",
     county_precinct: "0001",
-    precinct: null,
+    county_precinct_description: "HOWARD 7",
+    municipal_precinct: null,
+    municipal_precinct_description: null,
+    judicial_district: "MACO",
+    county_commission_district: "1",
+    school_board_district: "6",
+    city_council_district: null,
+    municipal_school_board_district: null,
     ...overrides,
+  }
+}
+
+export function mockNullDistricts(): RegisteredDistricts {
+  return {
+    congressional_district: null,
+    state_senate_district: null,
+    state_house_district: null,
+    county_precinct: null,
+    county_precinct_description: null,
+    municipal_precinct: null,
+    municipal_precinct_description: null,
+    judicial_district: null,
+    county_commission_district: null,
+    school_board_district: null,
+    city_council_district: null,
+    municipal_school_board_district: null,
   }
 }
 

@@ -8,7 +8,22 @@ export interface VoterSummary {
   status: string
 }
 
-export interface VoterDetail {
+export interface RegisteredDistricts {
+  congressional_district: string | null
+  state_senate_district: string | null
+  state_house_district: string | null
+  county_precinct: string | null
+  county_precinct_description: string | null
+  municipal_precinct: string | null
+  municipal_precinct_description: string | null
+  judicial_district: string | null
+  county_commission_district: string | null
+  school_board_district: string | null
+  city_council_district: string | null
+  municipal_school_board_district: string | null
+}
+
+export interface VoterDetail extends RegisteredDistricts {
   id: string
   first_name: string
   middle_name: string | null
@@ -23,11 +38,6 @@ export interface VoterDetail {
   city: string
   state: string
   zip_code: string
-  congressional_district: string | null
-  state_senate_district: string | null
-  state_house_district: string | null
-  county_precinct: string | null
-  precinct: string | null
 }
 
 export interface VoterSearchResponse {
