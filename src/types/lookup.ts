@@ -44,7 +44,7 @@ export interface LookupDistrict {
 export interface PointLookupResponse {
   latitude: number
   longitude: number
-  accuracy: number | null
+  accuracy_radius_meters: number | null
   districts: LookupDistrict[]
 }
 
@@ -92,10 +92,10 @@ export interface VoterGeocodedLocation {
   voter_id: string
   latitude: number
   longitude: number
-  confidence_score: number
+  confidence_score: number | null
   source_type: string
   is_primary: boolean
-  input_address: string
+  input_address: string | null
   geocoded_at: string
 }
 

@@ -2,6 +2,7 @@
 
 A SPA web interface for the [voter-api](https://github.com/CivicPulse/voter-api) backend.
 
+
 ## Tech Stack
 
 - **React 19** + **TypeScript** + **Vite 7**

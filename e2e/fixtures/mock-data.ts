@@ -8,6 +8,7 @@
 
 export const ELECTION_ID = "550e8400-e29b-41d4-a716-446655440000"
 export const ELECTION_DATE = "2026-02-17"
+export const VOTER_ID = "v-001"
 
 // ---------------------------------------------------------------------------
 // Shared candidate data
@@ -239,3 +240,174 @@ export const boundaryGeoJSONResponse = {
     },
   ],
 }
+
+// ---------------------------------------------------------------------------
+// Voter Search & Geocoding
+// ---------------------------------------------------------------------------
+
+export const voterSearchResponse = {
+  items: [
+    {
+      id: VOTER_ID,
+      voter_registration_number: "GA-12345678",
+      first_name: "Jane",
+      last_name: "Smith",
+      county: "Bibb",
+      registration_date: "2020-01-15",
+      status: "Active",
+    },
+    {
+      id: "v-002",
+      voter_registration_number: "GA-87654321",
+      first_name: "John",
+      last_name: "Smith",
+      county: "Fulton",
+      registration_date: "2019-06-20",
+      status: "Active",
+    },
+    {
+      id: "v-003",
+      voter_registration_number: "GA-11223344",
+      first_name: "Robert",
+      last_name: "Smithson",
+      county: "DeKalb",
+      registration_date: "2021-03-10",
+      status: "Inactive",
+    },
+  ],
+  total: 3,
+  page: 1,
+  page_size: 25,
+  pages: 1,
+}
+
+export const voterDetailResponse = {
+  id: VOTER_ID,
+  voter_registration_number: "GA-12345678",
+  first_name: "Jane",
+  middle_name: "Marie",
+  last_name: "Smith",
+  suffix: null,
+  county: "Bibb",
+  status: "Active",
+  registration_date: "2020-01-15",
+  residence_address: {
+    street_number: "123",
+    pre_direction: null,
+    street_name: "Main St",
+    street_type: null,
+    post_direction: null,
+    apt_unit_number: "Apt 4B",
+    city: "Macon",
+    zipcode: "31201",
+    full_address: "123 Main St, Macon, GA 31201",
+  },
+  mailing_address: null,
+  geocoded_locations: [],
+  present_in_latest_import: true,
+  created_at: "2020-01-15T00:00:00Z",
+  updated_at: "2026-01-15T10:30:00Z",
+}
+
+export const voterFilterOptionsResponse = {
+  counties: ["Bibb", "DeKalb", "Fulton", "Gwinnett"],
+  statuses: ["Active", "Inactive"],
+  congressional_districts: ["5", "10", "13"],
+  state_senate_districts: ["18", "25"],
+  state_house_districts: ["145", "150"],
+  residence_cities: ["Macon", "Atlanta", "Augusta"],
+  residence_zipcodes: ["31201", "30301"],
+}
+
+export const voterGeocodedLocationsResponse = [
+  {
+    id: "loc-001",
+    voter_id: VOTER_ID,
+    latitude: 32.8407,
+    longitude: -83.6324,
+    confidence_score: 0.95,
+    source_type: "census",
+    is_primary: true,
+    input_address: "123 Main St, Macon, GA 31201",
+    geocoded_at: "2026-01-15T10:30:00Z",
+  },
+  {
+    id: "loc-002",
+    voter_id: VOTER_ID,
+    latitude: 32.8412,
+    longitude: -83.6318,
+    confidence_score: 0.88,
+    source_type: "osm",
+    is_primary: false,
+    input_address: "123 Main St, Macon, GA 31201",
+    geocoded_at: "2026-01-15T10:30:00Z",
+  },
+]
+
+export const voterPointLookupResponse = {
+  latitude: 32.8407,
+  longitude: -83.6324,
+  accuracy_radius_meters: null,
+  districts: [
+    {
+      boundary_type: "county",
+      name: "Bibb County",
+      boundary_identifier: "bibb",
+      boundary_id: "bd-001",
+      metadata: {},
+    },
+    {
+      boundary_type: "congressional",
+      name: "Congressional District 2",
+      boundary_identifier: "ga-cd-002",
+      boundary_id: "bd-002",
+      metadata: {},
+    },
+    {
+      boundary_type: "state_senate",
+      name: "State Senate District 18",
+      boundary_identifier: "ga-ss-018",
+      boundary_id: "bd-003",
+      metadata: {},
+    },
+    {
+      boundary_type: "state_house",
+      name: "State House District 145",
+      boundary_identifier: "ga-sh-145",
+      boundary_id: "bd-004",
+      metadata: {},
+    },
+    {
+      boundary_type: "county_precinct",
+      name: "Precinct 1",
+      boundary_identifier: "bibb-p1",
+      boundary_id: "bd-005",
+      metadata: {},
+    },
+  ],
+}
+
+export const voterGeocodeResultResponse = [
+  {
+    id: "loc-001",
+    voter_id: VOTER_ID,
+    latitude: 32.8407,
+    longitude: -83.6324,
+    confidence_score: 0.95,
+    source_type: "census",
+    is_primary: true,
+    input_address: "123 Main St, Macon, GA 31201",
+    geocoded_at: "2026-02-18T14:00:00Z",
+  },
+  {
+    id: "loc-003",
+    voter_id: VOTER_ID,
+    latitude: 32.8415,
+    longitude: -83.6320,
+    confidence_score: 0.82,
+    source_type: "osm",
+    is_primary: false,
+    input_address: "123 Main St, Macon, GA 31201",
+    geocoded_at: "2026-02-18T14:00:00Z",
+  },
+]
