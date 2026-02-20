@@ -156,37 +156,25 @@ export function OverlayLayer({
           ${officialsHtml}
         </div>`,
       )
-      // Remove auto-open-on-click so the popup doesn't block dblclick
-      layer.off("click")
-
-      if (hasElection) {
-        layer.on("add", () => {
-          const el = (layer as Path).getElement()
-          if (el) el.classList.add("election-pulse")
-        })
-      }
 
       let popupTimer: ReturnType<typeof setTimeout> | null = null
 
-      layer.on({
-        click: () => {
-          if (popupTimer) clearTimeout(popupTimer)
-          popupTimer = setTimeout(() => {
-            layer.openPopup()
-          }, 250)
-        },
-        mouseover: (e: LeafletMouseEvent) => {
-          e.target.setStyle(OVERLAY_HOVER_STYLE)
-          e.target.bringToFront()
-        },
-        mouseout: (e: LeafletMouseEvent) => {
-          e.target.setStyle(defaultStyle)
-        },
-        dblclick: () => {
+      layer.on("add", () => {
+        const el = (layer as Path).getElement()
+        if (!el) return
+
+        if (hasElection) el.classList.add("election-pulse")
+
+        // Use native DOM dblclick on the SVG element because Leaflet's
+        // internal event routing does not reliably dispatch dblclick to
+        // GeoJSON feature layers (the popup intercepts the second click).
+        el.addEventListener("dblclick", (e) => {
+          e.stopPropagation()
           if (popupTimer) {
             clearTimeout(popupTimer)
             popupTimer = null
           }
+          layer.closePopup()
           if (onDistrictDblClick) {
             onDistrictDblClick(
               String(feature.id ?? props.boundary_identifier),
@@ -196,6 +184,16 @@ export function OverlayLayer({
               props.boundary_identifier,
             )
           }
+        })
+      })
+
+      layer.on({
+        mouseover: (e: LeafletMouseEvent) => {
+          e.target.setStyle(OVERLAY_HOVER_STYLE)
+          e.target.bringToFront()
+        },
+        mouseout: (e: LeafletMouseEvent) => {
+          e.target.setStyle(defaultStyle)
         },
       })
     },
