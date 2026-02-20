@@ -151,7 +151,7 @@ describe("searchVoters", () => {
 
 describe("getVoterDetail", () => {
   it("calls GET /voters/{voterId} and transforms backend response", async () => {
-    // Backend returns voter_registration_number and nested residence_address
+    // Backend returns voter_registration_number, nested residence_address, and district fields
     mockJson.mockResolvedValue({
       id: "v-001",
       voter_registration_number: "GA-12345678",
@@ -173,6 +173,11 @@ describe("getVoterDetail", () => {
         zipcode: "31201",
         full_address: "123 Main St, Macon, GA 31201",
       },
+      congressional_district: "5",
+      state_senate_district: "18",
+      state_house_district: "145",
+      county_precinct: "0001",
+      precinct: null,
     })
 
     const result = await getVoterDetail("v-001")
@@ -193,6 +198,11 @@ describe("getVoterDetail", () => {
       city: "Macon",
       state: "",
       zip_code: "31201",
+      congressional_district: "5",
+      state_senate_district: "18",
+      state_house_district: "145",
+      county_precinct: "0001",
+      precinct: null,
     })
   })
 })

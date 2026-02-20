@@ -5,7 +5,6 @@ import { mockVoterDetail, mockVoterGeocodedLocation } from "@/test/mocks/voters"
 // Mock hooks
 const mockUseVoterDetail = vi.fn()
 const mockUseVoterGeocodedLocations = vi.fn()
-const mockUsePointLookup = vi.fn()
 
 vi.mock("@/lib/hooks/use-user-role", () => ({
   useUserRole: vi.fn(() => ({ data: { role: "viewer" } })),
@@ -19,7 +18,6 @@ vi.mock("@/hooks/useVoters", () => ({
 vi.mock("@/hooks/useAddressLookup", () => ({
   useVoterGeocodedLocations: (...args: unknown[]) =>
     mockUseVoterGeocodedLocations(...args),
-  usePointLookup: (...args: unknown[]) => mockUsePointLookup(...args),
   useSetPrimaryLocation: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }))
 
@@ -43,7 +41,7 @@ vi.mock("@/routes/voters/_components/GeocodedLocationMap", () => ({
 import { VoterRegistrationCard } from "@/routes/voters/_components/VoterRegistrationCard"
 import { GeocodedLocationsCard } from "@/routes/voters/_components/GeocodedLocationsCard"
 import { DistrictAssignmentsCard } from "@/routes/voters/_components/DistrictAssignmentsCard"
-import type { LookupDistrict } from "@/types/lookup"
+import type { VoterDetail } from "@/types/voter"
 
 // We test the page composition logic directly since route components
 // require TanStack Router context that's complex to mock fully
@@ -54,15 +52,6 @@ function VoterDetailTestPage({
 }) {
   const { data: voter, isLoading, error } = mockUseVoterDetail(voterId)
   const { data: locations } = mockUseVoterGeocodedLocations(voterId)
-
-  const officialLocation = locations?.find(
-    (l: { is_primary: boolean }) => l.is_primary,
-  ) ?? null
-  const { data: pointLookup } = mockUsePointLookup(
-    officialLocation
-      ? { lat: officialLocation.latitude, lng: officialLocation.longitude }
-      : null,
-  )
 
   if (isLoading) {
     return <div>Loading...</div>
@@ -80,14 +69,19 @@ function VoterDetailTestPage({
     )
   }
 
+  const v = voter as VoterDetail
+
   return (
     <div>
       <a href="/voters">Back to Search</a>
       <VoterRegistrationCard voter={voter} />
       <GeocodedLocationsCard locations={locations ?? []} voterId={voterId} />
       <DistrictAssignmentsCard
-        districts={pointLookup?.districts ?? null}
-        hasOfficialLocation={!!officialLocation}
+        congressional_district={v.congressional_district}
+        state_senate_district={v.state_senate_district}
+        state_house_district={v.state_house_district}
+        county_precinct={v.county_precinct}
+        precinct={v.precinct}
       />
     </div>
   )
@@ -97,7 +91,6 @@ describe("VoterDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockUseVoterGeocodedLocations.mockReturnValue({ data: [] })
-    mockUsePointLookup.mockReturnValue({ data: null })
   })
 
   it("shows loading spinner while data is fetching", () => {
@@ -167,102 +160,71 @@ describe("VoterDetailPage", () => {
     expect(screen.getByText("osm")).toBeInTheDocument()
   })
 
-  it("shows district assignments when official location exists", () => {
-    const voter = mockVoterDetail()
-    const locations = [
-      mockVoterGeocodedLocation({ is_primary: true }),
-    ]
-    const districts: LookupDistrict[] = [
-      {
-        boundary_type: "county",
-        name: "Bibb County",
-        boundary_identifier: "bibb",
-        boundary_id: "b-001",
-        metadata: {},
-      },
-      {
-        boundary_type: "congressional",
-        name: "District 2",
-        boundary_identifier: "ga-02",
-        boundary_id: "b-002",
-        metadata: {},
-      },
-    ]
+  it("shows district assignments from voter file data", () => {
+    const voter = mockVoterDetail({
+      congressional_district: "5",
+      state_senate_district: "18",
+      state_house_district: "145",
+      county_precinct: "0001",
+      precinct: null,
+    })
     mockUseVoterDetail.mockReturnValue({
       data: voter,
       isLoading: false,
       error: null,
     })
-    mockUseVoterGeocodedLocations.mockReturnValue({ data: locations })
-    mockUsePointLookup.mockReturnValue({
-      data: { districts },
-    })
 
     render(<VoterDetailTestPage voterId="v-001" />)
 
-    expect(screen.getByText("Bibb County")).toBeInTheDocument()
-    expect(screen.getByText("District 2")).toBeInTheDocument()
+    expect(screen.getByText("Congressional")).toBeInTheDocument()
+    expect(screen.getByText("5")).toBeInTheDocument()
+    expect(screen.getByText("State Senate")).toBeInTheDocument()
+    expect(screen.getByText("18")).toBeInTheDocument()
+    expect(screen.getByText("State House")).toBeInTheDocument()
+    expect(screen.getByText("145")).toBeInTheDocument()
+    expect(screen.getByText("County Precinct")).toBeInTheDocument()
+    expect(screen.getByText("0001")).toBeInTheDocument()
   })
 
-  it("shows no-location message for districts when no official location", () => {
-    const voter = mockVoterDetail()
-    const locations = [
-      mockVoterGeocodedLocation({ is_primary: false }),
-    ]
-    mockUseVoterDetail.mockReturnValue({
-      data: voter,
-      isLoading: false,
-      error: null,
+  it("shows district assignments even without a geocoded location", () => {
+    const voter = mockVoterDetail({
+      congressional_district: "10",
+      state_senate_district: null,
+      state_house_district: null,
+      county_precinct: null,
+      precinct: null,
     })
-    mockUseVoterGeocodedLocations.mockReturnValue({ data: locations })
-    mockUsePointLookup.mockReturnValue({ data: null })
-
-    render(<VoterDetailTestPage voterId="v-001" />)
-
-    expect(
-      screen.getByText(
-        "District assignments cannot be determined until an official location is selected.",
-      ),
-    ).toBeInTheDocument()
-  })
-
-  it("passes point lookup params from official location", () => {
-    const voter = mockVoterDetail()
-    const locations = [
-      mockVoterGeocodedLocation({
-        latitude: 32.8407,
-        longitude: -83.6324,
-        is_primary: true,
-      }),
-    ]
-    mockUseVoterDetail.mockReturnValue({
-      data: voter,
-      isLoading: false,
-      error: null,
-    })
-    mockUseVoterGeocodedLocations.mockReturnValue({ data: locations })
-    mockUsePointLookup.mockReturnValue({ data: null })
-
-    render(<VoterDetailTestPage voterId="v-001" />)
-
-    expect(mockUsePointLookup).toHaveBeenCalledWith({
-      lat: 32.8407,
-      lng: -83.6324,
-    })
-  })
-
-  it("passes null to point lookup when no official location", () => {
-    const voter = mockVoterDetail()
     mockUseVoterDetail.mockReturnValue({
       data: voter,
       isLoading: false,
       error: null,
     })
     mockUseVoterGeocodedLocations.mockReturnValue({ data: [] })
-    mockUsePointLookup.mockReturnValue({ data: null })
 
     render(<VoterDetailTestPage voterId="v-001" />)
 
-    expect(mockUsePointLookup).toHaveBeenCalledWith(null)
+    expect(screen.getByText("Congressional")).toBeInTheDocument()
+    expect(screen.getByText("10")).toBeInTheDocument()
+  })
+
+  it("shows no districts message when all district fields are null", () => {
+    const voter = mockVoterDetail({
+      congressional_district: null,
+      state_senate_district: null,
+      state_house_district: null,
+      county_precinct: null,
+      precinct: null,
+    })
+    mockUseVoterDetail.mockReturnValue({
+      data: voter,
+      isLoading: false,
+      error: null,
+    })
+
+    render(<VoterDetailTestPage voterId="v-001" />)
+
+    expect(
+      screen.getByText("No district assignments found in voter file."),
+    ).toBeInTheDocument()
   })
 })

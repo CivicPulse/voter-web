@@ -52,6 +52,11 @@ interface RawVoterDetail {
   registration_date: string | null
   county: string
   residence_address: AddressResponse
+  congressional_district?: string | null
+  state_senate_district?: string | null
+  state_house_district?: string | null
+  county_precinct?: string | null
+  precinct?: string | null
 }
 
 export async function searchVoters(
@@ -114,6 +119,11 @@ export async function getVoterDetail(
     city: addr.city ?? "",
     state: "",
     zip_code: addr.zipcode ?? "",
+    congressional_district: raw.congressional_district ?? null,
+    state_senate_district: raw.state_senate_district ?? null,
+    state_house_district: raw.state_house_district ?? null,
+    county_precinct: raw.county_precinct ?? null,
+    precinct: raw.precinct ?? null,
   }
 }
 

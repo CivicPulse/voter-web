@@ -3,7 +3,6 @@ import { ArrowLeft, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useVoterDetail } from "@/hooks/useVoters"
 import { useVoterGeocodedLocations } from "@/hooks/useAddressLookup"
-import { usePointLookup } from "@/hooks/useAddressLookup"
 import { VoterRegistrationCard } from "@/routes/voters/_components/VoterRegistrationCard"
 import { GeocodedLocationsCard } from "@/routes/voters/_components/GeocodedLocationsCard"
 import { GeocodedLocationMap } from "@/routes/voters/_components/GeocodedLocationMap"
@@ -17,13 +16,6 @@ function VoterDetailPage() {
   const { voterId } = Route.useParams()
   const { data: voter, isLoading, error } = useVoterDetail(voterId)
   const { data: locations } = useVoterGeocodedLocations(voterId)
-
-  const officialLocation = locations?.find((l) => l.is_primary) ?? null
-  const { data: pointLookup } = usePointLookup(
-    officialLocation
-      ? { lat: officialLocation.latitude, lng: officialLocation.longitude }
-      : null,
-  )
 
   if (isLoading) {
     return (
@@ -76,8 +68,11 @@ function VoterDetailPage() {
       </div>
 
       <DistrictAssignmentsCard
-        districts={pointLookup?.districts ?? null}
-        hasOfficialLocation={!!officialLocation}
+        congressional_district={voter.congressional_district}
+        state_senate_district={voter.state_senate_district}
+        state_house_district={voter.state_house_district}
+        county_precinct={voter.county_precinct}
+        precinct={voter.precinct}
       />
     </div>
   )

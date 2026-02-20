@@ -39,6 +39,11 @@ export function mockVoterDetail(
     city: "Macon",
     state: "",
     zip_code: "31201",
+    congressional_district: "5",
+    state_senate_district: "18",
+    state_house_district: "145",
+    county_precinct: "0001",
+    precinct: null,
     ...overrides,
   }
 }

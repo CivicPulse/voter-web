@@ -23,6 +23,11 @@ export interface VoterDetail {
   city: string
   state: string
   zip_code: string
+  congressional_district: string | null
+  state_senate_district: string | null
+  state_house_district: string | null
+  county_precinct: string | null
+  precinct: string | null
 }
 
 export interface VoterSearchResponse {
