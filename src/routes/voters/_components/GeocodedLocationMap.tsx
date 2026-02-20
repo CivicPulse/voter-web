@@ -94,7 +94,10 @@ export function GeocodedLocationMap({
                 {loc.latitude.toFixed(6)}, {loc.longitude.toFixed(6)}
               </p>
               <p className="text-muted-foreground">
-                Confidence: {(loc.confidence_score * 100).toFixed(0)}%
+                Confidence:{" "}
+                {loc.confidence_score != null
+                  ? `${(loc.confidence_score * 100).toFixed(0)}%`
+                  : "—"}
               </p>
             </div>
           </Popup>
