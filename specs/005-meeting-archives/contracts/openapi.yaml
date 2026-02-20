@@ -1,0 +1,670 @@
+openapi: 3.1.0
+info:
+  title: Meeting Archives API
+  description: >
+    API contracts for the Meeting Archives Browser feature.
+    These endpoints will be added to the voter-api backend under /api/v1/.
+    All endpoints are publicly accessible (no authentication required).
+  version: 1.0.0
+
+servers:
+  - url: /api/v1
+    description: voter-api backend
+
+paths:
+  # ===========================================================================
+  # Governing Bodies
+  # ===========================================================================
+
+  /governing-bodies:
+    get:
+      operationId: listGoverningBodies
+      summary: List governing bodies with optional filters
+      description: >
+        Returns a paginated list of governing bodies. Supports filtering by
+        body_type, state, and county. Default sort is by name ascending.
+      tags: [Governing Bodies]
+      parameters:
+        - name: body_type
+          in: query
+          schema:
+            $ref: "#/components/schemas/GoverningBodyType"
+          description: Filter by body type
+        - name: state
+          in: query
+          schema:
+            type: string
+            example: GA
+          description: Filter by state abbreviation
+        - name: county
+          in: query
+          schema:
+            type: string
+            example: Bibb
+          description: Filter by county name (requires state parameter)
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Paginated list of governing bodies
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedGoverningBodyListResponse"
+
+  /governing-bodies/{slug}:
+    get:
+      operationId: getGoverningBody
+      summary: Get governing body detail by slug
+      tags: [Governing Bodies]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+            example: bibb-county-boe
+      responses:
+        "200":
+          description: Governing body detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoverningBody"
+        "404":
+          description: Governing body not found
+
+  # ===========================================================================
+  # Meetings
+  # ===========================================================================
+
+  /governing-bodies/{slug}/meetings:
+    get:
+      operationId: listBodyMeetings
+      summary: List meetings for a specific governing body
+      description: Returns meetings in reverse chronological order.
+      tags: [Meetings]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: meeting_type
+          in: query
+          schema:
+            $ref: "#/components/schemas/MeetingType"
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/MeetingStatus"
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Paginated list of meetings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedMeetingListResponse"
+        "404":
+          description: Governing body not found
+
+  /governing-bodies/{slug}/meetings/{date}/{sequence}:
+    get:
+      operationId: getMeetingBySlugDateSeq
+      summary: Get meeting detail by body slug, date, and sequence
+      description: >
+        Primary meeting detail endpoint using human-readable URL components.
+        Returns full meeting detail including agenda items and attachments.
+      tags: [Meetings]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+            example: bibb-county-boe
+        - name: date
+          in: path
+          required: true
+          schema:
+            type: string
+            format: date
+            example: "2024-01-15"
+        - name: sequence
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+      responses:
+        "200":
+          description: Meeting detail with agenda items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetingDetail"
+        "404":
+          description: Meeting not found
+
+  /meetings:
+    get:
+      operationId: listAllMeetings
+      summary: List all meetings across governing bodies
+      description: >
+        Cross-body meeting listing with filters. Returns meetings in
+        reverse chronological order. Used for the "All Meetings" view.
+      tags: [Meetings]
+      parameters:
+        - name: meeting_type
+          in: query
+          schema:
+            $ref: "#/components/schemas/MeetingType"
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/MeetingStatus"
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Keyword search across meeting titles/descriptions
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Paginated list of meetings across all bodies
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedMeetingListResponse"
+
+  # ===========================================================================
+  # Search
+  # ===========================================================================
+
+  /meetings/search:
+    get:
+      operationId: searchMeetings
+      summary: Full-text search across agenda items
+      description: >
+        Searches agenda item titles, descriptions, and attachment filenames.
+        Returns results with highlighted text snippets. Supports faceted
+        filtering by governing body, date range, and meeting type.
+      tags: [Search]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+          description: Search query string
+        - name: governing_body_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter results to a specific governing body
+        - name: meeting_type
+          in: query
+          schema:
+            $ref: "#/components/schemas/MeetingType"
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Paginated search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSearchResultResponse"
+
+  # ===========================================================================
+  # Filter Options (for dropdowns)
+  # ===========================================================================
+
+  /governing-bodies/states:
+    get:
+      operationId: listGoverningBodyStates
+      summary: List states that have governing bodies
+      description: Returns distinct state abbreviations for the jurisdiction filter.
+      tags: [Governing Bodies]
+      responses:
+        "200":
+          description: List of state abbreviations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                example: ["GA", "FL"]
+
+  /governing-bodies/counties:
+    get:
+      operationId: listGoverningBodyCounties
+      summary: List counties within a state that have governing bodies
+      tags: [Governing Bodies]
+      parameters:
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+            example: GA
+      responses:
+        "200":
+          description: List of county names
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                example: ["Bibb", "Houston", "Peach"]
+
+# =============================================================================
+# Components
+# =============================================================================
+
+components:
+  schemas:
+    # -------------------------------------------------------------------------
+    # Enums
+    # -------------------------------------------------------------------------
+
+    GoverningBodyType:
+      type: string
+      enum:
+        - school_board
+        - county_commission
+        - city_council
+        - planning_commission
+        - other
+
+    MeetingType:
+      type: string
+      enum:
+        - regular
+        - special
+        - work_session
+        - emergency
+        - public_hearing
+        - other
+
+    MeetingStatus:
+      type: string
+      enum:
+        - scheduled
+        - completed
+        - cancelled
+
+    AgendaItemDisposition:
+      type: string
+      enum:
+        - approved
+        - denied
+        - tabled
+        - withdrawn
+        - no_action
+        - informational
+
+    # -------------------------------------------------------------------------
+    # Core Entities
+    # -------------------------------------------------------------------------
+
+    GoverningBody:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+        - body_type
+        - jurisdiction_state
+        - meeting_count
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Bibb County Board of Education
+        slug:
+          type: string
+          example: bibb-county-boe
+        body_type:
+          $ref: "#/components/schemas/GoverningBodyType"
+        jurisdiction_state:
+          type: string
+          example: GA
+        jurisdiction_county:
+          type: string
+          nullable: true
+          example: Bibb
+        website_url:
+          type: string
+          format: uri
+          nullable: true
+        meeting_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    GoverningBodySummary:
+      type: object
+      required: [id, name, slug, body_type]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        body_type:
+          $ref: "#/components/schemas/GoverningBodyType"
+
+    Meeting:
+      type: object
+      required:
+        - id
+        - governing_body_id
+        - governing_body
+        - date
+        - meeting_type
+        - status
+        - sequence
+        - agenda_item_count
+        - attachments
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        governing_body_id:
+          type: string
+          format: uuid
+        governing_body:
+          $ref: "#/components/schemas/GoverningBodySummary"
+        date:
+          type: string
+          format: date
+          example: "2024-01-15"
+        time:
+          type: string
+          nullable: true
+          example: "18:00"
+        meeting_type:
+          $ref: "#/components/schemas/MeetingType"
+        location:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/MeetingStatus"
+        video_url:
+          type: string
+          format: uri
+          nullable: true
+        sequence:
+          type: integer
+          minimum: 1
+          example: 1
+        agenda_item_count:
+          type: integer
+        attachments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Attachment"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    MeetingDetail:
+      description: >
+        Full meeting detail including agenda items. Extends Meeting with
+        agenda_items array.
+      allOf:
+        - $ref: "#/components/schemas/Meeting"
+        - type: object
+          required: [agenda_items]
+          properties:
+            agenda_items:
+              type: array
+              items:
+                $ref: "#/components/schemas/AgendaItem"
+
+    AgendaItem:
+      type: object
+      required: [id, meeting_id, order, title, attachments]
+      properties:
+        id:
+          type: string
+          format: uuid
+        meeting_id:
+          type: string
+          format: uuid
+        order:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        action_taken:
+          type: string
+          nullable: true
+        disposition:
+          $ref: "#/components/schemas/AgendaItemDisposition"
+          nullable: true
+        video_timestamp:
+          type: integer
+          nullable: true
+          description: Seconds into the video recording
+        attachments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Attachment"
+
+    Attachment:
+      type: object
+      required: [id, filename, file_type, file_size, download_url]
+      properties:
+        id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+          example: minutes-2024-01-15.pdf
+        file_type:
+          type: string
+          example: application/pdf
+        file_size:
+          type: integer
+          description: File size in bytes
+        download_url:
+          type: string
+          format: uri
+
+    SearchResult:
+      type: object
+      required:
+        - agenda_item_id
+        - agenda_item_title
+        - agenda_item_order
+        - meeting_id
+        - meeting_date
+        - meeting_sequence
+        - governing_body_id
+        - governing_body_name
+        - governing_body_slug
+        - snippet
+        - relevance_score
+      properties:
+        agenda_item_id:
+          type: string
+          format: uuid
+        agenda_item_title:
+          type: string
+        agenda_item_order:
+          type: integer
+        meeting_id:
+          type: string
+          format: uuid
+        meeting_date:
+          type: string
+          format: date
+        meeting_sequence:
+          type: integer
+        governing_body_id:
+          type: string
+          format: uuid
+        governing_body_name:
+          type: string
+        governing_body_slug:
+          type: string
+        snippet:
+          type: string
+          description: >
+            Text snippet with <mark> tags wrapping matched terms.
+            Must be sanitized before rendering in the frontend.
+        relevance_score:
+          type: number
+          format: float
+
+    # -------------------------------------------------------------------------
+    # Pagination Wrappers
+    # -------------------------------------------------------------------------
+
+    Pagination:
+      type: object
+      required: [total, page, page_size, total_pages]
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+
+    PaginatedGoverningBodyListResponse:
+      type: object
+      required: [items, pagination]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/GoverningBody"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+
+    PaginatedMeetingListResponse:
+      type: object
+      required: [items, pagination]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Meeting"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+
+    PaginatedSearchResultResponse:
+      type: object
+      required: [items, pagination]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchResult"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
