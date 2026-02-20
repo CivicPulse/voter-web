@@ -7,8 +7,15 @@ const defaultProps = {
   congressional_district: null,
   state_senate_district: null,
   state_house_district: null,
+  judicial_district: null,
+  county_commission_district: null,
+  school_board_district: null,
+  city_council_district: null,
+  municipal_school_board_district: null,
   county_precinct: null,
-  precinct: null,
+  county_precinct_description: null,
+  municipal_precinct: null,
+  municipal_precinct_description: null,
 }
 
 describe("DistrictAssignmentsCard", () => {
@@ -27,11 +34,10 @@ describe("DistrictAssignmentsCard", () => {
   it("renders non-null district fields with labels", () => {
     render(
       <DistrictAssignmentsCard
+        {...defaultProps}
         congressional_district="5"
         state_senate_district="18"
         state_house_district="145"
-        county_precinct={null}
-        precinct={null}
       />,
     )
 
@@ -43,61 +49,100 @@ describe("DistrictAssignmentsCard", () => {
     expect(screen.getByText("145")).toBeInTheDocument()
   })
 
-  it("renders county precinct and precinct fields", () => {
+  it("renders county precinct with description", () => {
     render(
       <DistrictAssignmentsCard
-        congressional_district={null}
-        state_senate_district={null}
-        state_house_district={null}
-        county_precinct="0001"
-        precinct="007"
+        {...defaultProps}
+        county_precinct="HO1"
+        county_precinct_description="HOWARD 7"
       />,
     )
 
     expect(screen.getByText("County Precinct")).toBeInTheDocument()
-    expect(screen.getByText("0001")).toBeInTheDocument()
-    expect(screen.getByText("Precinct")).toBeInTheDocument()
-    expect(screen.getByText("007")).toBeInTheDocument()
+    expect(screen.getByText("HO1")).toBeInTheDocument()
+    expect(screen.getByText("HOWARD 7")).toBeInTheDocument()
+  })
+
+  it("renders additional district types", () => {
+    render(
+      <DistrictAssignmentsCard
+        {...defaultProps}
+        judicial_district="MACO"
+        county_commission_district="1"
+        school_board_district="6"
+        city_council_district="3"
+        municipal_school_board_district="2"
+      />,
+    )
+
+    expect(screen.getByText("Judicial")).toBeInTheDocument()
+    expect(screen.getByText("MACO")).toBeInTheDocument()
+    expect(screen.getByText("County Commission")).toBeInTheDocument()
+    expect(screen.getByText("1")).toBeInTheDocument()
+    expect(screen.getByText("School Board")).toBeInTheDocument()
+    expect(screen.getByText("6")).toBeInTheDocument()
+    expect(screen.getByText("City Council")).toBeInTheDocument()
+    expect(screen.getByText("3")).toBeInTheDocument()
+    expect(screen.getByText("Municipal School Board")).toBeInTheDocument()
+    expect(screen.getByText("2")).toBeInTheDocument()
   })
 
   it("omits null district fields from the display", () => {
     render(
       <DistrictAssignmentsCard
+        {...defaultProps}
         congressional_district="5"
-        state_senate_district={null}
-        state_house_district={null}
-        county_precinct={null}
-        precinct={null}
       />,
     )
 
     expect(screen.getByText("Congressional")).toBeInTheDocument()
     expect(screen.queryByText("State Senate")).not.toBeInTheDocument()
     expect(screen.queryByText("State House")).not.toBeInTheDocument()
+    expect(screen.queryByText("Judicial")).not.toBeInTheDocument()
+    expect(screen.queryByText("County Commission")).not.toBeInTheDocument()
+    expect(screen.queryByText("School Board")).not.toBeInTheDocument()
     expect(screen.queryByText("County Precinct")).not.toBeInTheDocument()
-    expect(screen.queryByText("Precinct")).not.toBeInTheDocument()
   })
 
   it("renders all fields when all are non-null", () => {
     render(
       <DistrictAssignmentsCard
-        congressional_district="2"
+        congressional_district="8"
         state_senate_district="12"
         state_house_district="75"
+        judicial_district="MACO"
+        county_commission_district="1"
+        school_board_district="6"
+        city_council_district="3"
+        municipal_school_board_district="4"
         county_precinct="0042"
-        precinct="003"
+        county_precinct_description="TEST PRECINCT"
+        municipal_precinct="003"
+        municipal_precinct_description="MUNICIPAL 3"
       />,
     )
 
     expect(screen.getByText("Congressional")).toBeInTheDocument()
-    expect(screen.getByText("2")).toBeInTheDocument()
+    expect(screen.getByText("8")).toBeInTheDocument()
     expect(screen.getByText("State Senate")).toBeInTheDocument()
     expect(screen.getByText("12")).toBeInTheDocument()
     expect(screen.getByText("State House")).toBeInTheDocument()
     expect(screen.getByText("75")).toBeInTheDocument()
+    expect(screen.getByText("Judicial")).toBeInTheDocument()
+    expect(screen.getByText("MACO")).toBeInTheDocument()
+    expect(screen.getByText("County Commission")).toBeInTheDocument()
+    expect(screen.getByText("1")).toBeInTheDocument()
+    expect(screen.getByText("School Board")).toBeInTheDocument()
+    expect(screen.getByText("6")).toBeInTheDocument()
+    expect(screen.getByText("City Council")).toBeInTheDocument()
+    expect(screen.getByText("3")).toBeInTheDocument()
+    expect(screen.getByText("Municipal School Board")).toBeInTheDocument()
+    expect(screen.getByText("4")).toBeInTheDocument()
     expect(screen.getByText("County Precinct")).toBeInTheDocument()
     expect(screen.getByText("0042")).toBeInTheDocument()
-    expect(screen.getByText("Precinct")).toBeInTheDocument()
+    expect(screen.getByText("TEST PRECINCT")).toBeInTheDocument()
+    expect(screen.getByText("Municipal Precinct")).toBeInTheDocument()
     expect(screen.getByText("003")).toBeInTheDocument()
+    expect(screen.getByText("MUNICIPAL 3")).toBeInTheDocument()
   })
 })

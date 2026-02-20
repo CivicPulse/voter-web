@@ -27,7 +27,14 @@ export interface VoterDetail {
   state_senate_district: string | null
   state_house_district: string | null
   county_precinct: string | null
-  precinct: string | null
+  county_precinct_description: string | null
+  municipal_precinct: string | null
+  municipal_precinct_description: string | null
+  judicial_district: string | null
+  county_commission_district: string | null
+  school_board_district: string | null
+  city_council_district: string | null
+  municipal_school_board_district: string | null
 }
 
 export interface VoterSearchResponse {

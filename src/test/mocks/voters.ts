@@ -43,7 +43,14 @@ export function mockVoterDetail(
     state_senate_district: "18",
     state_house_district: "145",
     county_precinct: "0001",
-    precinct: null,
+    county_precinct_description: "HOWARD 7",
+    municipal_precinct: null,
+    municipal_precinct_description: null,
+    judicial_district: "MACO",
+    county_commission_district: "1",
+    school_board_district: "6",
+    city_council_district: null,
+    municipal_school_board_district: null,
     ...overrides,
   }
 }

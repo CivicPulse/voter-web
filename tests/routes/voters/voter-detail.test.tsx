@@ -82,8 +82,15 @@ function VoterDetailTestPage({
         congressional_district={v.congressional_district}
         state_senate_district={v.state_senate_district}
         state_house_district={v.state_house_district}
+        judicial_district={v.judicial_district}
+        county_commission_district={v.county_commission_district}
+        school_board_district={v.school_board_district}
+        city_council_district={v.city_council_district}
+        municipal_school_board_district={v.municipal_school_board_district}
         county_precinct={v.county_precinct}
-        precinct={v.precinct}
+        county_precinct_description={v.county_precinct_description}
+        municipal_precinct={v.municipal_precinct}
+        municipal_precinct_description={v.municipal_precinct_description}
       />
     </div>
   )
@@ -168,7 +175,10 @@ describe("VoterDetailPage", () => {
       state_senate_district: "18",
       state_house_district: "145",
       county_precinct: "0001",
-      precinct: null,
+      county_precinct_description: "HOWARD 7",
+      judicial_district: "MACO",
+      county_commission_district: "1",
+      school_board_district: "6",
     })
     mockUseVoterDetail.mockReturnValue({
       data: voter,
@@ -184,8 +194,15 @@ describe("VoterDetailPage", () => {
     expect(screen.getByText("18")).toBeInTheDocument()
     expect(screen.getByText("State House")).toBeInTheDocument()
     expect(screen.getByText("145")).toBeInTheDocument()
+    expect(screen.getByText("Judicial")).toBeInTheDocument()
+    expect(screen.getByText("MACO")).toBeInTheDocument()
+    expect(screen.getByText("County Commission")).toBeInTheDocument()
+    expect(screen.getByText("1")).toBeInTheDocument()
+    expect(screen.getByText("School Board")).toBeInTheDocument()
+    expect(screen.getByText("6")).toBeInTheDocument()
     expect(screen.getByText("County Precinct")).toBeInTheDocument()
     expect(screen.getByText("0001")).toBeInTheDocument()
+    expect(screen.getByText("HOWARD 7")).toBeInTheDocument()
   })
 
   it("shows district assignments even without a geocoded location", () => {
@@ -215,7 +232,14 @@ describe("VoterDetailPage", () => {
       state_senate_district: null,
       state_house_district: null,
       county_precinct: null,
-      precinct: null,
+      county_precinct_description: null,
+      municipal_precinct: null,
+      municipal_precinct_description: null,
+      judicial_district: null,
+      county_commission_district: null,
+      school_board_district: null,
+      city_council_district: null,
+      municipal_school_board_district: null,
     })
     mockUseVoterDetail.mockReturnValue({
       data: voter,
