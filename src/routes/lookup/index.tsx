@@ -107,9 +107,9 @@ function LookupPage() {
           confidence_score: geocoded.confidence,
         })
         return
-      } catch {
+      } catch (error) {
         // Both verify and geocode failed
-        setApiError("No matching addresses found. Please check your input.")
+        setApiError(getErrorMessage(error))
         setIsVerifying(false)
       }
     } catch (error) {

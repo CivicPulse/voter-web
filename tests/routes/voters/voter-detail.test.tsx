@@ -21,7 +21,6 @@ vi.mock("@/hooks/useAddressLookup", () => ({
   useVoterGeocodedLocations: (...args: unknown[]) =>
     mockUseVoterGeocodedLocations(...args),
   useSetPrimaryLocation: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
-  usePointLookup: vi.fn(() => ({ data: null, isLoading: false })),
 }))
 
 vi.mock("@tanstack/react-router", () => ({
@@ -85,7 +84,6 @@ function VoterDetailTestPage({
         state_house_district={v.state_house_district}
         county_precinct={v.county_precinct}
         precinct={v.precinct}
-        locations={locations ?? []}
       />
     </div>
   )

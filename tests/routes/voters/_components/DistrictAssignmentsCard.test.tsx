@@ -1,14 +1,7 @@
-import { describe, it, expect, vi } from "vitest"
+import { describe, it, expect } from "vitest"
 import { screen } from "@testing-library/react"
 import { render } from "@/test/render"
 import { DistrictAssignmentsCard } from "@/routes/voters/_components/DistrictAssignmentsCard"
-
-vi.mock("@/hooks/useAddressLookup", () => ({
-  usePointLookup: vi.fn(() => ({
-    data: null,
-    isLoading: false,
-  })),
-}))
 
 const defaultProps = {
   congressional_district: null,

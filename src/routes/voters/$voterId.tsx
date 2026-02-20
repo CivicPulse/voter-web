@@ -73,7 +73,6 @@ function VoterDetailPage() {
         state_house_district={voter.state_house_district}
         county_precinct={voter.county_precinct}
         precinct={voter.precinct}
-        locations={locations}
       />
     </div>
   )

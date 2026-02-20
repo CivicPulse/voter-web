@@ -86,7 +86,12 @@ export function BulkGeocodeButton() {
             </DialogDescription>
           </DialogHeader>
 
-          {jobStatus && (
+          {!jobStatus ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Starting job...
+            </div>
+          ) : (
             <div className="space-y-4">
               <Progress value={progressPercent} />
               <div className="grid grid-cols-2 gap-2 text-sm">
