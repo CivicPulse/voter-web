@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-router"
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
 import { useEffect, useMemo, useState } from "react"
-import { HelpCircle, Loader2, LogIn, LogOut, Menu, Search, User, Users, Vote } from "lucide-react"
+import { HelpCircle, Home as HomeIcon, Info, Loader2, LogIn, LogOut, MapPinned, Menu, User, Users, Vote } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -76,17 +76,10 @@ function MobileNav({
             <SheetClose asChild>
               <Link
                 to="/"
-                className="[&.active]:font-bold py-2 text-sm"
+                className="[&.active]:font-bold py-2 text-sm flex items-center gap-2"
               >
+                <HomeIcon className="h-4 w-4" />
                 Home
-              </Link>
-            </SheetClose>
-            <SheetClose asChild>
-              <Link
-                to="/about"
-                className="[&.active]:font-bold py-2 text-sm"
-              >
-                About
               </Link>
             </SheetClose>
             <SheetClose asChild>
@@ -99,26 +92,23 @@ function MobileNav({
               </Link>
             </SheetClose>
             <SheetClose asChild>
-              <button
-                type="button"
-                className="py-2 text-sm text-left flex items-center gap-2"
-                onClick={onShowWelcome}
+              <Link
+                to="/lookup"
+                className="[&.active]:font-bold py-2 text-sm flex items-center gap-2"
               >
-                <HelpCircle className="h-4 w-4" />
-                Help
-              </button>
+                <MapPinned className="h-4 w-4" />
+                Address Lookup
+              </Link>
             </SheetClose>
-            {isAuthenticated && (
-              <SheetClose asChild>
-                <Link
-                  to="/lookup"
-                  className="[&.active]:font-bold py-2 text-sm flex items-center gap-2"
-                >
-                  <Search className="h-4 w-4" />
-                  Address Lookup
-                </Link>
-              </SheetClose>
-            )}
+            <SheetClose asChild>
+              <Link
+                to="/about"
+                className="[&.active]:font-bold py-2 text-sm flex items-center gap-2"
+              >
+                <Info className="h-4 w-4" />
+                About
+              </Link>
+            </SheetClose>
             {isAuthenticated && (
               <SheetClose asChild>
                 <Link
@@ -130,6 +120,16 @@ function MobileNav({
                 </Link>
               </SheetClose>
             )}
+            <SheetClose asChild>
+              <button
+                type="button"
+                className="py-2 text-sm text-left flex items-center gap-2"
+                onClick={onShowWelcome}
+              >
+                <HelpCircle className="h-4 w-4" />
+                Help
+              </button>
+            </SheetClose>
 
             {isAdmin && (
               <div className="pt-2 border-t mt-2">
@@ -389,38 +389,24 @@ function RootLayout() {
         {/* Row 1: Primary nav — desktop */}
         <nav className="hidden md:flex border-b px-4 py-2 items-center">
           <div className="flex-1 flex gap-4 min-w-0">
-            <Link to="/" className="[&.active]:font-bold shrink-0">
+            <Link to="/" className="[&.active]:font-bold shrink-0 flex items-center gap-1">
+              <HomeIcon className="h-4 w-4" />
               Home
-            </Link>
-            <Link to="/about" className="[&.active]:font-bold shrink-0">
-              About
             </Link>
             <Link to="/elections" className="[&.active]:font-bold shrink-0 flex items-center gap-1">
               <Vote className="h-4 w-4" />
               Elections
             </Link>
-            <button
-              type="button"
-              className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => setShowWelcome(true)}
-              aria-label="Help"
-            >
-              <HelpCircle className="h-4 w-4" />
-            </button>
+            <Link to="/lookup" className="[&.active]:font-bold shrink-0 flex items-center gap-1">
+              <MapPinned className="h-4 w-4" />
+              Address Lookup
+            </Link>
+            <Link to="/about" className="[&.active]:font-bold shrink-0 flex items-center gap-1">
+              <Info className="h-4 w-4" />
+              About
+            </Link>
             {isAuthenticated && (
-              <Link
-                to="/lookup"
-                className="[&.active]:font-bold shrink-0"
-                aria-label="Address lookup"
-              >
-                <Search className="h-4 w-4" />
-              </Link>
-            )}
-            {isAuthenticated && (
-              <Link
-                to="/voters"
-                className="[&.active]:font-bold shrink-0 flex items-center gap-1"
-              >
+              <Link to="/voters" className="[&.active]:font-bold shrink-0 flex items-center gap-1">
                 <Users className="h-4 w-4" />
                 Voters
               </Link>
@@ -435,6 +421,14 @@ function RootLayout() {
           )}
 
           <div className="flex-1 flex items-center justify-end gap-3 min-w-0">
+            <button
+              type="button"
+              className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setShowWelcome(true)}
+              aria-label="Help"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </button>
             {isAuthenticated && user ? (
               <>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { DistrictCard } from "@/components/DistrictCard"
 import { usePointLookup } from "@/hooks/useAddressLookup"
-import { requireAuth } from "@/lib/auth-guards"
 import type { LookupDistrict } from "@/types/lookup"
 
 const resultsSearchSchema = z.object({
@@ -19,9 +18,6 @@ const resultsSearchSchema = z.object({
 export const Route = createFileRoute("/lookup/results")({
   component: LookupResultsPage,
   validateSearch: resultsSearchSchema,
-  beforeLoad: ({ location }) => {
-    requireAuth(location.pathname)
-  },
 })
 
 const districtSortOrder: Record<string, number> = {
