@@ -19,6 +19,33 @@ interface RawVoterSearchResponse {
   }
 }
 
+/** Address sub-object returned by the backend for voter detail */
+interface AddressResponse {
+  street_number: string | null
+  pre_direction: string | null
+  street_name: string | null
+  street_type: string | null
+  post_direction: string | null
+  apt_unit_number: string | null
+  city: string | null
+  zipcode: string | null
+  full_address: string
+}
+
+/** Raw voter detail shape returned by GET /voters/{id} */
+interface RawVoterDetail {
+  id: string
+  voter_registration_number: string
+  first_name: string
+  middle_name: string | null
+  last_name: string
+  suffix?: string | null
+  status: string
+  registration_date: string | null
+  county: string
+  residence_address: AddressResponse
+}
+
 export async function searchVoters(
   params: VoterSearchParams,
 ): Promise<VoterSearchResponse> {
@@ -45,7 +72,24 @@ export async function searchVoters(
 export async function getVoterDetail(
   voterId: string,
 ): Promise<VoterDetail> {
-  return api.get(`voters/${voterId}`).json<VoterDetail>()
+  const raw = await api.get(`voters/${voterId}`).json<RawVoterDetail>()
+  const addr = raw.residence_address
+  return {
+    id: raw.id,
+    voter_id: raw.voter_registration_number,
+    first_name: raw.first_name,
+    middle_name: raw.middle_name ?? null,
+    last_name: raw.last_name,
+    suffix: raw.suffix ?? null,
+    county: raw.county,
+    status: raw.status,
+    registration_date: raw.registration_date ?? "",
+    address_line_1: addr.full_address,
+    address_line_2: addr.apt_unit_number ?? null,
+    city: addr.city ?? "",
+    state: "",
+    zip_code: addr.zipcode ?? "",
+  }
 }
 
 export async function getVoterFilters(): Promise<VoterFilterOptions> {

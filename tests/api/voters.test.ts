@@ -111,14 +111,50 @@ describe("searchVoters", () => {
 })
 
 describe("getVoterDetail", () => {
-  it("calls GET /voters/{voterId}", async () => {
-    const detail = mockVoterDetail()
-    mockJson.mockResolvedValue(detail)
+  it("calls GET /voters/{voterId} and transforms backend response", async () => {
+    // Backend returns voter_registration_number and nested residence_address
+    mockJson.mockResolvedValue({
+      id: "v-001",
+      voter_registration_number: "GA-12345678",
+      first_name: "Jane",
+      middle_name: "Marie",
+      last_name: "Smith",
+      suffix: null,
+      status: "Active",
+      registration_date: "2020-01-15",
+      county: "Bibb",
+      residence_address: {
+        street_number: "123",
+        pre_direction: null,
+        street_name: "Main St",
+        street_type: null,
+        post_direction: null,
+        apt_unit_number: "Apt 4B",
+        city: "Macon",
+        zipcode: "31201",
+        full_address: "123 Main St, Macon, GA 31201",
+      },
+    })
 
     const result = await getVoterDetail("v-001")
 
     expect(mockGet).toHaveBeenCalledWith("voters/v-001")
-    expect(result).toEqual(detail)
+    expect(result).toEqual({
+      id: "v-001",
+      voter_id: "GA-12345678",
+      first_name: "Jane",
+      middle_name: "Marie",
+      last_name: "Smith",
+      suffix: null,
+      county: "Bibb",
+      status: "Active",
+      registration_date: "2020-01-15",
+      address_line_1: "123 Main St, Macon, GA 31201",
+      address_line_2: "Apt 4B",
+      city: "Macon",
+      state: "",
+      zip_code: "31201",
+    })
   })
 })
 

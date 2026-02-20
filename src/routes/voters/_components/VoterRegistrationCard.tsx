@@ -21,11 +21,7 @@ export function VoterRegistrationCard({ voter }: VoterRegistrationCardProps) {
     .filter(Boolean)
     .join(" ")
 
-  const address = [
-    voter.address_line_1,
-    voter.address_line_2,
-    `${voter.city}, ${voter.state} ${voter.zip_code}`,
-  ]
+  const address = [voter.address_line_1, voter.address_line_2]
     .filter(Boolean)
     .join("\n")
 

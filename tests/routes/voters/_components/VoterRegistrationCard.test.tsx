@@ -46,19 +46,15 @@ describe("VoterRegistrationCard", () => {
     expect(screen.getByText("January 15, 2020")).toBeInTheDocument()
   })
 
-  it("renders address with line 2", () => {
+  it("renders full address including apartment", () => {
     const voter = mockVoterDetail({
-      address_line_1: "123 Main St",
+      address_line_1: "123 Main St, Macon, GA 31201",
       address_line_2: "Apt 4B",
-      city: "Macon",
-      state: "GA",
-      zip_code: "31201",
     })
     render(<VoterRegistrationCard voter={voter} />)
 
-    expect(screen.getByText(/123 Main St/)).toBeInTheDocument()
+    expect(screen.getByText(/123 Main St, Macon, GA 31201/)).toBeInTheDocument()
     expect(screen.getByText(/Apt 4B/)).toBeInTheDocument()
-    expect(screen.getByText(/Macon, GA 31201/)).toBeInTheDocument()
   })
 
   it("renders status badge as Active", () => {

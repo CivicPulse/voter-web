@@ -36,10 +36,10 @@ export function mockVoterDetail(
     county: "Bibb",
     status: "Active",
     registration_date: "2020-01-15",
-    address_line_1: "123 Main St",
+    address_line_1: "123 Main St, Macon, GA 31201",
     address_line_2: "Apt 4B",
     city: "Macon",
-    state: "GA",
+    state: "",
     zip_code: "31201",
     ...overrides,
   }
