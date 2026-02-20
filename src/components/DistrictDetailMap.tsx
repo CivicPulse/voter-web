@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils"
 import { geometryToLeafletBounds } from "@/lib/geo"
 import type { CountyFeatureCollection, CountyProperties } from "@/types/boundaries"
 
-const GA_CENTER: [number, number] = [32.6791, -83.6233]
-const GA_ZOOM = 7
+const DEFAULT_CENTER: [number, number] = [39.8283, -98.5795]
+const DEFAULT_ZOOM = 4
 
 const DISTRICT_STYLE: PathOptions = {
   color: "#1e40af",
@@ -142,8 +142,8 @@ export function DistrictDetailMap({
   return (
     <div className="relative h-full w-full">
       <MapContainer
-        center={GA_CENTER}
-        zoom={GA_ZOOM}
+        center={DEFAULT_CENTER}
+        zoom={DEFAULT_ZOOM}
         scrollWheelZoom={true}
         className={cn("h-full w-full rounded-lg border", className)}
       >

@@ -11,8 +11,8 @@ import { OverlayLayer } from "@/components/OverlayLayer"
 import type { BoundaryFeatureCollection } from "@/types/boundary"
 import type { Election } from "@/types/elections"
 
-const GA_CENTER: [number, number] = [32.6791, -83.6233]
-const GA_ZOOM = 7
+const DEFAULT_CENTER: [number, number] = [39.8283, -98.5795]
+const DEFAULT_ZOOM = 4
 
 const COUNTY_STYLE: PathOptions = {
   color: "#1e40af",
@@ -90,8 +90,8 @@ export function CountyDetailMap({
   return (
     <div className="relative h-full w-full">
       <MapContainer
-        center={GA_CENTER}
-        zoom={GA_ZOOM}
+        center={DEFAULT_CENTER}
+        zoom={DEFAULT_ZOOM}
         scrollWheelZoom={true}
         doubleClickZoom={false}
         className={cn("h-full w-full rounded-lg border", className)}
