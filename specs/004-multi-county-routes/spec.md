@@ -5,6 +5,12 @@
 **Status**: Draft
 **Input**: User description: "While maintaining all current routes/links, the app will need to support multiple states and multiple counties. For example <https://vote.civpulse.org/districts/county-commission/005> doesn't indicate what state or county this district is a part of in the URL and could lead to collisions when accessing data from other counties. Currently we only have data loaded about Bibb County but that is changing soon."
 
+## Clarifications
+
+### Session 2026-02-20
+
+- Q: How should the system classify a district as county-level vs state-level for URL generation? → A: Data-driven — if a boundary record has a county association, it is county-level (URL includes state + county); if the county association is absent, it is state-level (URL includes state only). No hardcoded list of boundary types required.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - State & County Selection (Priority: P1)
@@ -98,13 +104,14 @@ A user browsing voters or elections sees data that is relevant to their current 
 - What happens when a county name is the same in two different states (e.g., "Monroe County" exists in Georgia and Alabama)? The state qualifier in the URL prevents collision.
 - What happens when a user visits a legacy URL while unauthenticated? The same redirect/disambiguation behavior applies; authentication is orthogonal to URL resolution.
 - What happens when the API returns no results for a state/county/district combination? The system shows a "not found" page with helpful navigation back to valid locations.
+- What happens when a new boundary type is added (e.g., "parish_commission" for Louisiana)? The data-driven classification rule automatically determines scope — if the boundary records have county associations, they get county-level URLs; otherwise, state-level URLs. No frontend code change required.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
 - **FR-001**: The system MUST include the state identifier in all county-level URLs so that counties are uniquely addressable across states.
-- **FR-002**: The system MUST include both state and county identifiers in county-level district slug URLs (e.g., county commission, school board) to prevent name collisions across counties. State-level districts that span multiple counties (e.g., state senate, state house, congressional) MUST include the state identifier only.
+- **FR-002**: The system MUST include both state and county identifiers in county-level district slug URLs to prevent name collisions across counties. State-level districts that span multiple counties MUST include the state identifier only. District scope (county-level vs state-level) is determined by whether the boundary record has a county association — not by a hardcoded list of boundary types.
 - **FR-003**: The system MUST continue to resolve existing UUID-based URLs (`/counties/$countyId`, `/districts/$districtId`) without requiring state or county qualifiers, since UUIDs are globally unique.
 - **FR-004**: The system MUST redirect or resolve legacy slug URLs (`/districts/$type/$name`, `/counties/$countyId`) to the new fully-qualified format.
 - **FR-005**: When a legacy slug URL matches exactly one record, the system MUST redirect the user to the fully-qualified URL.
@@ -120,7 +127,7 @@ A user browsing voters or elections sees data that is relevant to their current 
 
 - **State**: A US state that has voter/boundary data loaded. Identified by a two-letter abbreviation (e.g., "ga" for Georgia). Serves as the top-level geographic scope.
 - **County**: A county within a state. Identified by a slugified name (e.g., "bibb"). Uniquely identified by the combination of state + county slug.
-- **District**: A political district that is either county-scoped (e.g., county commission, school board) or state-scoped (e.g., state senate, state house, congressional). County-scoped districts are uniquely identified by state + county + type + name. State-scoped districts are uniquely identified by state + type + name.
+- **District**: A political district that is either county-scoped or state-scoped, determined by whether the boundary record has a county association. County-scoped districts (e.g., county commission, school board) are uniquely identified by state + county + type + name. State-scoped districts (e.g., state senate, congressional) are uniquely identified by state + type + name. New boundary types added in the future are automatically classified by this data-driven rule.
 - **Legacy URL**: Any URL in the current format that lacks state or county qualifiers. Must be recognized and resolved or redirected.
 
 ## Success Criteria *(mandatory)*
