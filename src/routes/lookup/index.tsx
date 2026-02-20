@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { requireAuth } from "@/lib/auth-guards"
-import { verifyAddress } from "@/api/lookup"
+import { verifyAddress, geocodeAddress } from "@/api/lookup"
 import type { AddressSuggestion } from "@/types/lookup"
 
 export const Route = createFileRoute("/lookup/")({
@@ -84,20 +84,34 @@ function LookupPage() {
     try {
       const result = await verifyAddress(data.address)
 
-      if (result.suggestions.length === 0) {
-        setApiError("No matching addresses found. Please check your input.")
-        setIsVerifying(false)
-        return
-      }
-
       if (result.suggestions.length === 1) {
         setIsVerifying(false)
         navigateToResults(result.suggestions[0])
         return
       }
 
-      setSuggestions(result.suggestions)
-      setIsVerifying(false)
+      if (result.suggestions.length > 1) {
+        setSuggestions(result.suggestions)
+        setIsVerifying(false)
+        return
+      }
+
+      // No suggestions from verify — fall back to direct geocoding
+      try {
+        const geocoded = await geocodeAddress(data.address)
+        setIsVerifying(false)
+        navigateToResults({
+          address: geocoded.formatted_address,
+          latitude: geocoded.latitude,
+          longitude: geocoded.longitude,
+          confidence_score: geocoded.confidence,
+        })
+        return
+      } catch {
+        // Both verify and geocode failed
+        setApiError("No matching addresses found. Please check your input.")
+        setIsVerifying(false)
+      }
     } catch (error) {
       setApiError(getErrorMessage(error))
       setIsVerifying(false)

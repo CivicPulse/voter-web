@@ -4,6 +4,7 @@ import { Loader2, Users } from "lucide-react"
 import { useVoterSearch } from "@/hooks/useVoters"
 import { VoterSearchFilters } from "@/routes/voters/_components/VoterSearchFilters"
 import { VoterTable } from "@/routes/voters/_components/VoterTable"
+import { BulkGeocodeButton } from "@/routes/voters/_components/BulkGeocodeButton"
 
 const voterSearchSchema = z.object({
   q: z.string().optional().catch(undefined),
@@ -31,9 +32,12 @@ function VoterSearchPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Users className="h-6 w-6" />
-        <h1 className="text-2xl font-bold">Voters</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Users className="h-6 w-6" />
+          <h1 className="text-2xl font-bold">Voters</h1>
+        </div>
+        <BulkGeocodeButton />
       </div>
 
       <div className="mb-6">

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { screen } from "@testing-library/react"
+import { render } from "@/test/render"
 import { mockVoterDetail, mockVoterGeocodedLocation } from "@/test/mocks/voters"
 
 // Mock hooks
@@ -20,6 +21,7 @@ vi.mock("@/hooks/useAddressLookup", () => ({
   useVoterGeocodedLocations: (...args: unknown[]) =>
     mockUseVoterGeocodedLocations(...args),
   useSetPrimaryLocation: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+  usePointLookup: vi.fn(() => ({ data: null, isLoading: false })),
 }))
 
 vi.mock("@tanstack/react-router", () => ({
@@ -83,6 +85,7 @@ function VoterDetailTestPage({
         state_house_district={v.state_house_district}
         county_precinct={v.county_precinct}
         precinct={v.precinct}
+        locations={locations ?? []}
       />
     </div>
   )
@@ -225,7 +228,7 @@ describe("VoterDetailPage", () => {
     render(<VoterDetailTestPage voterId="v-001" />)
 
     expect(
-      screen.getByText("No district assignments found in voter file."),
+      screen.getByText("No district assignments found."),
     ).toBeInTheDocument()
   })
 })
