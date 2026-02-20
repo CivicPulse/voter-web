@@ -10,6 +10,7 @@ import {
   mockVoterSearchResponse,
   mockVoterFilterOptions,
 } from "@/test/mocks/voters"
+import type { VoterSearchResponse } from "@/types/voter"
 
 // Mock the ky client
 const mockJson = vi.fn()
@@ -29,25 +30,28 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
+function toRawSearchResponse(response: VoterSearchResponse) {
+  return {
+    items: response.voters.map((v) => ({
+      id: v.id,
+      voter_registration_number: v.voter_id,
+      first_name: v.first_name,
+      last_name: v.last_name,
+      county: v.county,
+      status: v.status,
+      registration_date: v.registration_date,
+    })),
+    pages: response.total_pages,
+    total: response.total,
+    page: response.page,
+    page_size: response.page_size,
+  }
+}
+
 describe("searchVoters", () => {
   it("calls GET /voters with search params and transforms response", async () => {
     const expected = mockVoterSearchResponse()
-    // Backend returns { items: [...raw items...], pages, total, page, page_size }
-    mockJson.mockResolvedValue({
-      items: expected.voters.map((v) => ({
-        id: v.id,
-        voter_registration_number: v.voter_id,
-        first_name: v.first_name,
-        last_name: v.last_name,
-        county: v.county,
-        status: v.status,
-        registration_date: v.registration_date,
-      })),
-      pages: expected.total_pages,
-      total: expected.total,
-      page: expected.page,
-      page_size: expected.page_size,
-    })
+    mockJson.mockResolvedValue(toRawSearchResponse(expected))
 
     const result = await searchVoters({ q: "Smith", page: 2 })
 
@@ -59,21 +63,7 @@ describe("searchVoters", () => {
 
   it("omits undefined params from search params", async () => {
     const expected = mockVoterSearchResponse()
-    mockJson.mockResolvedValue({
-      items: expected.voters.map((v) => ({
-        id: v.id,
-        voter_registration_number: v.voter_id,
-        first_name: v.first_name,
-        last_name: v.last_name,
-        county: v.county,
-        status: v.status,
-        registration_date: v.registration_date,
-      })),
-      pages: expected.total_pages,
-      total: expected.total,
-      page: expected.page,
-      page_size: expected.page_size,
-    })
+    mockJson.mockResolvedValue(toRawSearchResponse(expected))
 
     await searchVoters({})
 
@@ -84,21 +74,7 @@ describe("searchVoters", () => {
 
   it("passes all filter params when provided", async () => {
     const expected = mockVoterSearchResponse()
-    mockJson.mockResolvedValue({
-      items: expected.voters.map((v) => ({
-        id: v.id,
-        voter_registration_number: v.voter_id,
-        first_name: v.first_name,
-        last_name: v.last_name,
-        county: v.county,
-        status: v.status,
-        registration_date: v.registration_date,
-      })),
-      pages: expected.total_pages,
-      total: expected.total,
-      page: expected.page,
-      page_size: expected.page_size,
-    })
+    mockJson.mockResolvedValue(toRawSearchResponse(expected))
 
     await searchVoters({
       q: "Jane",
