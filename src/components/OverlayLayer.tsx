@@ -61,9 +61,10 @@ function buildOfficialsPopupHtml(
 
 /**
  * Attach click (delayed popup) and dblclick (navigation) DOM listeners
- * on the SVG path element after Leaflet renders it. Uses
- * requestAnimationFrame because onEachFeature runs before the layer is
- * added to the map and the SVG element is created.
+ * on the SVG path element after Leaflet renders it. Uses the "add"
+ * event because onEachFeature runs before the layer is added to the
+ * map (React-Leaflet adds it in a useEffect), so the SVG element does
+ * not exist yet during onEachFeature.
  */
 function attachDblClickNav(
   layer: Layer,
@@ -73,7 +74,7 @@ function attachDblClickNav(
   // Remove bindPopup's auto-open-on-click to avoid popup/dblclick conflict
   layer.off("click")
 
-  requestAnimationFrame(() => {
+  layer.once("add", () => {
     const el = (layer as Path).getElement?.()
     if (!el) return
     let popupTimer: ReturnType<typeof setTimeout> | null = null
