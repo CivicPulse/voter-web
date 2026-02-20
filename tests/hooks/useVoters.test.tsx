@@ -7,6 +7,7 @@ import {
   useVoterSearch,
   useVoterDetail,
   useVoterFilters,
+  useTriggerVoterGeocode,
   useDeleteGeocodedLocation,
 } from "@/hooks/useVoters"
 import {
@@ -19,6 +20,7 @@ vi.mock("@/api/voters", () => ({
   searchVoters: vi.fn(),
   getVoterDetail: vi.fn(),
   getVoterFilters: vi.fn(),
+  triggerVoterGeocode: vi.fn(),
   deleteGeocodedLocation: vi.fn(),
 }))
 
@@ -26,12 +28,14 @@ import {
   searchVoters,
   getVoterDetail,
   getVoterFilters,
+  triggerVoterGeocode,
   deleteGeocodedLocation,
 } from "@/api/voters"
 
 const mockedSearchVoters = vi.mocked(searchVoters)
 const mockedGetVoterDetail = vi.mocked(getVoterDetail)
 const mockedGetVoterFilters = vi.mocked(getVoterFilters)
+const mockedTriggerVoterGeocode = vi.mocked(triggerVoterGeocode)
 const mockedDeleteGeocodedLocation = vi.mocked(deleteGeocodedLocation)
 
 function createWrapper() {
@@ -114,6 +118,22 @@ describe("useVoterFilters", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(result.current.data).toEqual(filters)
+  })
+})
+
+describe("useTriggerVoterGeocode", () => {
+  it("triggers geocoding and invalidates geocoded-locations queries", async () => {
+    mockedTriggerVoterGeocode.mockResolvedValue(undefined)
+
+    const wrapper = createWrapper()
+    const { result } = renderHook(
+      () => useTriggerVoterGeocode("v-001"),
+      { wrapper },
+    )
+
+    result.current.mutate(undefined)
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(mockedTriggerVoterGeocode).toHaveBeenCalledWith("v-001")
   })
 })
 

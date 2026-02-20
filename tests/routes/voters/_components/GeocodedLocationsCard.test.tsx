@@ -7,6 +7,7 @@ import { useUserRole } from "@/lib/hooks/use-user-role"
 
 const mockSetPrimaryMutate = vi.fn()
 const mockDeleteMutate = vi.fn()
+const mockGeocodeMutate = vi.fn()
 
 vi.mock("@/lib/hooks/use-user-role", () => ({
   useUserRole: vi.fn(() => ({ data: { role: "viewer" } })),
@@ -15,6 +16,10 @@ vi.mock("@/lib/hooks/use-user-role", () => ({
 vi.mock("@/hooks/useVoters", () => ({
   useDeleteGeocodedLocation: vi.fn(() => ({
     mutate: mockDeleteMutate,
+    isPending: false,
+  })),
+  useTriggerVoterGeocode: vi.fn(() => ({
+    mutate: mockGeocodeMutate,
     isPending: false,
   })),
 }))
@@ -39,6 +44,48 @@ describe("GeocodedLocationsCard", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     setRole("viewer")
+  })
+
+  // Geocode button
+  describe("geocode action", () => {
+    it("shows geocode button for admin", () => {
+      setRole("admin")
+      render(<GeocodedLocationsCard locations={[]} voterId="v-001" />)
+
+      expect(screen.getByTitle("Geocode Voter")).toBeInTheDocument()
+    })
+
+    it("shows geocode button for analyst", () => {
+      setRole("analyst")
+      render(<GeocodedLocationsCard locations={[]} voterId="v-001" />)
+
+      expect(screen.getByTitle("Geocode Voter")).toBeInTheDocument()
+    })
+
+    it("hides geocode button for viewer", () => {
+      setRole("viewer")
+      render(<GeocodedLocationsCard locations={[]} voterId="v-001" />)
+
+      expect(screen.queryByTitle("Geocode Voter")).not.toBeInTheDocument()
+    })
+
+    it("calls triggerVoterGeocode on click", async () => {
+      setRole("admin")
+      const user = userEvent.setup()
+      render(<GeocodedLocationsCard locations={[]} voterId="v-001" />)
+
+      await user.click(screen.getByTitle("Geocode Voter"))
+
+      expect(mockGeocodeMutate).toHaveBeenCalled()
+    })
+
+    it("shows geocode button when locations exist", () => {
+      setRole("admin")
+      const locations = [mockVoterGeocodedLocation({ is_primary: true })]
+      render(<GeocodedLocationsCard locations={locations} voterId="v-001" />)
+
+      expect(screen.getByTitle("Geocode Voter")).toBeInTheDocument()
+    })
   })
 
   it("renders location table with provider details", () => {

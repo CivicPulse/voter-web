@@ -131,6 +131,10 @@ export async function getVoterFilters(): Promise<VoterFilterOptions> {
   return api.get("voters/filters").json<VoterFilterOptions>()
 }
 
+export async function triggerVoterGeocode(voterId: string): Promise<void> {
+  await api.post(`geocoding/voter/${voterId}/geocode-all`)
+}
+
 export async function deleteGeocodedLocation(
   voterId: string,
   locationId: string,

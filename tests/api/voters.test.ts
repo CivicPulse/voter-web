@@ -3,6 +3,7 @@ import {
   searchVoters,
   getVoterDetail,
   getVoterFilters,
+  triggerVoterGeocode,
   deleteGeocodedLocation,
 } from "@/api/voters"
 import {
@@ -13,11 +14,13 @@ import {
 // Mock the ky client
 const mockJson = vi.fn()
 const mockGet = vi.fn(() => ({ json: mockJson }))
+const mockPost = vi.fn(() => Promise.resolve())
 const mockDelete = vi.fn(() => Promise.resolve())
 
 vi.mock("@/api/client", () => ({
   api: {
     get: (...args: unknown[]) => mockGet(...args),
+    post: (...args: unknown[]) => mockPost(...args),
     delete: (...args: unknown[]) => mockDelete(...args),
   },
 }))
@@ -216,6 +219,14 @@ describe("getVoterFilters", () => {
 
     expect(mockGet).toHaveBeenCalledWith("voters/filters")
     expect(result).toEqual(filters)
+  })
+})
+
+describe("triggerVoterGeocode", () => {
+  it("calls POST /geocoding/voter/{voterId}/geocode-all", async () => {
+    await triggerVoterGeocode("v-001")
+
+    expect(mockPost).toHaveBeenCalledWith("geocoding/voter/v-001/geocode-all")
   })
 })
 
