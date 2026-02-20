@@ -60,44 +60,46 @@ function buildOfficialsPopupHtml(
 }
 
 /**
- * Attach click (delayed popup) and dblclick (navigation) DOM listeners
- * on the SVG path element after Leaflet renders it. Uses the "add"
- * event because onEachFeature runs before the layer is added to the
- * map (React-Leaflet adds it in a useEffect), so the SVG element does
- * not exist yet during onEachFeature.
+ * Attach click (delayed popup) and dblclick (navigation) handlers
+ * using Leaflet's event system. Native DOM listeners don't work here
+ * because onEachFeature runs before React-Leaflet adds the layer to
+ * the map (in useEffect), so the SVG element doesn't exist yet.
+ * Leaflet events are registered on the layer's event bus and routed
+ * from the map container's DOM event handler, so they work regardless
+ * of when the SVG element is created.
  */
 function attachDblClickNav(
   layer: Layer,
   feature: Feature<MultiPolygon | Polygon, BoundaryFeatureProperties>,
   onDblClick: OverlayLayerProps["onDistrictDblClick"],
 ) {
-  // Remove bindPopup's auto-open-on-click to avoid popup/dblclick conflict
+  // Remove bindPopup's auto-open-on-click so the popup doesn't
+  // appear between the two clicks of a dblclick and intercept the
+  // second click.
   layer.off("click")
 
-  layer.once("add", () => {
-    const el = (layer as Path).getElement?.()
-    if (!el) return
-    let popupTimer: ReturnType<typeof setTimeout> | null = null
-    el.addEventListener("click", () => {
-      if (popupTimer) clearTimeout(popupTimer)
-      popupTimer = setTimeout(() => layer.openPopup(), 250)
-    })
-    el.addEventListener("dblclick", (e) => {
-      e.stopPropagation()
-      if (popupTimer) {
-        clearTimeout(popupTimer)
-        popupTimer = null
-      }
-      layer.closePopup()
-      const props = feature.properties
-      onDblClick?.(
-        String(feature.id ?? props.boundary_identifier),
-        props.boundary_type,
-        props.name,
-        props.county,
-        props.boundary_identifier,
-      )
-    })
+  let popupTimer: ReturnType<typeof setTimeout> | null = null
+
+  // Re-add click with a delay so single clicks still open the popup
+  layer.on("click", () => {
+    if (popupTimer) clearTimeout(popupTimer)
+    popupTimer = setTimeout(() => layer.openPopup(), 250)
+  })
+
+  layer.on("dblclick", () => {
+    if (popupTimer) {
+      clearTimeout(popupTimer)
+      popupTimer = null
+    }
+    layer.closePopup()
+    const props = feature.properties
+    onDblClick?.(
+      String(feature.id ?? props.boundary_identifier),
+      props.boundary_type,
+      props.name,
+      props.county,
+      props.boundary_identifier,
+    )
   })
 }
 
