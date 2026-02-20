@@ -59,6 +59,47 @@ function buildOfficialsPopupHtml(
   return `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e5e7eb;">${lines}${overflow}</div>`
 }
 
+/**
+ * Attach click (delayed popup) and dblclick (navigation) DOM listeners
+ * on the SVG path element after Leaflet renders it. Uses
+ * requestAnimationFrame because onEachFeature runs before the layer is
+ * added to the map and the SVG element is created.
+ */
+function attachDblClickNav(
+  layer: Layer,
+  feature: Feature<MultiPolygon | Polygon, BoundaryFeatureProperties>,
+  onDblClick: OverlayLayerProps["onDistrictDblClick"],
+) {
+  // Remove bindPopup's auto-open-on-click to avoid popup/dblclick conflict
+  layer.off("click")
+
+  requestAnimationFrame(() => {
+    const el = (layer as Path).getElement?.()
+    if (!el) return
+    let popupTimer: ReturnType<typeof setTimeout> | null = null
+    el.addEventListener("click", () => {
+      if (popupTimer) clearTimeout(popupTimer)
+      popupTimer = setTimeout(() => layer.openPopup(), 250)
+    })
+    el.addEventListener("dblclick", (e) => {
+      e.stopPropagation()
+      if (popupTimer) {
+        clearTimeout(popupTimer)
+        popupTimer = null
+      }
+      layer.closePopup()
+      const props = feature.properties
+      onDblClick?.(
+        String(feature.id ?? props.boundary_identifier),
+        props.boundary_type,
+        props.name,
+        props.county,
+        props.boundary_identifier,
+      )
+    })
+  })
+}
+
 interface OverlayLayerProps {
   data: BoundaryFeatureCollection
   activeElections?: Election[]
@@ -157,35 +198,14 @@ export function OverlayLayer({
         </div>`,
       )
 
-      let popupTimer: ReturnType<typeof setTimeout> | null = null
-
-      layer.on("add", () => {
-        const el = (layer as Path).getElement()
-        if (!el) return
-
-        if (hasElection) el.classList.add("election-pulse")
-
-        // Use native DOM dblclick on the SVG element because Leaflet's
-        // internal event routing does not reliably dispatch dblclick to
-        // GeoJSON feature layers (the popup intercepts the second click).
-        el.addEventListener("dblclick", (e) => {
-          e.stopPropagation()
-          if (popupTimer) {
-            clearTimeout(popupTimer)
-            popupTimer = null
-          }
-          layer.closePopup()
-          if (onDistrictDblClick) {
-            onDistrictDblClick(
-              String(feature.id ?? props.boundary_identifier),
-              props.boundary_type,
-              props.name,
-              props.county,
-              props.boundary_identifier,
-            )
-          }
+      if (hasElection) {
+        layer.on("add", () => {
+          const el = (layer as Path).getElement()
+          if (el) el.classList.add("election-pulse")
         })
-      })
+      }
+
+      attachDblClickNav(layer, feature, onDistrictDblClick)
 
       layer.on({
         mouseover: (e: LeafletMouseEvent) => {
