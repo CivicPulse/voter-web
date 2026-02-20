@@ -156,6 +156,8 @@ export function OverlayLayer({
           ${officialsHtml}
         </div>`,
       )
+      // Remove auto-open-on-click so the popup doesn't block dblclick
+      layer.off("click")
 
       if (hasElection) {
         layer.on("add", () => {
@@ -164,7 +166,15 @@ export function OverlayLayer({
         })
       }
 
+      let popupTimer: ReturnType<typeof setTimeout> | null = null
+
       layer.on({
+        click: () => {
+          if (popupTimer) clearTimeout(popupTimer)
+          popupTimer = setTimeout(() => {
+            layer.openPopup()
+          }, 250)
+        },
         mouseover: (e: LeafletMouseEvent) => {
           e.target.setStyle(OVERLAY_HOVER_STYLE)
           e.target.bringToFront()
@@ -173,6 +183,10 @@ export function OverlayLayer({
           e.target.setStyle(defaultStyle)
         },
         dblclick: () => {
+          if (popupTimer) {
+            clearTimeout(popupTimer)
+            popupTimer = null
+          }
           if (onDistrictDblClick) {
             onDistrictDblClick(
               String(feature.id ?? props.boundary_identifier),
