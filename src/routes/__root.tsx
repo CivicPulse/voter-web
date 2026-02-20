@@ -24,6 +24,8 @@ import { useDistrictSlugResolver } from "@/hooks/useDistrictSlugResolver"
 import { useBoundaryTypes } from "@/hooks/useBoundaryTypes"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import { useStatewideOverlayTypes } from "@/hooks/useStatewideOverlayTypes"
+import { useAvailableStates } from "@/hooks/useAvailableStates"
+import { ABBREV_TO_NAME } from "@/lib/states"
 import { useUserRole } from "@/lib/hooks/use-user-role"
 import {
   useActiveElections,
@@ -184,6 +186,29 @@ function MobileNav({
   )
 }
 
+export function resolveHeaderTitle(ctx: {
+  isOnDistrictRoute: boolean
+  district: { name: string; boundary_type: string } | undefined
+  isOnCountyRoute: boolean
+  county: { name: string } | undefined
+  isOnStatePage: boolean
+  stateAbbrev: string | undefined
+  isOnLookupPage: boolean
+  isOnHomePage: boolean
+}): string | null {
+  if (ctx.isOnDistrictRoute && ctx.district) {
+    const typeLabel = ctx.district.boundary_type.replaceAll("_", " ")
+    return `${ctx.district.name} (${typeLabel})`
+  }
+  if (ctx.isOnCountyRoute && ctx.county) return `${ctx.county.name} County`
+  if (ctx.isOnStatePage && ctx.stateAbbrev) {
+    return ABBREV_TO_NAME[ctx.stateAbbrev] ?? ctx.stateAbbrev.toUpperCase()
+  }
+  if (ctx.isOnLookupPage) return "Address Lookup"
+  if (ctx.isOnHomePage) return "Voter Web"
+  return null
+}
+
 function RootLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const user = useAuthStore((state) => state.user)
@@ -219,6 +244,15 @@ function RootLayout() {
     from: "/districts/$type/$name",
     shouldThrow: false,
   })
+  const stateMatch = useMatch({ from: "/$state", shouldThrow: false })
+  const scopedDistrictMatch = useMatch({
+    from: "/districts/$state/$type/$name",
+    shouldThrow: false,
+  })
+  const scopedCountyDistrictMatch = useMatch({
+    from: "/districts/$state/$county/$type/$name",
+    shouldThrow: false,
+  })
 
   // Resolve slug route to UUID when on slug route
   const slugState = countySlugMatch?.params?.state ?? ""
@@ -242,19 +276,34 @@ function RootLayout() {
   const { data: county } = useCountyBoundary(countyId)
 
   // District data hooks
-  const isOnDistrictRoute = !!(districtIdMatch || districtSlugMatch)
+  const isOnDistrictRoute = !!(
+    districtIdMatch ||
+    districtSlugMatch ||
+    scopedDistrictMatch ||
+    scopedCountyDistrictMatch
+  )
   const districtId =
     districtIdMatch?.params?.districtId ?? resolvedDistrictSlugId ?? ""
   const { data: district } = useCountyBoundary(districtId)
 
   const isOnHomePage = !!homeMatch
+  const isOnStatePage = !!stateMatch
+
+  // State name resolution for home page and state page
+  const { defaultState } = useAvailableStates()
+  const homeStateName = defaultState
+    ? (ABBREV_TO_NAME[defaultState.abbreviation] ??
+        defaultState.abbreviation.toUpperCase())
+    : "State"
 
   const countyOverlay =
     (countyIdMatch?.search as { overlay?: string } | undefined)?.overlay ??
     (countySlugMatch?.search as { overlay?: string } | undefined)?.overlay
   const homeOverlay = (homeMatch?.search as { overlay?: string } | undefined)
     ?.overlay
-  const selectedType = countyOverlay ?? homeOverlay ?? null
+  const stateOverlay = (stateMatch?.search as { overlay?: string } | undefined)
+    ?.overlay
+  const selectedType = countyOverlay ?? homeOverlay ?? stateOverlay ?? null
 
   const { data: boundaryTypes, isLoading: isTypesLoading } =
     useBoundaryTypes()
@@ -273,32 +322,30 @@ function RootLayout() {
     [activeElections],
   )
 
-  // Determine header title
-  let headerTitle: string | null = null
-  if (isOnDistrictRoute && district) {
-    const typeLabel = district.boundary_type.replaceAll("_", " ")
-    headerTitle = `${district.name} (${typeLabel})`
-  } else if (isOnCountyRoute && county) {
-    headerTitle = `${county.name} County`
-  } else if (lookupMatch || lookupResultsMatch) {
-    headerTitle = "Address Lookup"
-  } else if (homeMatch) {
-    headerTitle = "Voter Web"
-  }
+  const headerTitle = resolveHeaderTitle({
+    isOnDistrictRoute,
+    district,
+    isOnCountyRoute,
+    county,
+    isOnStatePage,
+    stateAbbrev: stateMatch?.params?.state,
+    isOnLookupPage: !!(lookupMatch || lookupResultsMatch),
+    isOnHomePage,
+  })
 
   // Layer bar type change callback
   const handleTypeChange = (type: string | undefined) => {
-    if (isOnHomePage) {
+    if (isOnStatePage && stateMatch) {
+      navigate({
+        to: "/$state",
+        params: { state: stateMatch.params.state },
+        search: { overlay: type },
+        replace: true,
+      })
+    } else if (isOnHomePage) {
       navigate({
         to: "/",
-        search: {
-          overlay: type as
-            | "congressional"
-            | "psc"
-            | "state_house"
-            | "state_senate"
-            | undefined,
-        },
+        search: { overlay: type },
         replace: true,
       })
     } else if (countySlugMatch) {
@@ -456,7 +503,26 @@ function RootLayout() {
                 ? overlayData.features.length
                 : null
             }
-            countyName="Georgia"
+            countyName={homeStateName}
+            statewide
+            electionTypes={electionTypes}
+          />
+        )}
+        {isOnStatePage && stateMatch && (
+          <LayerBar
+            boundaryTypes={statewideTypes}
+            isTypesLoading={isStatewideTypesLoading}
+            selectedType={selectedType}
+            onTypeChange={handleTypeChange}
+            overlayFeatureCount={
+              selectedType && overlayData && !isOverlayLoading
+                ? overlayData.features.length
+                : null
+            }
+            countyName={
+              ABBREV_TO_NAME[stateMatch.params.state] ??
+              stateMatch.params.state.toUpperCase()
+            }
             statewide
             electionTypes={electionTypes}
           />
