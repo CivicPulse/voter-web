@@ -1,5 +1,57 @@
 import { test, expect, type Page } from "@playwright/test"
 
+const COUNTY_BOUNDARIES = {
+  type: "FeatureCollection",
+  features: [
+    {
+      type: "Feature",
+      id: "county-bibb",
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [-83.7, 32.8],
+            [-83.5, 32.8],
+            [-83.5, 33.0],
+            [-83.7, 33.0],
+            [-83.7, 32.8],
+          ],
+        ],
+      },
+      properties: {
+        name: "Bibb",
+        boundary_type: "county",
+        boundary_identifier: "13021",
+        source: "census-tiger",
+        county: null,
+      },
+    },
+    {
+      type: "Feature",
+      id: "county-houston",
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [-83.8, 32.3],
+            [-83.5, 32.3],
+            [-83.5, 32.6],
+            [-83.8, 32.6],
+            [-83.8, 32.3],
+          ],
+        ],
+      },
+      properties: {
+        name: "Houston",
+        boundary_type: "county",
+        boundary_identifier: "13153",
+        source: "census-tiger",
+        county: null,
+      },
+    },
+  ],
+}
+
 const STATE_SENATE_BOUNDARIES = {
   type: "FeatureCollection",
   features: [
@@ -21,7 +73,7 @@ const STATE_SENATE_BOUNDARIES = {
       properties: {
         name: "018",
         boundary_type: "state_senate",
-        boundary_identifier: "13SS018",
+        boundary_identifier: "018",
         source: "census-tiger",
         county: null,
       },
@@ -50,7 +102,7 @@ const COUNTY_COMMISSION_BOUNDARIES = {
       properties: {
         name: "005",
         boundary_type: "county_commission",
-        boundary_identifier: "13CC005",
+        boundary_identifier: "005",
         source: "census-tiger",
         county: "Bibb",
       },
@@ -73,7 +125,7 @@ const COUNTY_COMMISSION_BOUNDARIES = {
       properties: {
         name: "005",
         boundary_type: "county_commission",
-        boundary_identifier: "13CC005H",
+        boundary_identifier: "005",
         source: "census-tiger",
         county: "Houston",
       },
@@ -85,7 +137,7 @@ const BOUNDARY_DETAIL = {
   id: "uuid-senate-18",
   name: "018",
   boundary_type: "state_senate",
-  boundary_identifier: "13SS018",
+  boundary_identifier: "018",
   source: "census-tiger",
   county: null,
   geometry: {
@@ -103,9 +155,32 @@ const BOUNDARY_DETAIL = {
 }
 
 async function setupRouteMocks(page: Page) {
+  // Static county GeoJSON
+  await page.route("**/geojson/county.json", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(COUNTY_BOUNDARIES),
+    }),
+  )
+
+  // Static GeoJSON fallbacks (return 404 to force API fetch for non-county types)
+  await page.route("**/geojson/*.json", (route) => {
+    const url = new URL(route.request().url())
+    if (url.pathname.endsWith("/county.json")) return route.fallback()
+    return route.fulfill({ status: 404 })
+  })
+
   await page.route("**/api/v1/boundaries/geojson*", (route, request) => {
     const url = new URL(request.url())
     const type = url.searchParams.get("boundary_type")
+    if (type === "county") {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(COUNTY_BOUNDARIES),
+      })
+    }
     if (type === "state_senate") {
       return route.fulfill({
         status: 200,
@@ -133,11 +208,6 @@ async function setupRouteMocks(page: Page) {
       contentType: "application/json",
       body: JSON.stringify(BOUNDARY_DETAIL),
     }),
-  )
-
-  // Static GeoJSON fallbacks (return 404 to force API fetch)
-  await page.route("**/geojson/*.json", (route) =>
-    route.fulfill({ status: 404 }),
   )
 
   await page.route("**/api/v1/elections*", (route) =>

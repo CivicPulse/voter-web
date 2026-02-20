@@ -52,8 +52,6 @@ export function useDistrictSlugResolverScoped(
 
   const match = boundaries.features.find((feature) => {
     const props = feature.properties
-    const featureStateFips = props.boundary_identifier.slice(0, 2)
-    if (featureStateFips !== stateFips) return false
 
     if (countySlug) {
       if (!props.county || slugify(props.county) !== countySlug) return false

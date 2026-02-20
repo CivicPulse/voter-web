@@ -20,6 +20,37 @@ import { api } from "@/api/client"
 
 const mockedApi = vi.mocked(api)
 
+/** County boundaries with FIPS-prefixed identifiers (used by useCountyBoundaries). */
+const COUNTY_BOUNDARIES: BoundaryFeatureCollection = {
+  type: "FeatureCollection",
+  features: [
+    {
+      type: "Feature",
+      id: "county-bibb",
+      geometry: { type: "Polygon", coordinates: [] },
+      properties: {
+        name: "Bibb",
+        boundary_type: "county",
+        boundary_identifier: "13021",
+        source: "census-tiger",
+        county: null,
+      },
+    },
+    {
+      type: "Feature",
+      id: "county-houston",
+      geometry: { type: "Polygon", coordinates: [] },
+      properties: {
+        name: "Houston",
+        boundary_type: "county",
+        boundary_identifier: "13153",
+        source: "census-tiger",
+        county: null,
+      },
+    },
+  ],
+}
+
 function createWrapper() {
   const queryClient = createTestQueryClient()
   return function Wrapper({ children }: { children: ReactNode }) {
@@ -55,6 +86,23 @@ function makeBoundaryCollection(
   }
 }
 
+/**
+ * Setup api.get mock to return district data for the given boundary type
+ * and county boundaries for "county" type.
+ */
+function setupApiMock(districtData: BoundaryFeatureCollection) {
+  mockedApi.get.mockImplementation(
+    (_path: string, options?: { searchParams?: Record<string, string> }) => {
+      const boundaryType = options?.searchParams?.boundary_type
+      const data =
+        boundaryType === "county" ? COUNTY_BOUNDARIES : districtData
+      return {
+        json: vi.fn().mockResolvedValue(data),
+      } as unknown as ReturnType<typeof api.get>
+    },
+  )
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
 })
@@ -79,13 +127,11 @@ describe("useDistrictDisambiguation", () => {
       id: "uuid-bibb-005",
       name: "005",
       boundaryType: "county_commission",
-      boundaryIdentifier: "13CC005",
+      boundaryIdentifier: "005",
       county: "Bibb",
     })
 
-    mockedApi.get.mockReturnValue({
-      json: vi.fn().mockResolvedValue(data),
-    } as unknown as ReturnType<typeof api.get>)
+    setupApiMock(data)
 
     const { result } = renderHook(
       () => useDistrictDisambiguation("county-commission", "005"),
@@ -114,21 +160,19 @@ describe("useDistrictDisambiguation", () => {
         id: "uuid-bibb-005",
         name: "005",
         boundaryType: "county_commission",
-        boundaryIdentifier: "13CC005",
+        boundaryIdentifier: "005",
         county: "Bibb",
       },
       {
         id: "uuid-houston-005",
         name: "005",
         boundaryType: "county_commission",
-        boundaryIdentifier: "13CC005H",
+        boundaryIdentifier: "005",
         county: "Houston",
       },
     )
 
-    mockedApi.get.mockReturnValue({
-      json: vi.fn().mockResolvedValue(data),
-    } as unknown as ReturnType<typeof api.get>)
+    setupApiMock(data)
 
     const { result } = renderHook(
       () => useDistrictDisambiguation("county-commission", "005"),
@@ -154,13 +198,11 @@ describe("useDistrictDisambiguation", () => {
       id: "uuid-bibb-005",
       name: "005",
       boundaryType: "county_commission",
-      boundaryIdentifier: "13CC005",
+      boundaryIdentifier: "005",
       county: "Bibb",
     })
 
-    mockedApi.get.mockReturnValue({
-      json: vi.fn().mockResolvedValue(data),
-    } as unknown as ReturnType<typeof api.get>)
+    setupApiMock(data)
 
     const { result } = renderHook(
       () => useDistrictDisambiguation("county-commission", "999"),
@@ -180,13 +222,11 @@ describe("useDistrictDisambiguation", () => {
       id: "uuid-senate-18",
       name: "018",
       boundaryType: "state_senate",
-      boundaryIdentifier: "13SS018",
+      boundaryIdentifier: "018",
       county: null,
     })
 
-    mockedApi.get.mockReturnValue({
-      json: vi.fn().mockResolvedValue(data),
-    } as unknown as ReturnType<typeof api.get>)
+    setupApiMock(data)
 
     const { result } = renderHook(
       () => useDistrictDisambiguation("state-senate", "018"),

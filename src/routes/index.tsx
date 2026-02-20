@@ -88,6 +88,7 @@ function Index() {
           overlayData={overlayData}
           activeElections={activeElections}
           electedOfficials={electedOfficials}
+          stateAbbrev={defaultState?.abbreviation}
           isCountiesLoading={isCountiesLoading}
           isOverlayLoading={isOverlayLoading}
           className="rounded-none border-0"

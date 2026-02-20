@@ -73,6 +73,7 @@ function StateDetailPage() {
           overlayData={overlayData}
           activeElections={activeElections}
           electedOfficials={electedOfficials}
+          stateAbbrev={state}
           isCountiesLoading={isCountiesLoading}
           isOverlayLoading={isOverlayLoading}
           className="rounded-none border-0"

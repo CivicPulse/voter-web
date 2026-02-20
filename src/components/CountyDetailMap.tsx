@@ -7,7 +7,6 @@ import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { geometryToLeafletBounds } from "@/lib/geo"
 import { districtSlugPath } from "@/lib/slugs"
-import { fipsToAbbrev } from "@/lib/states"
 import { OverlayLayer } from "@/components/OverlayLayer"
 import type { BoundaryFeatureCollection } from "@/types/boundary"
 import type { Election } from "@/types/elections"
@@ -80,12 +79,9 @@ export function CountyDetailMap({
       boundaryType: string,
       name: string,
       county: string | null,
-      boundaryIdentifier: string,
     ) => {
-      const stateAbbrev =
-        fipsToAbbrev(boundaryIdentifier.slice(0, 2)) ?? stateAbbrevProp
-      if (!stateAbbrev) return
-      const slugPath = districtSlugPath(name, boundaryType, stateAbbrev, county)
+      if (!stateAbbrevProp) return
+      const slugPath = districtSlugPath(name, boundaryType, stateAbbrevProp, county)
       if (county) {
         navigate({
           to: "/districts/$state/$county/$type/$name",

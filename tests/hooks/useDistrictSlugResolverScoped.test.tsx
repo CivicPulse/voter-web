@@ -77,14 +77,14 @@ describe("useDistrictSlugResolverScoped", () => {
         id: "uuid-senate-18",
         name: "018",
         boundaryType: "state_senate",
-        boundaryIdentifier: "13SS018",
+        boundaryIdentifier: "018",
         county: null,
       },
       {
         id: "uuid-senate-19",
         name: "019",
         boundaryType: "state_senate",
-        boundaryIdentifier: "13SS019",
+        boundaryIdentifier: "019",
         county: null,
       },
     )
@@ -112,14 +112,14 @@ describe("useDistrictSlugResolverScoped", () => {
         id: "uuid-bibb-005",
         name: "005",
         boundaryType: "county_commission",
-        boundaryIdentifier: "13CC005",
+        boundaryIdentifier: "005",
         county: "Bibb",
       },
       {
         id: "uuid-houston-005",
         name: "005",
         boundaryType: "county_commission",
-        boundaryIdentifier: "13CC005H",
+        boundaryIdentifier: "005",
         county: "Houston",
       },
     )
@@ -176,7 +176,7 @@ describe("useDistrictSlugResolverScoped", () => {
       id: "uuid-senate-18",
       name: "018",
       boundaryType: "state_senate",
-      boundaryIdentifier: "13SS018",
+      boundaryIdentifier: "018",
       county: null,
     })
 

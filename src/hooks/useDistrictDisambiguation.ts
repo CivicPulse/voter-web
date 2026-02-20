@@ -1,8 +1,11 @@
+import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "@/api/client"
 import { fetchStaticGeoJSON } from "@/lib/static-geojson"
 import { FIPS_TO_ABBREV } from "@/lib/states"
 import { districtSlugPath, slugify } from "@/lib/slugs"
+import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
+import { useAvailableStates } from "@/hooks/useAvailableStates"
 import type { BoundaryFeatureCollection } from "@/types/boundary"
 
 export interface DisambiguationMatch {
@@ -27,25 +30,50 @@ export function useDistrictDisambiguation(
   const boundaryType = typeSlug.replaceAll("-", "_")
   const enabled = !!(typeSlug && nameSlug)
 
-  const { data: boundaries, isLoading } = useQuery<BoundaryFeatureCollection>({
-    queryKey: ["boundaries", boundaryType, "geojson"],
-    queryFn: async () => {
-      const cached =
-        await fetchStaticGeoJSON<BoundaryFeatureCollection>(boundaryType)
-      if (cached) return cached
-      return api
-        .get("boundaries/geojson", {
-          searchParams: { boundary_type: boundaryType },
-        })
-        .json<BoundaryFeatureCollection>()
-    },
-    staleTime: 1000 * 60 * 60,
-    gcTime: 1000 * 60 * 60 * 2,
-    enabled,
-  })
+  const { data: boundaries, isLoading: isBoundariesLoading } =
+    useQuery<BoundaryFeatureCollection>({
+      queryKey: ["boundaries", boundaryType, "geojson"],
+      queryFn: async () => {
+        const cached =
+          await fetchStaticGeoJSON<BoundaryFeatureCollection>(boundaryType)
+        if (cached) return cached
+        return api
+          .get("boundaries/geojson", {
+            searchParams: { boundary_type: boundaryType },
+          })
+          .json<BoundaryFeatureCollection>()
+      },
+      staleTime: 1000 * 60 * 60,
+      gcTime: 1000 * 60 * 60 * 2,
+      enabled,
+    })
+
+  const { data: countyBoundaries, isLoading: isCountiesLoading } =
+    useCountyBoundaries()
+  const { defaultState, isLoading: isStatesLoading } = useAvailableStates()
+
+  // Build county name → state abbreviation lookup from county boundaries
+  const countyToState = useMemo(() => {
+    const map = new Map<string, string>()
+    if (!countyBoundaries) return map
+    for (const feature of countyBoundaries.features) {
+      const stateFips = feature.properties.boundary_identifier.slice(0, 2)
+      const abbrev = FIPS_TO_ABBREV[stateFips]
+      if (abbrev) {
+        map.set(feature.properties.name.toLowerCase(), abbrev)
+      }
+    }
+    return map
+  }, [countyBoundaries])
+
+  const isLoading = isBoundariesLoading || isCountiesLoading || isStatesLoading
 
   if (!enabled || isLoading || !boundaries) {
-    return { matches: [], isLoading: isLoading && enabled, isSingleMatch: false }
+    return {
+      matches: [],
+      isLoading: isLoading && enabled,
+      isSingleMatch: false,
+    }
   }
 
   const matches: DisambiguationMatch[] = []
@@ -54,8 +82,18 @@ export function useDistrictDisambiguation(
     if (slugify(feature.properties.name) !== nameSlug) continue
     if (!feature.id) continue
 
-    const stateFips = feature.properties.boundary_identifier.slice(0, 2)
-    const stateAbbrev = FIPS_TO_ABBREV[stateFips]
+    let stateAbbrev: string | undefined
+
+    if (feature.properties.county) {
+      // County-scoped: look up state from county boundaries
+      stateAbbrev = countyToState.get(
+        feature.properties.county.toLowerCase(),
+      )
+    } else {
+      // State-scoped: use the default state from available states
+      stateAbbrev = defaultState?.abbreviation
+    }
+
     if (!stateAbbrev) continue
 
     matches.push({
