@@ -8,7 +8,6 @@ import {
 } from "@/api/voters"
 import {
   mockVoterSearchResponse,
-  mockVoterDetail,
   mockVoterFilterOptions,
   mockVoterGeocodedLocation,
 } from "@/test/mocks/voters"
