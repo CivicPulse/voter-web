@@ -303,6 +303,8 @@ Do **not** mark a UI task as complete without performing this verification. If t
 - TypeScript 5.9+, React 19.2+ + TanStack Router (file-based routing), TanStack Query (data fetching, caching, polling), React-Leaflet + Leaflet (maps), vaul (drawer), Recharts (charts if needed), Zustand (client state), ky (HTTP client), React Hook Form + Zod (admin forms), shadcn/ui (UI components), Lucide React (icons), Sonner (toasts) (002-election-results)
 - N/A (frontend SPA — all data from voter-api backend at `/api/v1`) (002-election-results)
 - TypeScript 5.9+, React 19.2+ + TanStack Router (file-based routing), TanStack Query (data fetching), React-Leaflet + Leaflet (map), shadcn/ui (UI components), Zustand (auth state), ky (HTTP client), React Hook Form + Zod (forms/validation), Sonner (toasts), Lucide React (icons) (003-voter-search-geocoding)
+- TypeScript 5.9+, React 19.2+ + TanStack Router (file-based routing, Vite plugin), TanStack Query (data fetching/caching), React-Leaflet + Leaflet (maps), Vite 7, shadcn/ui (UI components), ky (HTTP client), Zustand (auth state), Zod (validation), vaul (drawer), Turf.js (geo operations) (004-multi-county-routes)
+- N/A (frontend SPA — all data from voter-api at `/api/v1`) (004-multi-county-routes)
 
 ## Recent Changes
 - 001-admin-api-access: Added TypeScript 5.8+ (strict mode), React 19.2+
