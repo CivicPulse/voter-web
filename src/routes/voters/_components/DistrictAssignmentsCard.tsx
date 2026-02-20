@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-interface DistrictAssignmentsCardProps {
+interface VoterFileDistricts {
   congressional_district: string | null
   state_senate_district: string | null
   state_house_district: string | null
@@ -16,7 +16,7 @@ interface DistrictAssignmentsCardProps {
 }
 
 const DISTRICT_FIELDS: {
-  key: keyof DistrictAssignmentsCardProps
+  key: keyof VoterFileDistricts
   label: string
 }[] = [
   { key: "congressional_district", label: "Congressional" },
@@ -26,7 +26,7 @@ const DISTRICT_FIELDS: {
   { key: "precinct", label: "Precinct" },
 ]
 
-export function DistrictAssignmentsCard(props: DistrictAssignmentsCardProps) {
+export function DistrictAssignmentsCard(props: VoterFileDistricts) {
   const assignments = DISTRICT_FIELDS.filter(
     ({ key }) => props[key] !== null,
   ).map(({ key, label }) => ({ label, value: props[key] as string }))
@@ -42,12 +42,12 @@ export function DistrictAssignmentsCard(props: DistrictAssignmentsCardProps) {
       <CardContent>
         {assignments.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No district assignments found in voter file.
+            No district assignments found.
           </p>
         ) : (
           <div className="space-y-3">
             {assignments.map(({ label, value }) => (
-              <div key={label}>
+              <div key={`${label}-${value}`}>
                 <h4 className="text-sm font-medium text-muted-foreground mb-1">
                   {label}
                 </h4>

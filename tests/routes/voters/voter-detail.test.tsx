@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { screen } from "@testing-library/react"
+import { render } from "@/test/render"
 import { mockVoterDetail, mockVoterGeocodedLocation } from "@/test/mocks/voters"
 
 // Mock hooks
@@ -225,7 +226,7 @@ describe("VoterDetailPage", () => {
     render(<VoterDetailTestPage voterId="v-001" />)
 
     expect(
-      screen.getByText("No district assignments found in voter file."),
+      screen.getByText("No district assignments found."),
     ).toBeInTheDocument()
   })
 })

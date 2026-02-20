@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { screen } from "@testing-library/react"
+import { render } from "@/test/render"
 import { DistrictAssignmentsCard } from "@/routes/voters/_components/DistrictAssignmentsCard"
 
 const defaultProps = {
@@ -19,7 +20,7 @@ describe("DistrictAssignmentsCard", () => {
   it("shows message when all district fields are null", () => {
     render(<DistrictAssignmentsCard {...defaultProps} />)
     expect(
-      screen.getByText("No district assignments found in voter file."),
+      screen.getByText("No district assignments found."),
     ).toBeInTheDocument()
   })
 
