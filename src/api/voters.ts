@@ -5,6 +5,7 @@ import type {
   VoterDetail,
   VoterFilterOptions,
   VoterSearchParams,
+  RegisteredDistricts,
 } from "@/types/voter"
 
 /** Raw summary item returned by GET /voters (search results) */
@@ -40,22 +41,6 @@ interface AddressResponse {
   full_address: string
 }
 
-/** Registered districts sub-object returned by the backend */
-interface RegisteredDistrictsResponse {
-  county_precinct: string | null
-  county_precinct_description: string | null
-  municipal_precinct: string | null
-  municipal_precinct_description: string | null
-  congressional_district: string | null
-  state_senate_district: string | null
-  state_house_district: string | null
-  judicial_district: string | null
-  county_commission_district: string | null
-  school_board_district: string | null
-  city_council_district: string | null
-  municipal_school_board_district: string | null
-}
-
 /** Raw voter detail shape returned by GET /voters/{id} */
 interface RawVoterDetail {
   id: string
@@ -68,7 +53,7 @@ interface RawVoterDetail {
   registration_date: string | null
   county: string
   residence_address: AddressResponse
-  registered_districts?: RegisteredDistrictsResponse | null
+  registered_districts?: RegisteredDistricts | null
 }
 
 export async function searchVoters(

@@ -78,20 +78,7 @@ function VoterDetailTestPage({
       <a href="/voters">Back to Search</a>
       <VoterRegistrationCard voter={voter} />
       <GeocodedLocationsCard locations={locations ?? []} voterId={voterId} />
-      <DistrictAssignmentsCard
-        congressional_district={v.congressional_district}
-        state_senate_district={v.state_senate_district}
-        state_house_district={v.state_house_district}
-        judicial_district={v.judicial_district}
-        county_commission_district={v.county_commission_district}
-        school_board_district={v.school_board_district}
-        city_council_district={v.city_council_district}
-        municipal_school_board_district={v.municipal_school_board_district}
-        county_precinct={v.county_precinct}
-        county_precinct_description={v.county_precinct_description}
-        municipal_precinct={v.municipal_precinct}
-        municipal_precinct_description={v.municipal_precinct_description}
-      />
+      <DistrictAssignmentsCard districts={v} />
     </div>
   )
 }

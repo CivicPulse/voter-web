@@ -3,7 +3,7 @@ import { screen } from "@testing-library/react"
 import { render } from "@/test/render"
 import { DistrictAssignmentsCard } from "@/routes/voters/_components/DistrictAssignmentsCard"
 
-const defaultProps = {
+const nullDistricts = {
   congressional_district: null,
   state_senate_district: null,
   state_house_district: null,
@@ -20,12 +20,12 @@ const defaultProps = {
 
 describe("DistrictAssignmentsCard", () => {
   it("renders card title", () => {
-    render(<DistrictAssignmentsCard {...defaultProps} />)
+    render(<DistrictAssignmentsCard districts={{...nullDistricts}} />)
     expect(screen.getByText("District Assignments")).toBeInTheDocument()
   })
 
   it("shows message when all district fields are null", () => {
-    render(<DistrictAssignmentsCard {...defaultProps} />)
+    render(<DistrictAssignmentsCard districts={{...nullDistricts}} />)
     expect(
       screen.getByText("No district assignments found."),
     ).toBeInTheDocument()
@@ -34,10 +34,7 @@ describe("DistrictAssignmentsCard", () => {
   it("renders non-null district fields with labels", () => {
     render(
       <DistrictAssignmentsCard
-        {...defaultProps}
-        congressional_district="5"
-        state_senate_district="18"
-        state_house_district="145"
+        districts={{...nullDistricts, congressional_district: "5", state_senate_district: "18", state_house_district: "145"}}
       />,
     )
 
@@ -52,9 +49,7 @@ describe("DistrictAssignmentsCard", () => {
   it("renders county precinct with description", () => {
     render(
       <DistrictAssignmentsCard
-        {...defaultProps}
-        county_precinct="HO1"
-        county_precinct_description="HOWARD 7"
+        districts={{...nullDistricts, county_precinct: "HO1", county_precinct_description: "HOWARD 7"}}
       />,
     )
 
@@ -66,12 +61,7 @@ describe("DistrictAssignmentsCard", () => {
   it("renders additional district types", () => {
     render(
       <DistrictAssignmentsCard
-        {...defaultProps}
-        judicial_district="MACO"
-        county_commission_district="1"
-        school_board_district="6"
-        city_council_district="3"
-        municipal_school_board_district="2"
+        districts={{...nullDistricts, judicial_district: "MACO", county_commission_district: "1", school_board_district: "6", city_council_district: "3", municipal_school_board_district: "2"}}
       />,
     )
 
@@ -90,8 +80,7 @@ describe("DistrictAssignmentsCard", () => {
   it("omits null district fields from the display", () => {
     render(
       <DistrictAssignmentsCard
-        {...defaultProps}
-        congressional_district="5"
+        districts={{...nullDistricts, congressional_district: "5"}}
       />,
     )
 
@@ -107,18 +96,20 @@ describe("DistrictAssignmentsCard", () => {
   it("renders all fields when all are non-null", () => {
     render(
       <DistrictAssignmentsCard
-        congressional_district="8"
-        state_senate_district="12"
-        state_house_district="75"
-        judicial_district="MACO"
-        county_commission_district="1"
-        school_board_district="6"
-        city_council_district="3"
-        municipal_school_board_district="4"
-        county_precinct="0042"
-        county_precinct_description="TEST PRECINCT"
-        municipal_precinct="003"
-        municipal_precinct_description="MUNICIPAL 3"
+        districts={{
+          congressional_district: "8",
+          state_senate_district: "12",
+          state_house_district: "75",
+          judicial_district: "MACO",
+          county_commission_district: "1",
+          school_board_district: "6",
+          city_council_district: "3",
+          municipal_school_board_district: "4",
+          county_precinct: "0042",
+          county_precinct_description: "TEST PRECINCT",
+          municipal_precinct: "003",
+          municipal_precinct_description: "MUNICIPAL 3",
+        }}
       />,
     )
 

@@ -6,26 +6,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-
-interface VoterFileDistricts {
-  congressional_district: string | null
-  state_senate_district: string | null
-  state_house_district: string | null
-  judicial_district: string | null
-  county_commission_district: string | null
-  school_board_district: string | null
-  city_council_district: string | null
-  municipal_school_board_district: string | null
-  county_precinct: string | null
-  county_precinct_description: string | null
-  municipal_precinct: string | null
-  municipal_precinct_description: string | null
-}
+import type { RegisteredDistricts } from "@/types/voter"
 
 const DISTRICT_FIELDS: {
-  key: keyof VoterFileDistricts
+  key: keyof RegisteredDistricts
   label: string
-  descriptionKey?: keyof VoterFileDistricts
+  descriptionKey?: keyof RegisteredDistricts
 }[] = [
   { key: "congressional_district", label: "Congressional" },
   { key: "state_senate_district", label: "State Senate" },
@@ -47,13 +33,13 @@ const DISTRICT_FIELDS: {
   },
 ]
 
-export function DistrictAssignmentsCard(props: VoterFileDistricts) {
+export function DistrictAssignmentsCard({ districts }: Readonly<{ districts: RegisteredDistricts }>) {
   const assignments = DISTRICT_FIELDS.filter(
-    ({ key }) => props[key] !== null,
+    ({ key }) => districts[key] !== null,
   ).map(({ key, label, descriptionKey }) => ({
     label,
-    value: props[key] as string,
-    description: descriptionKey ? (props[descriptionKey] as string | null) : null,
+    value: districts[key]!,
+    description: descriptionKey ? districts[descriptionKey] : null,
   }))
 
   return (

@@ -67,20 +67,7 @@ function VoterDetailPage() {
         )}
       </div>
 
-      <DistrictAssignmentsCard
-        congressional_district={voter.congressional_district}
-        state_senate_district={voter.state_senate_district}
-        state_house_district={voter.state_house_district}
-        judicial_district={voter.judicial_district}
-        county_commission_district={voter.county_commission_district}
-        school_board_district={voter.school_board_district}
-        city_council_district={voter.city_council_district}
-        municipal_school_board_district={voter.municipal_school_board_district}
-        county_precinct={voter.county_precinct}
-        county_precinct_description={voter.county_precinct_description}
-        municipal_precinct={voter.municipal_precinct}
-        municipal_precinct_description={voter.municipal_precinct_description}
-      />
+      <DistrictAssignmentsCard districts={voter} />
     </div>
   )
 }
