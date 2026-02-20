@@ -3,6 +3,7 @@ import type {
   VoterDetail,
   VoterSearchResponse,
   VoterFilterOptions,
+  RegisteredDistricts,
 } from "@/types/voter"
 import type { VoterGeocodedLocation } from "@/types/lookup"
 
@@ -52,6 +53,23 @@ export function mockVoterDetail(
     city_council_district: null,
     municipal_school_board_district: null,
     ...overrides,
+  }
+}
+
+export function mockNullDistricts(): RegisteredDistricts {
+  return {
+    congressional_district: null,
+    state_senate_district: null,
+    state_house_district: null,
+    county_precinct: null,
+    county_precinct_description: null,
+    municipal_precinct: null,
+    municipal_precinct_description: null,
+    judicial_district: null,
+    county_commission_district: null,
+    school_board_district: null,
+    city_council_district: null,
+    municipal_school_board_district: null,
   }
 }
 

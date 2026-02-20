@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { screen } from "@testing-library/react"
 import { render } from "@/test/render"
-import { mockVoterDetail, mockVoterGeocodedLocation } from "@/test/mocks/voters"
+import { mockVoterDetail, mockVoterGeocodedLocation, mockNullDistricts } from "@/test/mocks/voters"
 
 // Mock hooks
 const mockUseVoterDetail = vi.fn()
@@ -214,20 +214,7 @@ describe("VoterDetailPage", () => {
   })
 
   it("shows no districts message when all district fields are null", () => {
-    const voter = mockVoterDetail({
-      congressional_district: null,
-      state_senate_district: null,
-      state_house_district: null,
-      county_precinct: null,
-      county_precinct_description: null,
-      municipal_precinct: null,
-      municipal_precinct_description: null,
-      judicial_district: null,
-      county_commission_district: null,
-      school_board_district: null,
-      city_council_district: null,
-      municipal_school_board_district: null,
-    })
+    const voter = mockVoterDetail(mockNullDistricts())
     mockUseVoterDetail.mockReturnValue({
       data: voter,
       isLoading: false,
