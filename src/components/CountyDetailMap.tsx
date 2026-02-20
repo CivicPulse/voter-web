@@ -6,7 +6,7 @@ import type { MultiPolygon, Polygon } from "geojson"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { geometryToLeafletBounds } from "@/lib/geo"
-import { districtSlugPath } from "@/lib/slugs"
+import { slugify } from "@/lib/slugs"
 import { OverlayLayer } from "@/components/OverlayLayer"
 import type { BoundaryFeatureCollection } from "@/types/boundary"
 import type { Election } from "@/types/elections"
@@ -81,24 +81,25 @@ export function CountyDetailMap({
       county: string | null,
     ) => {
       if (!stateAbbrevProp) return
-      const slugPath = districtSlugPath(name, boundaryType, stateAbbrevProp, county)
+      const typeSlug = slugify(boundaryType)
+      const nameSlug = slugify(name)
       if (county) {
         navigate({
           to: "/districts/$state/$county/$type/$name",
           params: {
-            state: slugPath.split("/")[2],
-            county: slugPath.split("/")[3],
-            type: slugPath.split("/")[4],
-            name: slugPath.split("/")[5],
+            state: stateAbbrevProp,
+            county: slugify(county),
+            type: typeSlug,
+            name: nameSlug,
           },
         })
       } else {
         navigate({
           to: "/districts/$state/$type/$name",
           params: {
-            state: slugPath.split("/")[2],
-            type: slugPath.split("/")[3],
-            name: slugPath.split("/")[4],
+            state: stateAbbrevProp,
+            type: typeSlug,
+            name: nameSlug,
           },
         })
       }

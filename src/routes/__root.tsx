@@ -322,6 +322,8 @@ function RootLayout() {
       setNavContext(stateMatch.params.state, null)
     } else if (isOnHomePage && defaultState) {
       setNavContext(defaultState.abbreviation, null)
+    } else {
+      setNavContext(null, null)
     }
   }, [isOnCountyRoute, county, isOnStatePage, stateMatch, isOnHomePage, defaultState, countySlugMatch, setNavContext])
 

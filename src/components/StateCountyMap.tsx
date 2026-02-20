@@ -3,10 +3,10 @@ import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
 import { useNavigate } from "@tanstack/react-router"
 import type { Layer, LeafletMouseEvent, PathOptions, LeafletEvent } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
-import { bbox } from "@turf/bbox"
+import { safeBbox } from "@/lib/geo"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { countySlugPath, districtSlugPath, slugify } from "@/lib/slugs"
+import { countySlugPath, slugify } from "@/lib/slugs"
 import { fipsToAbbrev } from "@/lib/states"
 import { OverlayLayer } from "@/components/OverlayLayer"
 import type {
@@ -50,8 +50,9 @@ function FitBoundsToData({ data }: Readonly<{ data: CountyFeatureCollection }>) 
   const map = useMap()
 
   useEffect(() => {
-    if (data.features.length === 0) return
-    const [minLng, minLat, maxLng, maxLat] = bbox(data)
+    const bounds = safeBbox(data)
+    if (!bounds) return
+    const [minLng, minLat, maxLng, maxLat] = bounds
     map.fitBounds(
       [
         [minLat, minLng],
@@ -184,24 +185,25 @@ export function StateCountyMap({
       county: string | null,
     ) => {
       if (!stateAbbrev) return
-      const slugPath = districtSlugPath(name, boundaryType, stateAbbrev, county)
+      const typeSlug = slugify(boundaryType)
+      const nameSlug = slugify(name)
       if (county) {
         navigate({
           to: "/districts/$state/$county/$type/$name",
           params: {
-            state: slugPath.split("/")[2],
-            county: slugPath.split("/")[3],
-            type: slugPath.split("/")[4],
-            name: slugPath.split("/")[5],
+            state: stateAbbrev,
+            county: slugify(county),
+            type: typeSlug,
+            name: nameSlug,
           },
         })
       } else {
         navigate({
           to: "/districts/$state/$type/$name",
           params: {
-            state: slugPath.split("/")[2],
-            type: slugPath.split("/")[3],
-            name: slugPath.split("/")[4],
+            state: stateAbbrev,
+            type: typeSlug,
+            name: nameSlug,
           },
         })
       }
