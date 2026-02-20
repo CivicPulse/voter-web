@@ -16,15 +16,11 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { requireAuth } from "@/lib/auth-guards"
 import { verifyAddress, geocodeAddress } from "@/api/lookup"
 import type { AddressSuggestion } from "@/types/lookup"
 
 export const Route = createFileRoute("/lookup/")({
   component: LookupPage,
-  beforeLoad: ({ location }) => {
-    requireAuth(location.pathname)
-  },
 })
 
 const addressSchema = z.object({
