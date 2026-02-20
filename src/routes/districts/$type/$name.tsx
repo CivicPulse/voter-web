@@ -1,20 +1,31 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { useEffect } from "react"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Loader2, AlertCircle } from "lucide-react"
-import { DistrictDetailContent } from "@/components/DistrictDetailContent"
-import { useDistrictSlugResolver } from "@/hooks/useDistrictSlugResolver"
+import { DisambiguationPage } from "@/components/DisambiguationPage"
+import { useDistrictDisambiguation } from "@/hooks/useDistrictDisambiguation"
 
 export const Route = createFileRoute("/districts/$type/$name")({
-  component: DistrictSlugPage,
+  component: LegacyDistrictSlugPage,
 })
 
-function DistrictSlugPage() {
+function LegacyDistrictSlugPage() {
   const { type, name } = Route.useParams()
-  const { districtId, isLoading, isNotFound } = useDistrictSlugResolver(
+  const { matches, isLoading, isSingleMatch } = useDistrictDisambiguation(
     type,
     name,
   )
+  const navigate = useNavigate()
 
-  if (isLoading) {
+  useEffect(() => {
+    if (isSingleMatch && matches[0]) {
+      navigate({
+        to: matches[0].fullyQualifiedUrl,
+        replace: true,
+      })
+    }
+  }, [isSingleMatch, matches, navigate])
+
+  if (isLoading || isSingleMatch) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="flex items-center gap-2 text-muted-foreground">
@@ -25,7 +36,7 @@ function DistrictSlugPage() {
     )
   }
 
-  if (isNotFound || !districtId) {
+  if (matches.length === 0) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="flex items-center gap-2 text-destructive">
@@ -38,5 +49,5 @@ function DistrictSlugPage() {
     )
   }
 
-  return <DistrictDetailContent districtId={districtId} />
+  return <DisambiguationPage matches={matches} typeSlug={type} nameSlug={name} />
 }

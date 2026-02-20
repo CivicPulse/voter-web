@@ -59,6 +59,50 @@ function buildOfficialsPopupHtml(
   return `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e5e7eb;">${lines}${overflow}</div>`
 }
 
+/**
+ * Attach click (delayed popup) and dblclick (navigation) handlers
+ * using Leaflet's event system. Native DOM listeners don't work here
+ * because onEachFeature runs before React-Leaflet adds the layer to
+ * the map (in useEffect), so the SVG element doesn't exist yet.
+ * Leaflet events are registered on the layer's event bus and routed
+ * from the map container's DOM event handler, so they work regardless
+ * of when the SVG element is created.
+ */
+function attachDblClickNav(
+  layer: Layer,
+  feature: Feature<MultiPolygon | Polygon, BoundaryFeatureProperties>,
+  onDblClick: OverlayLayerProps["onDistrictDblClick"],
+) {
+  // Remove bindPopup's auto-open-on-click so the popup doesn't
+  // appear between the two clicks of a dblclick and intercept the
+  // second click.
+  layer.off("click")
+
+  let popupTimer: ReturnType<typeof setTimeout> | null = null
+
+  // Re-add click with a delay so single clicks still open the popup
+  layer.on("click", () => {
+    if (popupTimer) clearTimeout(popupTimer)
+    popupTimer = setTimeout(() => layer.openPopup(), 250)
+  })
+
+  layer.on("dblclick", () => {
+    if (popupTimer) {
+      clearTimeout(popupTimer)
+      popupTimer = null
+    }
+    layer.closePopup()
+    const props = feature.properties
+    onDblClick?.(
+      String(feature.id ?? props.boundary_identifier),
+      props.boundary_type,
+      props.name,
+      props.county,
+      props.boundary_identifier,
+    )
+  })
+}
+
 interface OverlayLayerProps {
   data: BoundaryFeatureCollection
   activeElections?: Election[]
@@ -67,6 +111,8 @@ interface OverlayLayerProps {
     featureId: string,
     boundaryType: string,
     name: string,
+    county: string | null,
+    boundaryIdentifier: string,
   ) => void
 }
 
@@ -162,6 +208,8 @@ export function OverlayLayer({
         })
       }
 
+      attachDblClickNav(layer, feature, onDistrictDblClick)
+
       layer.on({
         mouseover: (e: LeafletMouseEvent) => {
           e.target.setStyle(OVERLAY_HOVER_STYLE)
@@ -169,15 +217,6 @@ export function OverlayLayer({
         },
         mouseout: (e: LeafletMouseEvent) => {
           e.target.setStyle(defaultStyle)
-        },
-        dblclick: () => {
-          if (onDistrictDblClick && feature.id) {
-            onDistrictDblClick(
-              String(feature.id),
-              props.boundary_type,
-              props.name,
-            )
-          }
         },
       })
     },

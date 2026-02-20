@@ -6,13 +6,13 @@ import type { MultiPolygon, Polygon } from "geojson"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { geometryToLeafletBounds } from "@/lib/geo"
-import { districtSlugPath } from "@/lib/slugs"
+import { slugify } from "@/lib/slugs"
 import { OverlayLayer } from "@/components/OverlayLayer"
 import type { BoundaryFeatureCollection } from "@/types/boundary"
 import type { Election } from "@/types/elections"
 
-const GA_CENTER: [number, number] = [32.6791, -83.6233]
-const GA_ZOOM = 7
+const DEFAULT_CENTER: [number, number] = [39.8283, -98.5795]
+const DEFAULT_ZOOM = 4
 
 const COUNTY_STYLE: PathOptions = {
   color: "#1e40af",
@@ -26,6 +26,7 @@ interface CountyDetailMapProps {
   countyGeometry?: Record<string, unknown> | null
   overlayData?: BoundaryFeatureCollection | null
   activeElections?: Election[]
+  stateAbbrev?: string
   isCountyLoading?: boolean
   isOverlayLoading?: boolean
   className?: string
@@ -65,6 +66,7 @@ export function CountyDetailMap({
   countyGeometry,
   overlayData,
   activeElections,
+  stateAbbrev: stateAbbrevProp,
   isCountyLoading,
   isOverlayLoading,
   className,
@@ -72,17 +74,37 @@ export function CountyDetailMap({
   const navigate = useNavigate()
 
   const handleDistrictDblClick = useCallback(
-    (_featureId: string, boundaryType: string, name: string) => {
-      const slugPath = districtSlugPath(name, boundaryType)
-      navigate({
-        to: "/districts/$type/$name",
-        params: {
-          type: slugPath.split("/")[2],
-          name: slugPath.split("/")[3],
-        },
-      })
+    (
+      _featureId: string,
+      boundaryType: string,
+      name: string,
+      county: string | null,
+    ) => {
+      if (!stateAbbrevProp) return
+      const typeSlug = slugify(boundaryType)
+      const nameSlug = slugify(name)
+      if (county) {
+        navigate({
+          to: "/districts/$state/$county/$type/$name",
+          params: {
+            state: stateAbbrevProp,
+            county: slugify(county),
+            type: typeSlug,
+            name: nameSlug,
+          },
+        })
+      } else {
+        navigate({
+          to: "/districts/$state/$type/$name",
+          params: {
+            state: stateAbbrevProp,
+            type: typeSlug,
+            name: nameSlug,
+          },
+        })
+      }
     },
-    [navigate],
+    [navigate, stateAbbrevProp],
   )
 
   const isLoading = isCountyLoading || isOverlayLoading
@@ -90,8 +112,8 @@ export function CountyDetailMap({
   return (
     <div className="relative h-full w-full">
       <MapContainer
-        center={GA_CENTER}
-        zoom={GA_ZOOM}
+        center={DEFAULT_CENTER}
+        zoom={DEFAULT_ZOOM}
         scrollWheelZoom={true}
         doubleClickZoom={false}
         className={cn("h-full w-full rounded-lg border", className)}

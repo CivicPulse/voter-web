@@ -1,18 +1,16 @@
 import { useMemo, useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
 import { z } from "zod"
-import { AlertCircle, ChevronDown, ChevronUp, Loader2 } from "lucide-react"
+import { AlertCircle, ChevronDown, ChevronUp } from "lucide-react"
 import { StateCountyMap } from "@/components/StateCountyMap"
-import { StateSelectionPage } from "@/components/StateSelectionPage"
 import { ActiveElectionBanner } from "@/components/ActiveElectionBanner"
 import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
-import { useAvailableStates } from "@/hooks/useAvailableStates"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import { useActiveElections } from "@/lib/hooks/use-active-elections"
 import { useElectedOfficialsByBoundaryType } from "@/lib/hooks/use-elected-officials"
 import { ElectedOfficialsCard } from "@/components/ElectedOfficialsCard"
 import { StateCensusProfileCard } from "@/components/StateCensusProfileCard"
-import { ABBREV_TO_NAME } from "@/lib/states"
+import { ABBREV_TO_FIPS, ABBREV_TO_NAME } from "@/lib/states"
 import {
   Drawer,
   DrawerContent,
@@ -21,23 +19,21 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer"
 
-const homeSearchSchema = z.object({
+const stateSearchSchema = z.object({
   overlay: z.string().optional().catch(undefined),
 })
 
-export const Route = createFileRoute("/")({
-  component: Index,
-  validateSearch: homeSearchSchema,
+export const Route = createFileRoute("/$state")({
+  component: StateDetailPage,
+  validateSearch: stateSearchSchema,
 })
 
-function Index() {
+function StateDetailPage() {
+  const { state } = Route.useParams()
   const { overlay } = Route.useSearch()
-  const {
-    states,
-    isLoading: isStatesLoading,
-    isSingleState,
-    defaultState,
-  } = useAvailableStates()
+  const stateFips = ABBREV_TO_FIPS[state]
+  const stateName = ABBREV_TO_NAME[state]
+
   const { data: allCounties, isLoading: isCountiesLoading, isError, error } =
     useCountyBoundaries()
   const { data: overlayData, isLoading: isOverlayLoading } =
@@ -49,36 +45,25 @@ function Index() {
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const stateCounties = useMemo(() => {
-    if (!allCounties || !defaultState) return allCounties ?? null
+    if (!allCounties || !stateFips) return null
     return {
       ...allCounties,
       features: allCounties.features.filter(
-        (f) =>
-          f.properties.boundary_identifier.slice(0, 2) === defaultState.fipsCode,
+        (f) => f.properties.boundary_identifier.slice(0, 2) === stateFips,
       ),
     }
-  }, [allCounties, defaultState])
+  }, [allCounties, stateFips])
 
-  if (isStatesLoading) {
+  if (!stateFips || !stateName) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Loading…</span>
+        <div className="flex items-center gap-2 text-destructive">
+          <AlertCircle className="h-5 w-5" />
+          <span>Unknown state: {state}</span>
         </div>
       </div>
     )
   }
-
-  if (!isSingleState && states.length > 1) {
-    return <StateSelectionPage states={states} />
-  }
-
-  const stateName = defaultState
-    ? (ABBREV_TO_NAME[defaultState.abbreviation] ?? defaultState.abbreviation.toUpperCase())
-    : "State"
-  const stateAbbrevUpper = defaultState?.abbreviation.toUpperCase() ?? ""
-  const stateFips = defaultState?.fipsCode ?? ""
 
   return (
     <div className="relative h-full w-full">
@@ -88,7 +73,7 @@ function Index() {
           overlayData={overlayData}
           activeElections={activeElections}
           electedOfficials={electedOfficials}
-          stateAbbrev={defaultState?.abbreviation}
+          stateAbbrev={state}
           isCountiesLoading={isCountiesLoading}
           isOverlayLoading={isOverlayLoading}
           className="rounded-none border-0"
@@ -133,7 +118,7 @@ function Index() {
           <div className="overflow-y-auto px-4 pb-6 max-h-[60vh] sm:max-h-[70vh] space-y-6">
             <ElectedOfficialsCard
               boundaryType="us_senate"
-              districtIdentifier={stateAbbrevUpper}
+              districtIdentifier={state.toUpperCase()}
             />
             <StateCensusProfileCard fipsState={stateFips} stateName={stateName} />
           </div>

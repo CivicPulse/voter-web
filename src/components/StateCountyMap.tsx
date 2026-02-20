@@ -3,9 +3,10 @@ import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
 import { useNavigate } from "@tanstack/react-router"
 import type { Layer, LeafletMouseEvent, PathOptions, LeafletEvent } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
+import { safeBbox } from "@/lib/geo"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { countySlugPath, districtSlugPath, slugify } from "@/lib/slugs"
+import { countySlugPath, slugify } from "@/lib/slugs"
 import { fipsToAbbrev } from "@/lib/states"
 import { OverlayLayer } from "@/components/OverlayLayer"
 import type {
@@ -16,8 +17,8 @@ import type { BoundaryFeatureCollection } from "@/types/boundary"
 import type { Election } from "@/types/elections"
 import type { ElectedOfficialSummaryResponse } from "@/types/elected-officials"
 
-const GA_CENTER: [number, number] = [32.6791, -83.6233]
-const GA_ZOOM = 7
+const US_CENTER: [number, number] = [39.8283, -98.5795]
+const US_ZOOM = 4
 
 const DEFAULT_STYLE: PathOptions = {
   color: "#6b7280",
@@ -34,14 +35,34 @@ const HOVER_STYLE: PathOptions = {
   opacity: 1,
 }
 
-interface GeorgiaCountyMapProps {
+interface StateCountyMapProps {
   data?: CountyFeatureCollection | null
   overlayData?: BoundaryFeatureCollection | null
   activeElections?: Election[]
   electedOfficials?: Map<string, ElectedOfficialSummaryResponse[]>
+  stateAbbrev?: string
   isCountiesLoading?: boolean
   isOverlayLoading?: boolean
   className?: string
+}
+
+function FitBoundsToData({ data }: Readonly<{ data: CountyFeatureCollection }>) {
+  const map = useMap()
+
+  useEffect(() => {
+    const bounds = safeBbox(data)
+    if (!bounds) return
+    const [minLng, minLat, maxLng, maxLat] = bounds
+    map.fitBounds(
+      [
+        [minLat, minLng],
+        [maxLat, maxLng],
+      ],
+      { padding: [20, 20] },
+    )
+  }, [map, data])
+
+  return null
 }
 
 function CountyGeoJSON({ data }: Readonly<{ data: CountyFeatureCollection }>) {
@@ -144,29 +165,50 @@ function CountyGeoJSON({ data }: Readonly<{ data: CountyFeatureCollection }>) {
   )
 }
 
-export function GeorgiaCountyMap({
+export function StateCountyMap({
   data,
   overlayData,
   activeElections,
   electedOfficials,
+  stateAbbrev,
   isCountiesLoading,
   isOverlayLoading,
   className,
-}: Readonly<GeorgiaCountyMapProps>) {
+}: Readonly<StateCountyMapProps>) {
   const navigate = useNavigate()
 
   const handleDistrictDblClick = useCallback(
-    (_featureId: string, boundaryType: string, name: string) => {
-      const slugPath = districtSlugPath(name, boundaryType)
-      navigate({
-        to: "/districts/$type/$name",
-        params: {
-          type: slugPath.split("/")[2],
-          name: slugPath.split("/")[3],
-        },
-      })
+    (
+      _featureId: string,
+      boundaryType: string,
+      name: string,
+      county: string | null,
+    ) => {
+      if (!stateAbbrev) return
+      const typeSlug = slugify(boundaryType)
+      const nameSlug = slugify(name)
+      if (county) {
+        navigate({
+          to: "/districts/$state/$county/$type/$name",
+          params: {
+            state: stateAbbrev,
+            county: slugify(county),
+            type: typeSlug,
+            name: nameSlug,
+          },
+        })
+      } else {
+        navigate({
+          to: "/districts/$state/$type/$name",
+          params: {
+            state: stateAbbrev,
+            type: typeSlug,
+            name: nameSlug,
+          },
+        })
+      }
     },
-    [navigate],
+    [navigate, stateAbbrev],
   )
 
   const isLoading = isCountiesLoading || isOverlayLoading
@@ -174,8 +216,8 @@ export function GeorgiaCountyMap({
   return (
     <div className="relative h-full w-full">
       <MapContainer
-        center={GA_CENTER}
-        zoom={GA_ZOOM}
+        center={US_CENTER}
+        zoom={US_ZOOM}
         scrollWheelZoom={true}
         doubleClickZoom={false}
         className={cn("h-full w-full rounded-lg border", className)}
@@ -184,6 +226,7 @@ export function GeorgiaCountyMap({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        {data && <FitBoundsToData data={data} />}
         {data && <CountyGeoJSON data={data} />}
         {overlayData && overlayData.features.length > 0 && (
           <OverlayLayer

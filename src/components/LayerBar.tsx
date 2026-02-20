@@ -12,6 +12,7 @@ interface LayerBarProps {
   overlayFeatureCount: number | null
   countyName: string
   statewide?: boolean
+  jurisdictionUnit?: string
   /** Set of boundary types that have at least one active election */
   electionTypes?: Set<string>
 }
@@ -24,6 +25,7 @@ export function LayerBar({
   overlayFeatureCount,
   countyName,
   statewide,
+  jurisdictionUnit = "County",
   electionTypes,
 }: LayerBarProps) {
   const [expanded, setExpanded] = useState(false)
@@ -45,7 +47,7 @@ export function LayerBar({
   const plural = overlayFeatureCount === 1 ? "" : "s"
   const locationLabel = statewide
     ? "statewide"
-    : `intersecting ${countyName} County`
+    : `intersecting ${countyName} ${jurisdictionUnit}`
 
   const statusText =
     selectedType && overlayFeatureCount !== null

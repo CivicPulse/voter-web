@@ -31,15 +31,33 @@ export function countySlugPath(
   return `/counties/${stateAbbrev}/${slugify(countyName)}`
 }
 
+/** @deprecated Use the 4-arg overload with stateAbbrev and county. */
+export function districtSlugPath(name: string, boundaryType: string): string
 /**
- * Build a slug-based district URL path.
- * @param name         e.g. "District 1"
- * @param boundaryType e.g. "congressional"
- * @returns e.g. "/districts/congressional/district-1"
+ * Build a slug-based district URL path with state/county context.
+ *
+ * County-scoped districts: `/districts/{state}/{countySlug}/{typeSlug}/{nameSlug}`
+ * State-scoped districts:  `/districts/{state}/{typeSlug}/{nameSlug}`
  */
 export function districtSlugPath(
   name: string,
   boundaryType: string,
+  stateAbbrev: string,
+  county: string | null,
+): string
+export function districtSlugPath(
+  name: string,
+  boundaryType: string,
+  stateAbbrev?: string,
+  county?: string | null,
 ): string {
-  return `/districts/${slugify(boundaryType)}/${slugify(name)}`
+  const typeSlug = slugify(boundaryType)
+  const nameSlug = slugify(name)
+  if (!stateAbbrev) {
+    return `/districts/${typeSlug}/${nameSlug}`
+  }
+  if (county) {
+    return `/districts/${stateAbbrev}/${slugify(county)}/${typeSlug}/${nameSlug}`
+  }
+  return `/districts/${stateAbbrev}/${typeSlug}/${nameSlug}`
 }
