@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { geometryToLeafletBounds } from "@/lib/geo"
 import { districtSlugPath } from "@/lib/slugs"
+import { fipsToAbbrev } from "@/lib/states"
 import { OverlayLayer } from "@/components/OverlayLayer"
 import type { BoundaryFeatureCollection } from "@/types/boundary"
 import type { Election } from "@/types/elections"
@@ -72,15 +73,36 @@ export function CountyDetailMap({
   const navigate = useNavigate()
 
   const handleDistrictDblClick = useCallback(
-    (_featureId: string, boundaryType: string, name: string) => {
-      const slugPath = districtSlugPath(name, boundaryType)
-      navigate({
-        to: "/districts/$type/$name",
-        params: {
-          type: slugPath.split("/")[2],
-          name: slugPath.split("/")[3],
-        },
-      })
+    (
+      _featureId: string,
+      boundaryType: string,
+      name: string,
+      county: string | null,
+      boundaryIdentifier: string,
+    ) => {
+      const stateAbbrev = fipsToAbbrev(boundaryIdentifier.slice(0, 2))
+      if (!stateAbbrev) return
+      const slugPath = districtSlugPath(name, boundaryType, stateAbbrev, county)
+      if (county) {
+        navigate({
+          to: "/districts/$state/$county/$type/$name",
+          params: {
+            state: slugPath.split("/")[2],
+            county: slugPath.split("/")[3],
+            type: slugPath.split("/")[4],
+            name: slugPath.split("/")[5],
+          },
+        })
+      } else {
+        navigate({
+          to: "/districts/$state/$type/$name",
+          params: {
+            state: slugPath.split("/")[2],
+            type: slugPath.split("/")[3],
+            name: slugPath.split("/")[4],
+          },
+        })
+      }
     },
     [navigate],
   )

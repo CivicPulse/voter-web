@@ -67,6 +67,8 @@ interface OverlayLayerProps {
     featureId: string,
     boundaryType: string,
     name: string,
+    county: string | null,
+    boundaryIdentifier: string,
   ) => void
 }
 
@@ -176,6 +178,8 @@ export function OverlayLayer({
               String(feature.id),
               props.boundary_type,
               props.name,
+              props.county,
+              props.boundary_identifier,
             )
           }
         },
