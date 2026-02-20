@@ -27,6 +27,7 @@ interface CountyDetailMapProps {
   countyGeometry?: Record<string, unknown> | null
   overlayData?: BoundaryFeatureCollection | null
   activeElections?: Election[]
+  stateAbbrev?: string
   isCountyLoading?: boolean
   isOverlayLoading?: boolean
   className?: string
@@ -66,6 +67,7 @@ export function CountyDetailMap({
   countyGeometry,
   overlayData,
   activeElections,
+  stateAbbrev: stateAbbrevProp,
   isCountyLoading,
   isOverlayLoading,
   className,
@@ -80,7 +82,8 @@ export function CountyDetailMap({
       county: string | null,
       boundaryIdentifier: string,
     ) => {
-      const stateAbbrev = fipsToAbbrev(boundaryIdentifier.slice(0, 2))
+      const stateAbbrev =
+        fipsToAbbrev(boundaryIdentifier.slice(0, 2)) ?? stateAbbrevProp
       if (!stateAbbrev) return
       const slugPath = districtSlugPath(name, boundaryType, stateAbbrev, county)
       if (county) {
@@ -104,7 +107,7 @@ export function CountyDetailMap({
         })
       }
     },
-    [navigate],
+    [navigate, stateAbbrevProp],
   )
 
   const isLoading = isCountyLoading || isOverlayLoading

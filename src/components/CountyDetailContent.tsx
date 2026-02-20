@@ -32,6 +32,7 @@ import {
   useActiveElections,
   electionsForDistrict,
 } from "@/lib/hooks/use-active-elections"
+import { fipsToAbbrev } from "@/lib/states"
 
 const functionalStatusLabels: Record<string, string> = {
   A: "Active",
@@ -79,6 +80,7 @@ export function CountyDetailContent({
           countyGeometry={county?.geometry ?? null}
           overlayData={overlayData}
           activeElections={activeElections}
+          stateAbbrev={county?.county_metadata ? fipsToAbbrev(county.county_metadata.fips_state) : undefined}
           isCountyLoading={isCountyLoading}
           isOverlayLoading={isOverlayLoading}
           className="rounded-none border-0"
