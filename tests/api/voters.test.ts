@@ -10,6 +10,7 @@ import {
   mockVoterSearchResponse,
   mockVoterFilterOptions,
 } from "@/test/mocks/voters"
+import type { VoterSearchResponse } from "@/types/voter"
 
 // Mock the ky client
 const mockJson = vi.fn()
@@ -29,25 +30,28 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
+function toRawSearchResponse(response: VoterSearchResponse) {
+  return {
+    items: response.voters.map((v) => ({
+      id: v.id,
+      voter_registration_number: v.voter_id,
+      first_name: v.first_name,
+      last_name: v.last_name,
+      county: v.county,
+      status: v.status,
+      registration_date: v.registration_date,
+    })),
+    pages: response.total_pages,
+    total: response.total,
+    page: response.page,
+    page_size: response.page_size,
+  }
+}
+
 describe("searchVoters", () => {
   it("calls GET /voters with search params and transforms response", async () => {
     const expected = mockVoterSearchResponse()
-    // Backend returns { items: [...raw items...], pages, total, page, page_size }
-    mockJson.mockResolvedValue({
-      items: expected.voters.map((v) => ({
-        id: v.id,
-        voter_registration_number: v.voter_id,
-        first_name: v.first_name,
-        last_name: v.last_name,
-        county: v.county,
-        status: v.status,
-        registration_date: v.registration_date,
-      })),
-      pages: expected.total_pages,
-      total: expected.total,
-      page: expected.page,
-      page_size: expected.page_size,
-    })
+    mockJson.mockResolvedValue(toRawSearchResponse(expected))
 
     const result = await searchVoters({ q: "Smith", page: 2 })
 
@@ -59,21 +63,7 @@ describe("searchVoters", () => {
 
   it("omits undefined params from search params", async () => {
     const expected = mockVoterSearchResponse()
-    mockJson.mockResolvedValue({
-      items: expected.voters.map((v) => ({
-        id: v.id,
-        voter_registration_number: v.voter_id,
-        first_name: v.first_name,
-        last_name: v.last_name,
-        county: v.county,
-        status: v.status,
-        registration_date: v.registration_date,
-      })),
-      pages: expected.total_pages,
-      total: expected.total,
-      page: expected.page,
-      page_size: expected.page_size,
-    })
+    mockJson.mockResolvedValue(toRawSearchResponse(expected))
 
     await searchVoters({})
 
@@ -84,21 +74,7 @@ describe("searchVoters", () => {
 
   it("passes all filter params when provided", async () => {
     const expected = mockVoterSearchResponse()
-    mockJson.mockResolvedValue({
-      items: expected.voters.map((v) => ({
-        id: v.id,
-        voter_registration_number: v.voter_id,
-        first_name: v.first_name,
-        last_name: v.last_name,
-        county: v.county,
-        status: v.status,
-        registration_date: v.registration_date,
-      })),
-      pages: expected.total_pages,
-      total: expected.total,
-      page: expected.page,
-      page_size: expected.page_size,
-    })
+    mockJson.mockResolvedValue(toRawSearchResponse(expected))
 
     await searchVoters({
       q: "Jane",
@@ -154,7 +130,7 @@ describe("searchVoters", () => {
 
 describe("getVoterDetail", () => {
   it("calls GET /voters/{voterId} and transforms backend response", async () => {
-    // Backend returns voter_registration_number, nested residence_address, and district fields
+    // Backend returns voter_registration_number, nested residence_address, and registered_districts
     mockJson.mockResolvedValue({
       id: "v-001",
       voter_registration_number: "GA-12345678",
@@ -176,11 +152,20 @@ describe("getVoterDetail", () => {
         zipcode: "31201",
         full_address: "123 Main St, Macon, GA 31201",
       },
-      congressional_district: "5",
-      state_senate_district: "18",
-      state_house_district: "145",
-      county_precinct: "0001",
-      precinct: null,
+      registered_districts: {
+        congressional_district: "5",
+        state_senate_district: "18",
+        state_house_district: "145",
+        county_precinct: "0001",
+        county_precinct_description: "HOWARD 7",
+        municipal_precinct: null,
+        municipal_precinct_description: null,
+        judicial_district: "MACO",
+        county_commission_district: "1",
+        school_board_district: "6",
+        city_council_district: null,
+        municipal_school_board_district: null,
+      },
     })
 
     const result = await getVoterDetail("v-001")
@@ -205,7 +190,14 @@ describe("getVoterDetail", () => {
       state_senate_district: "18",
       state_house_district: "145",
       county_precinct: "0001",
-      precinct: null,
+      county_precinct_description: "HOWARD 7",
+      municipal_precinct: null,
+      municipal_precinct_description: null,
+      judicial_district: "MACO",
+      county_commission_district: "1",
+      school_board_district: "6",
+      city_council_district: null,
+      municipal_school_board_district: null,
     })
   })
 })

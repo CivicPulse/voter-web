@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { screen } from "@testing-library/react"
 import { render } from "@/test/render"
-import { mockVoterDetail, mockVoterGeocodedLocation } from "@/test/mocks/voters"
+import { mockVoterDetail, mockVoterGeocodedLocation, mockNullDistricts } from "@/test/mocks/voters"
 
 // Mock hooks
 const mockUseVoterDetail = vi.fn()
@@ -78,13 +78,7 @@ function VoterDetailTestPage({
       <a href="/voters">Back to Search</a>
       <VoterRegistrationCard voter={voter} />
       <GeocodedLocationsCard locations={locations ?? []} voterId={voterId} />
-      <DistrictAssignmentsCard
-        congressional_district={v.congressional_district}
-        state_senate_district={v.state_senate_district}
-        state_house_district={v.state_house_district}
-        county_precinct={v.county_precinct}
-        precinct={v.precinct}
-      />
+      <DistrictAssignmentsCard districts={v} />
     </div>
   )
 }
@@ -168,7 +162,10 @@ describe("VoterDetailPage", () => {
       state_senate_district: "18",
       state_house_district: "145",
       county_precinct: "0001",
-      precinct: null,
+      county_precinct_description: "HOWARD 7",
+      judicial_district: "MACO",
+      county_commission_district: "1",
+      school_board_district: "6",
     })
     mockUseVoterDetail.mockReturnValue({
       data: voter,
@@ -184,8 +181,15 @@ describe("VoterDetailPage", () => {
     expect(screen.getByText("18")).toBeInTheDocument()
     expect(screen.getByText("State House")).toBeInTheDocument()
     expect(screen.getByText("145")).toBeInTheDocument()
+    expect(screen.getByText("Judicial")).toBeInTheDocument()
+    expect(screen.getByText("MACO")).toBeInTheDocument()
+    expect(screen.getByText("County Commission")).toBeInTheDocument()
+    expect(screen.getByText("1")).toBeInTheDocument()
+    expect(screen.getByText("School Board")).toBeInTheDocument()
+    expect(screen.getByText("6")).toBeInTheDocument()
     expect(screen.getByText("County Precinct")).toBeInTheDocument()
     expect(screen.getByText("0001")).toBeInTheDocument()
+    expect(screen.getByText("HOWARD 7")).toBeInTheDocument()
   })
 
   it("shows district assignments even without a geocoded location", () => {
@@ -210,13 +214,7 @@ describe("VoterDetailPage", () => {
   })
 
   it("shows no districts message when all district fields are null", () => {
-    const voter = mockVoterDetail({
-      congressional_district: null,
-      state_senate_district: null,
-      state_house_district: null,
-      county_precinct: null,
-      precinct: null,
-    })
+    const voter = mockVoterDetail(mockNullDistricts())
     mockUseVoterDetail.mockReturnValue({
       data: voter,
       isLoading: false,

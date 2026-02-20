@@ -5,6 +5,7 @@ import type {
   VoterDetail,
   VoterFilterOptions,
   VoterSearchParams,
+  RegisteredDistricts,
 } from "@/types/voter"
 
 /** Raw summary item returned by GET /voters (search results) */
@@ -52,11 +53,7 @@ interface RawVoterDetail {
   registration_date: string | null
   county: string
   residence_address: AddressResponse
-  congressional_district?: string | null
-  state_senate_district?: string | null
-  state_house_district?: string | null
-  county_precinct?: string | null
-  precinct?: string | null
+  registered_districts?: RegisteredDistricts | null
 }
 
 export async function searchVoters(
@@ -104,6 +101,7 @@ export async function getVoterDetail(
 ): Promise<VoterDetail> {
   const raw = await api.get(`voters/${voterId}`).json<RawVoterDetail>()
   const addr = raw.residence_address
+  const dist = raw.registered_districts
   return {
     id: raw.id,
     voter_id: raw.voter_registration_number,
@@ -119,11 +117,20 @@ export async function getVoterDetail(
     city: addr.city ?? "",
     state: "",
     zip_code: addr.zipcode ?? "",
-    congressional_district: raw.congressional_district ?? null,
-    state_senate_district: raw.state_senate_district ?? null,
-    state_house_district: raw.state_house_district ?? null,
-    county_precinct: raw.county_precinct ?? null,
-    precinct: raw.precinct ?? null,
+    congressional_district: dist?.congressional_district ?? null,
+    state_senate_district: dist?.state_senate_district ?? null,
+    state_house_district: dist?.state_house_district ?? null,
+    county_precinct: dist?.county_precinct ?? null,
+    county_precinct_description: dist?.county_precinct_description ?? null,
+    municipal_precinct: dist?.municipal_precinct ?? null,
+    municipal_precinct_description:
+      dist?.municipal_precinct_description ?? null,
+    judicial_district: dist?.judicial_district ?? null,
+    county_commission_district: dist?.county_commission_district ?? null,
+    school_board_district: dist?.school_board_district ?? null,
+    city_council_district: dist?.city_council_district ?? null,
+    municipal_school_board_district:
+      dist?.municipal_school_board_district ?? null,
   }
 }
 
