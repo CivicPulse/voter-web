@@ -173,9 +173,9 @@ export function OverlayLayer({
           e.target.setStyle(defaultStyle)
         },
         dblclick: () => {
-          if (onDistrictDblClick && feature.id) {
+          if (onDistrictDblClick) {
             onDistrictDblClick(
-              String(feature.id),
+              String(feature.id ?? props.boundary_identifier),
               props.boundary_type,
               props.name,
               props.county,
