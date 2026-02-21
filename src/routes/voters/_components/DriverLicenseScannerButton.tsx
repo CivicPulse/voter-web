@@ -35,19 +35,27 @@ export function DriverLicenseScannerButton() {
   const rafRef = useRef<number | null>(null)
   const navigate = useNavigate()
 
-  const stopCamera = useCallback(() => {
+  // Stop camera stream/refs without touching React state.
+  // Safe to call synchronously inside useEffect bodies.
+  const stopCameraStream = useCallback(() => {
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current)
       rafRef.current = null
     }
     streamRef.current?.getTracks().forEach((t) => t.stop())
     streamRef.current = null
-    setScanning(false)
   }, [])
+
+  // Full stop: clean up resources and reset scanning state.
+  // Only call from async callbacks, not directly in effect bodies.
+  const stopCamera = useCallback(() => {
+    stopCameraStream()
+    setScanning(false)
+  }, [stopCameraStream])
 
   useEffect(() => {
     if (!open) {
-      stopCamera()
+      stopCameraStream()
       setError(null)
       return
     }
@@ -128,9 +136,9 @@ export function DriverLicenseScannerButton() {
 
     return () => {
       cancelled = true
-      stopCamera()
+      stopCameraStream()
     }
-  }, [open, stopCamera, navigate])
+  }, [open, stopCameraStream, stopCamera, navigate])
 
   if (!isAuthenticated) return null
 
