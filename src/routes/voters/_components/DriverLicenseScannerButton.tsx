@@ -89,7 +89,7 @@ export function DriverLicenseScannerButton() {
         // calling setState synchronously in the effect body.
         if (!("BarcodeDetector" in window)) {
           setError(
-            "Barcode scanning requires Chrome or Edge. Please try a supported browser.",
+            "Barcode scanning is not supported on iOS or Firefox. Please use Chrome or Edge on Android or desktop.",
           )
           return
         }
@@ -113,7 +113,13 @@ export function DriverLicenseScannerButton() {
 
         streamRef.current = stream
         video!.srcObject = stream
-        await video!.play()
+        // On iOS Safari, play() may reject even with a valid stream; the
+        // autoPlay attribute handles playback in that case.
+        try {
+          await video!.play()
+        } catch {
+          // Ignore — video renders via autoPlay on iOS when play() throws
+        }
 
         const detector = new BarcodeDetector({ formats: ["pdf417"] })
         setScanning(true)
@@ -166,17 +172,22 @@ export function DriverLicenseScannerButton() {
                     if (cancelled) return
                     if (verified.suggestions.length > 0) {
                       const suggestion = verified.suggestions[0]
-                      setLookingUp(false)
-                      setOpen(false)
-                      navigate({
-                        to: "/lookup/results",
-                        search: {
-                          lat: suggestion.latitude,
-                          lng: suggestion.longitude,
-                          address: suggestion.address,
-                        },
-                      })
-                      return
+                      if (
+                        Number.isFinite(suggestion.latitude) &&
+                        Number.isFinite(suggestion.longitude)
+                      ) {
+                        setLookingUp(false)
+                        setOpen(false)
+                        navigate({
+                          to: "/lookup/results",
+                          search: {
+                            lat: suggestion.latitude,
+                            lng: suggestion.longitude,
+                            address: suggestion.address,
+                          },
+                        })
+                        return
+                      }
                     }
                     // No suggestions from verify — try direct geocode
                     const geocoded = await geocodeAddress(addressStr)
@@ -283,10 +294,16 @@ export function DriverLicenseScannerButton() {
               className="w-full h-full object-cover"
               muted
               playsInline
+              autoPlay
             />
-            {scanning && (
+            {scanning && !error && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="border-2 border-white/60 rounded w-4/5 h-2/5" />
+              </div>
+            )}
+            {error && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/80 p-4">
+                <p className="text-sm text-white text-center">{error}</p>
               </div>
             )}
           </div>
@@ -304,8 +321,6 @@ export function DriverLicenseScannerButton() {
               Looking up voter...
             </div>
           )}
-
-          {error && <p className="text-sm text-destructive">{error}</p>}
         </DialogContent>
       </Dialog>
     </>
