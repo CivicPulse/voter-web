@@ -10,9 +10,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useAuthStore } from "@/stores/authStore"
+import { searchVoters } from "@/api/voters"
+import { verifyAddress, geocodeAddress } from "@/api/lookup"
 
 /** Parse AAMVA-encoded PDF417 barcode data from a US driver's license. */
-function parseAAMVA(raw: string): { firstName?: string; lastName?: string } {
+function parseAAMVA(raw: string): {
+  firstName?: string
+  lastName?: string
+  street?: string
+  city?: string
+  state?: string
+  postalCode?: string
+} {
   const fields: Record<string, string> = {}
   // Each field is a 3-uppercase-letter code followed by data until CR/LF
   const fieldRegex = /([A-Z]{3})([^\r\n]*)/g
@@ -21,8 +30,17 @@ function parseAAMVA(raw: string): { firstName?: string; lastName?: string } {
     const value = match[2].trim()
     if (value) fields[match[1]] = value
   }
-  // AAMVA field codes: DCS = family name, DAC = first name (pre-2000), DCT = first name (post-2000)
-  return { firstName: fields["DCT"] || fields["DAC"], lastName: fields["DCS"] }
+  // AAMVA field codes:
+  // DCS = family name, DCT = first name (post-2000), DAC = first name (pre-2000)
+  // DAG = street address, DAI = city, DAJ = state, DAK = postal code (9-char, e.g. "303030000")
+  return {
+    firstName: fields["DCT"] || fields["DAC"],
+    lastName: fields["DCS"],
+    street: fields["DAG"],
+    city: fields["DAI"],
+    state: fields["DAJ"],
+    postalCode: fields["DAK"]?.slice(0, 5), // Take 5-digit zip from 9-char AAMVA field
+  }
 }
 
 export function DriverLicenseScannerButton() {
@@ -30,6 +48,7 @@ export function DriverLicenseScannerButton() {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [scanning, setScanning] = useState(false)
+  const [lookingUp, setLookingUp] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const rafRef = useRef<number | null>(null)
@@ -62,17 +81,19 @@ export function DriverLicenseScannerButton() {
     const video = videoRef.current
     if (!video) return
 
-    if (!("BarcodeDetector" in window)) {
-      setError(
-        "Barcode scanning requires Chrome or Edge. Please try a supported browser.",
-      )
-      return
-    }
-
     let cancelled = false
 
     async function startScanning() {
       try {
+        // Check BarcodeDetector availability inside the async function to avoid
+        // calling setState synchronously in the effect body.
+        if (!("BarcodeDetector" in window)) {
+          setError(
+            "Barcode scanning requires Chrome or Edge. Please try a supported browser.",
+          )
+          return
+        }
+
         const supported = await BarcodeDetector.getSupportedFormats()
         if (!supported.includes("pdf417")) {
           setError(
@@ -101,6 +122,7 @@ export function DriverLicenseScannerButton() {
           if (cancelled) return
           try {
             const barcodes = await detector.detect(video!)
+            if (cancelled) return // Post-await cancellation guard
             if (barcodes.length > 0) {
               const parsed = parseAAMVA(barcodes[0].rawValue)
               const q =
@@ -112,9 +134,82 @@ export function DriverLicenseScannerButton() {
                 )
                 return
               }
+
+              // Stop camera but keep dialog open while looking up voter
               stopCamera()
-              setOpen(false)
-              navigate({ to: "/voters", search: { q }, replace: true })
+              setLookingUp(true)
+
+              try {
+                const result = await searchVoters({ q })
+                if (cancelled) return
+
+                if (result.total > 0) {
+                  // Voter(s) found — navigate to voter search results
+                  setLookingUp(false)
+                  setOpen(false)
+                  navigate({ to: "/voters", search: { q }, replace: true })
+                  return
+                }
+
+                // No voter results — try address-based district lookup
+                const addressParts = [
+                  parsed.street,
+                  parsed.city,
+                  parsed.state,
+                  parsed.postalCode,
+                ].filter(Boolean)
+
+                if (addressParts.length > 0) {
+                  const addressStr = addressParts.join(", ")
+                  try {
+                    const verified = await verifyAddress(addressStr)
+                    if (cancelled) return
+                    if (verified.suggestions.length > 0) {
+                      const suggestion = verified.suggestions[0]
+                      setLookingUp(false)
+                      setOpen(false)
+                      navigate({
+                        to: "/lookup/results",
+                        search: {
+                          lat: suggestion.latitude,
+                          lng: suggestion.longitude,
+                          address: suggestion.address,
+                        },
+                      })
+                      return
+                    }
+                    // No suggestions from verify — try direct geocode
+                    const geocoded = await geocodeAddress(addressStr)
+                    if (cancelled) return
+                    setLookingUp(false)
+                    setOpen(false)
+                    navigate({
+                      to: "/lookup/results",
+                      search: {
+                        lat: geocoded.latitude,
+                        lng: geocoded.longitude,
+                        address: geocoded.formatted_address,
+                      },
+                    })
+                    return
+                  } catch {
+                    // Address lookup failed — fall through to voter search page
+                    if (cancelled) return
+                  }
+                }
+
+                // No voter results and address lookup unavailable/failed —
+                // still navigate to voter search so the user can refine manually
+                setLookingUp(false)
+                setOpen(false)
+                navigate({ to: "/voters", search: { q }, replace: true })
+              } catch {
+                // Voter search API error — fall back to voter search page
+                if (cancelled) return
+                setLookingUp(false)
+                setOpen(false)
+                navigate({ to: "/voters", search: { q }, replace: true })
+              }
               return
             }
           } catch {
@@ -128,6 +223,7 @@ export function DriverLicenseScannerButton() {
         void scan()
       } catch (e: unknown) {
         if (cancelled) return
+        stopCameraStream()
         let message = "Unable to access camera. Please try again."
         if (e instanceof Error) {
           if (e.name === "NotAllowedError") {
@@ -166,7 +262,10 @@ export function DriverLicenseScannerButton() {
         open={open}
         onOpenChange={(isOpen) => {
           setOpen(isOpen)
-          if (!isOpen) setError(null)
+          if (!isOpen) {
+            setError(null)
+            setLookingUp(false)
+          }
         }}
       >
         <DialogContent className="max-w-sm">
@@ -196,6 +295,13 @@ export function DriverLicenseScannerButton() {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
               Scanning... Hold the barcode steady
+            </div>
+          )}
+
+          {lookingUp && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Looking up voter...
             </div>
           )}
 
