@@ -21,8 +21,8 @@ function parseAAMVA(raw: string): { firstName?: string; lastName?: string } {
     const value = match[2].trim()
     if (value) fields[match[1]] = value
   }
-  // AAMVA field codes: DCS = family name, DAC = first name
-  return { firstName: fields["DAC"], lastName: fields["DCS"] }
+  // AAMVA field codes: DCS = family name, DAC = first name (pre-2000), DCT = first name (post-2000)
+  return { firstName: fields["DCT"] || fields["DAC"], lastName: fields["DCS"] }
 }
 
 export function DriverLicenseScannerButton() {
@@ -106,9 +106,15 @@ export function DriverLicenseScannerButton() {
               const q =
                 [parsed.firstName, parsed.lastName].filter(Boolean).join(" ") ||
                 undefined
+              if (!q) {
+                setError(
+                  "Could not extract a name from the barcode. Please try again.",
+                )
+                return
+              }
               stopCamera()
               setOpen(false)
-              navigate({ to: "/voters", search: { q } })
+              navigate({ to: "/voters", search: { q }, replace: true })
               return
             }
           } catch {
@@ -122,11 +128,19 @@ export function DriverLicenseScannerButton() {
         void scan()
       } catch (e: unknown) {
         if (cancelled) return
-        setError(
-          e instanceof Error && e.name === "NotAllowedError"
-            ? "Camera access denied. Please allow camera access and try again."
-            : "Unable to access camera. Please try again.",
-        )
+        let message = "Unable to access camera. Please try again."
+        if (e instanceof Error) {
+          if (e.name === "NotAllowedError") {
+            message =
+              "Camera access denied. Please allow camera access and try again."
+          } else if (e.name === "NotFoundError") {
+            message = "No camera found. Please connect a camera and try again."
+          } else if (e.name === "NotReadableError") {
+            message =
+              "Camera is in use by another application. Please close other apps using the camera and try again."
+          }
+        }
+        setError(message)
         setScanning(false)
       }
     }
