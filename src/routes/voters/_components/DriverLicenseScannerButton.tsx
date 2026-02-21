@@ -45,7 +45,13 @@ function parseAAMVA(raw: string): {
 
 export function DriverLicenseScannerButton() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
-  const [isSupported, setIsSupported] = useState<boolean | null>(null)
+  // Synchronously check for BarcodeDetector presence at render time to avoid
+  // calling setState inside a useEffect body (react-hooks/set-state-in-effect).
+  // If BarcodeDetector is absent we're already false; otherwise we check
+  // getSupportedFormats() asynchronously.
+  const [isSupported, setIsSupported] = useState<boolean | null>(() =>
+    !("BarcodeDetector" in window) ? false : null,
+  )
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [scanning, setScanning] = useState(false)
@@ -55,18 +61,14 @@ export function DriverLicenseScannerButton() {
   const rafRef = useRef<number | null>(null)
   const navigate = useNavigate()
 
-  // Detect BarcodeDetector + PDF417 support once on mount.
-  // Button is hidden until the check resolves (avoids flash) and
-  // permanently hidden on unsupported browsers/devices (iOS, Firefox, etc.).
+  // Async half of the support check: only runs when BarcodeDetector is present
+  // (isSupported === null). setState in .then()/.catch() callbacks is fine.
   useEffect(() => {
-    if (!("BarcodeDetector" in window)) {
-      setIsSupported(false)
-      return
-    }
+    if (isSupported !== null) return
     BarcodeDetector.getSupportedFormats()
       .then((formats) => setIsSupported(formats.includes("pdf417")))
       .catch(() => setIsSupported(false))
-  }, [])
+  }, [isSupported])
 
   // Stop camera stream/refs without touching React state.
   // Safe to call synchronously inside useEffect bodies.
