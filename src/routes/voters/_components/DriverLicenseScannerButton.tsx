@@ -56,7 +56,6 @@ export function DriverLicenseScannerButton() {
   useEffect(() => {
     if (!open) {
       stopCameraStream()
-      setError(null)
       return
     }
 
@@ -149,7 +148,13 @@ export function DriverLicenseScannerButton() {
         Scan License
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(isOpen) => {
+          setOpen(isOpen)
+          if (!isOpen) setError(null)
+        }}
+      >
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Scan Driver's License</DialogTitle>
