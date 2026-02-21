@@ -45,6 +45,7 @@ function parseAAMVA(raw: string): {
 
 export function DriverLicenseScannerButton() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const [isSupported, setIsSupported] = useState<boolean | null>(null)
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [scanning, setScanning] = useState(false)
@@ -53,6 +54,19 @@ export function DriverLicenseScannerButton() {
   const streamRef = useRef<MediaStream | null>(null)
   const rafRef = useRef<number | null>(null)
   const navigate = useNavigate()
+
+  // Detect BarcodeDetector + PDF417 support once on mount.
+  // Button is hidden until the check resolves (avoids flash) and
+  // permanently hidden on unsupported browsers/devices (iOS, Firefox, etc.).
+  useEffect(() => {
+    if (!("BarcodeDetector" in window)) {
+      setIsSupported(false)
+      return
+    }
+    BarcodeDetector.getSupportedFormats()
+      .then((formats) => setIsSupported(formats.includes("pdf417")))
+      .catch(() => setIsSupported(false))
+  }, [])
 
   // Stop camera stream/refs without touching React state.
   // Safe to call synchronously inside useEffect bodies.
@@ -260,7 +274,7 @@ export function DriverLicenseScannerButton() {
     }
   }, [open, stopCameraStream, stopCamera, navigate])
 
-  if (!isAuthenticated) return null
+  if (!isAuthenticated || !isSupported) return null
 
   return (
     <>
