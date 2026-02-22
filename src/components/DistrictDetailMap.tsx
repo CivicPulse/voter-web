@@ -156,6 +156,7 @@ export function DistrictDetailMap({
       boundaryType: string,
       name: string,
       county: string | null,
+      _boundaryIdentifier: string,
     ) => {
       if (!stateAbbrev) return
       const typeSlug = slugify(boundaryType)
