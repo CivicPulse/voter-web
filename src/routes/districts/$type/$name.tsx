@@ -21,11 +21,9 @@ function LegacyDistrictSlugPage() {
 
   useEffect(() => {
     if (isSingleMatch && matches[0]) {
-      const url = overlay
-        ? `${matches[0].fullyQualifiedUrl}?overlay=${encodeURIComponent(overlay)}`
-        : matches[0].fullyQualifiedUrl
       navigate({
-        to: url,
+        to: matches[0].fullyQualifiedUrl,
+        search: overlay ? { overlay } : undefined,
         replace: true,
       })
     }
