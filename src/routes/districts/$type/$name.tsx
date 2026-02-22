@@ -12,6 +12,7 @@ export const Route = createFileRoute("/districts/$type/$name")({
 
 function LegacyDistrictSlugPage() {
   const { type, name } = Route.useParams()
+  const { overlay } = Route.useSearch()
   const { matches, isLoading, isSingleMatch } = useDistrictDisambiguation(
     type,
     name,
@@ -20,12 +21,15 @@ function LegacyDistrictSlugPage() {
 
   useEffect(() => {
     if (isSingleMatch && matches[0]) {
+      const url = overlay
+        ? `${matches[0].fullyQualifiedUrl}?overlay=${encodeURIComponent(overlay)}`
+        : matches[0].fullyQualifiedUrl
       navigate({
-        to: matches[0].fullyQualifiedUrl,
+        to: url,
         replace: true,
       })
     }
-  }, [isSingleMatch, matches, navigate])
+  }, [isSingleMatch, matches, navigate, overlay])
 
   if (isLoading || isSingleMatch) {
     return (

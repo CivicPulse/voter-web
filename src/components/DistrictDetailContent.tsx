@@ -60,8 +60,10 @@ export function DistrictDetailContent({
   const { data: counties, isLoading: isCountiesLoading } =
     useCountyBoundaries()
   const { data: activeElections } = useActiveElections()
+  // Defer the overlay fetch until district is loaded so we have the correct
+  // county filter, avoiding an unnecessary statewide fetch on initial render.
   const { data: overlayData } = useBoundaryTypeGeoJSON(
-    overlay ?? null,
+    overlay && district ? overlay : null,
     district?.county ?? null,
   )
   // Derive stateAbbrev from route param (preferred) or FIPS boundary_identifier prefix

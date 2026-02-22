@@ -312,6 +312,11 @@ function RootLayout() {
     useBoundaryTypes()
   const { data: statewideTypes, isLoading: isStatewideTypesLoading } =
     useStatewideOverlayTypes()
+  // Precinct detail pages show the full set of boundary type overlays so users
+  // can see any district type on top of a precinct. All other county-scoped
+  // districts (e.g. county commission, school board) show only the County
+  // Precinct toggle — state-scoped districts (congressional, state senate, etc.)
+  // don't show a LayerBar at all.
   const districtOverlayTypes = useMemo(() => {
     if (!district || !boundaryTypes) return undefined
     if (district.boundary_type === "county_precinct") return boundaryTypes
