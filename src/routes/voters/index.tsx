@@ -6,6 +6,7 @@ import { useVoterSearch } from "@/hooks/useVoters"
 import { VoterSearchFilters } from "@/routes/voters/_components/VoterSearchFilters"
 import { VoterTable } from "@/routes/voters/_components/VoterTable"
 import { BulkGeocodeButton } from "@/routes/voters/_components/BulkGeocodeButton"
+import { DriverLicenseScannerButton } from "@/routes/voters/_components/DriverLicenseScannerButton"
 import { useNavigationContext } from "@/stores/navigation-context"
 
 const voterSearchSchema = z.object({
@@ -55,7 +56,10 @@ function VoterSearchPage() {
           <Users className="h-6 w-6" />
           <h1 className="text-2xl font-bold">Voters</h1>
         </div>
-        <BulkGeocodeButton />
+        <div className="flex items-center gap-2">
+          <DriverLicenseScannerButton />
+          <BulkGeocodeButton />
+        </div>
       </div>
 
       <div className="mb-6">
