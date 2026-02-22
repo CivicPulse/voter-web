@@ -194,6 +194,7 @@ export function DriverLicenseScannerButton() {
     let cancelled = false
 
     async function startScanning() {
+      if (!video) return
       try {
         // Check BarcodeDetector availability inside the async function to avoid
         // calling setState synchronously in the effect body.
