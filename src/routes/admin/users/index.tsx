@@ -73,7 +73,7 @@ function UserManagementPage() {
     )
   }
 
-  const users = data?.users ?? []
+  const users = data?.items ?? []
 
   return (
     <div className="space-y-6">
