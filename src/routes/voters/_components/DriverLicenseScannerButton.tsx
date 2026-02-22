@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
+import type React from "react"
 import { CreditCard, Loader2 } from "lucide-react"
 import { useNavigate } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
@@ -12,6 +13,99 @@ import {
 import { useAuthStore } from "@/stores/authStore"
 import { searchVoters } from "@/api/voters"
 import { verifyAddress, geocodeAddress } from "@/api/lookup"
+
+interface ScanCallbacks {
+  isCancelled: () => boolean
+  stopCamera: () => void
+  setLookingUp: (v: boolean) => void
+  setOpen: (v: boolean) => void
+  navigate: ReturnType<typeof useNavigate>
+  setError: (msg: string) => void
+  rafRef: React.MutableRefObject<number | null>
+}
+
+/** Navigate to address-based district lookup, trying verify then geocode. Returns true if navigation occurred. */
+async function navigateByAddress(
+  addressParts: string[],
+  cb: ScanCallbacks,
+): Promise<boolean> {
+  if (addressParts.length === 0) return false
+  const addressStr = addressParts.join(", ")
+  try {
+    const verified = await verifyAddress(addressStr)
+    if (cb.isCancelled()) return true
+    if (verified.suggestions.length > 0) {
+      const s = verified.suggestions[0]
+      if (Number.isFinite(s.latitude) && Number.isFinite(s.longitude)) {
+        cb.setLookingUp(false)
+        cb.setOpen(false)
+        cb.navigate({ to: "/lookup/results", search: { lat: s.latitude, lng: s.longitude, address: s.address } })
+        return true
+      }
+    }
+    const geocoded = await geocodeAddress(addressStr)
+    if (cb.isCancelled()) return true
+    cb.setLookingUp(false)
+    cb.setOpen(false)
+    cb.navigate({ to: "/lookup/results", search: { lat: geocoded.latitude, lng: geocoded.longitude, address: geocoded.formatted_address } })
+    return true
+  } catch {
+    return cb.isCancelled()
+  }
+}
+
+/** Handle a detected barcode: search voter, fall back to address lookup, then voter search page. */
+async function handleBarcodeDetected(
+  rawValue: string,
+  cb: ScanCallbacks,
+): Promise<void> {
+  const parsed = parseAAMVA(rawValue)
+  const q = [parsed.firstName, parsed.lastName].filter(Boolean).join(" ") || undefined
+  if (!q) {
+    cb.setError("Could not extract a name from the barcode. Please try again.")
+    return
+  }
+  cb.stopCamera()
+  cb.setLookingUp(true)
+  try {
+    const result = await searchVoters({ q })
+    if (cb.isCancelled()) return
+    if (result.total > 0) {
+      cb.setLookingUp(false)
+      cb.setOpen(false)
+      cb.navigate({ to: "/voters", search: { q }, replace: true })
+      return
+    }
+    const addressParts = [parsed.street, parsed.city, parsed.state, parsed.postalCode].filter(Boolean) as string[]
+    const navigated = await navigateByAddress(addressParts, cb)
+    if (navigated || cb.isCancelled()) return
+  } catch {
+    if (cb.isCancelled()) return
+  }
+  cb.setLookingUp(false)
+  cb.setOpen(false)
+  cb.navigate({ to: "/voters", search: { q }, replace: true })
+}
+
+/** Single animation-frame scan pass. Reschedules itself until a barcode is found or scanning is cancelled. */
+async function runScan(
+  detector: BarcodeDetector,
+  video: HTMLVideoElement,
+  cb: ScanCallbacks,
+): Promise<void> {
+  if (cb.isCancelled()) return
+  try {
+    const barcodes = await detector.detect(video)
+    if (cb.isCancelled()) return
+    if (barcodes.length > 0) {
+      await handleBarcodeDetected(barcodes[0].rawValue, cb)
+      return
+    }
+  } catch {
+    // Ignore per-frame detection errors and continue scanning
+  }
+  cb.rafRef.current = requestAnimationFrame(() => { void runScan(detector, video, cb) })
+}
 
 /** Parse AAMVA-encoded PDF417 barcode data from a US driver's license. */
 function parseAAMVA(raw: string): {
@@ -50,7 +144,7 @@ export function DriverLicenseScannerButton() {
   // If BarcodeDetector is absent we're already false; otherwise we check
   // getSupportedFormats() asynchronously.
   const [isSupported, setIsSupported] = useState<boolean | null>(() =>
-    !("BarcodeDetector" in window) ? false : null,
+    "BarcodeDetector" in globalThis ? null : false,
   )
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -103,7 +197,7 @@ export function DriverLicenseScannerButton() {
       try {
         // Check BarcodeDetector availability inside the async function to avoid
         // calling setState synchronously in the effect body.
-        if (!("BarcodeDetector" in window)) {
+        if (!("BarcodeDetector" in globalThis)) {
           setError(
             "Barcode scanning is not supported on iOS or Firefox. Please use Chrome or Edge on Android or desktop.",
           )
@@ -128,11 +222,11 @@ export function DriverLicenseScannerButton() {
         }
 
         streamRef.current = stream
-        video!.srcObject = stream
+        video.srcObject = stream
         // On iOS Safari, play() may reject even with a valid stream; the
         // autoPlay attribute handles playback in that case.
         try {
-          await video!.play()
+          await video.play()
         } catch {
           // Ignore — video renders via autoPlay on iOS when play() throws
         }
@@ -140,114 +234,16 @@ export function DriverLicenseScannerButton() {
         const detector = new BarcodeDetector({ formats: ["pdf417"] })
         setScanning(true)
 
-        async function scan() {
-          if (cancelled) return
-          try {
-            const barcodes = await detector.detect(video!)
-            if (cancelled) return // Post-await cancellation guard
-            if (barcodes.length > 0) {
-              const parsed = parseAAMVA(barcodes[0].rawValue)
-              const q =
-                [parsed.firstName, parsed.lastName].filter(Boolean).join(" ") ||
-                undefined
-              if (!q) {
-                setError(
-                  "Could not extract a name from the barcode. Please try again.",
-                )
-                return
-              }
-
-              // Stop camera but keep dialog open while looking up voter
-              stopCamera()
-              setLookingUp(true)
-
-              try {
-                const result = await searchVoters({ q })
-                if (cancelled) return
-
-                if (result.total > 0) {
-                  // Voter(s) found — navigate to voter search results
-                  setLookingUp(false)
-                  setOpen(false)
-                  navigate({ to: "/voters", search: { q }, replace: true })
-                  return
-                }
-
-                // No voter results — try address-based district lookup
-                const addressParts = [
-                  parsed.street,
-                  parsed.city,
-                  parsed.state,
-                  parsed.postalCode,
-                ].filter(Boolean)
-
-                if (addressParts.length > 0) {
-                  const addressStr = addressParts.join(", ")
-                  try {
-                    const verified = await verifyAddress(addressStr)
-                    if (cancelled) return
-                    if (verified.suggestions.length > 0) {
-                      const suggestion = verified.suggestions[0]
-                      if (
-                        Number.isFinite(suggestion.latitude) &&
-                        Number.isFinite(suggestion.longitude)
-                      ) {
-                        setLookingUp(false)
-                        setOpen(false)
-                        navigate({
-                          to: "/lookup/results",
-                          search: {
-                            lat: suggestion.latitude,
-                            lng: suggestion.longitude,
-                            address: suggestion.address,
-                          },
-                        })
-                        return
-                      }
-                    }
-                    // No suggestions from verify — try direct geocode
-                    const geocoded = await geocodeAddress(addressStr)
-                    if (cancelled) return
-                    setLookingUp(false)
-                    setOpen(false)
-                    navigate({
-                      to: "/lookup/results",
-                      search: {
-                        lat: geocoded.latitude,
-                        lng: geocoded.longitude,
-                        address: geocoded.formatted_address,
-                      },
-                    })
-                    return
-                  } catch {
-                    // Address lookup failed — fall through to voter search page
-                    if (cancelled) return
-                  }
-                }
-
-                // No voter results and address lookup unavailable/failed —
-                // still navigate to voter search so the user can refine manually
-                setLookingUp(false)
-                setOpen(false)
-                navigate({ to: "/voters", search: { q }, replace: true })
-              } catch {
-                // Voter search API error — fall back to voter search page
-                if (cancelled) return
-                setLookingUp(false)
-                setOpen(false)
-                navigate({ to: "/voters", search: { q }, replace: true })
-              }
-              return
-            }
-          } catch {
-            // Ignore per-frame detection errors and continue scanning
-          }
-          rafRef.current = requestAnimationFrame(() => {
-            void scan()
-          })
+        const cb: ScanCallbacks = {
+          isCancelled: () => cancelled,
+          stopCamera,
+          setLookingUp,
+          setOpen,
+          navigate,
+          setError,
+          rafRef,
         }
-
-        void scan()
+        void runScan(detector, video, cb)
       } catch (e: unknown) {
         if (cancelled) return
         stopCameraStream()

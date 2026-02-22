@@ -40,7 +40,7 @@ interface GeocodedLocationsCardProps {
 export function GeocodedLocationsCard({
   locations,
   voterId,
-}: GeocodedLocationsCardProps) {
+}: Readonly<GeocodedLocationsCardProps>) {
   const { data: userProfile } = useUserRole()
   const canEdit =
     userProfile?.role === "admin" || userProfile?.role === "analyst"
@@ -170,9 +170,9 @@ export function GeocodedLocationsCard({
                     </div>
                   </TableCell>
                   <TableCell>
-                    {loc.confidence_score != null
-                      ? `${(loc.confidence_score * 100).toFixed(0)}%`
-                      : "—"}
+                    {loc.confidence_score == null
+                      ? "—"
+                      : `${(loc.confidence_score * 100).toFixed(0)}%`}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {loc.input_address ?? "—"}

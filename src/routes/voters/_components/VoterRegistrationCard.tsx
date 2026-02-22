@@ -11,7 +11,7 @@ interface VoterRegistrationCardProps {
   voter: VoterDetail
 }
 
-export function VoterRegistrationCard({ voter }: VoterRegistrationCardProps) {
+export function VoterRegistrationCard({ voter }: Readonly<VoterRegistrationCardProps>) {
   const fullName = [
     voter.first_name,
     voter.middle_name,

@@ -56,7 +56,7 @@ interface GeocodedLocationMapProps {
 export function GeocodedLocationMap({
   locations,
   className,
-}: GeocodedLocationMapProps) {
+}: Readonly<GeocodedLocationMapProps>) {
   const center = useMemo<[number, number]>(() => {
     if (locations.length === 0) return DEFAULT_CENTER
     const primary = locations.find((l) => l.is_primary)
@@ -95,9 +95,9 @@ export function GeocodedLocationMap({
               </p>
               <p className="text-muted-foreground">
                 Confidence:{" "}
-                {loc.confidence_score != null
-                  ? `${(loc.confidence_score * 100).toFixed(0)}%`
-                  : "—"}
+                {loc.confidence_score == null
+                  ? "—"
+                  : `${(loc.confidence_score * 100).toFixed(0)}%`}
               </p>
             </div>
           </Popup>
