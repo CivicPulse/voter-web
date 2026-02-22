@@ -66,7 +66,7 @@ function UserManagementPage() {
   const { data, isLoading, error } = useAdminUsers()
 
   // TODO: Remove capability guard once voter-api adds PATCH/DELETE /users/{user_id}
-  const { canEditUser, canDeleteUser } = useApiCapabilities()
+  const { canEditUser, canDeleteUser, isLoading: capabilitiesLoading } = useApiCapabilities()
 
   const updateUserMutation = useUpdateUser()
   const deleteUserMutation = useDeleteUser()
@@ -128,7 +128,7 @@ function UserManagementPage() {
 
   const showActionsColumn = canEditUser || canDeleteUser
 
-  if (isLoading) {
+  if (isLoading || capabilitiesLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -148,6 +148,7 @@ function UserManagementPage() {
                 <Skeleton className="h-6 w-20" />
                 <Skeleton className="h-6 w-28" />
                 <Skeleton className="h-6 w-28" />
+                <Skeleton className="h-6 w-8" />
               </div>
             ))}
           </div>
@@ -467,7 +468,7 @@ function UserManagementPage() {
             <p className="text-sm">
               Are you sure you want to delete{" "}
               <span className="font-semibold">{deletingUser?.username}</span>?
-              This action cannot be undone.
+              This will permanently remove this user and revoke their access.
             </p>
           </div>
           <DialogFooter>
