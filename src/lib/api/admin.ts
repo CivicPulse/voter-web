@@ -3,6 +3,7 @@ import type {
   AdminUser,
   CreateUserRequest,
   CreateUserResponse,
+  UpdateUserRequest,
   UserListResponse,
   ImportJob,
   ImportListResponse,
@@ -36,6 +37,23 @@ export async function createUser(
   data: CreateUserRequest
 ): Promise<CreateUserResponse> {
   return api.post("users", { json: data }).json<CreateUserResponse>()
+}
+
+/**
+ * Update an existing user (admin-only)
+ */
+export async function updateUser(
+  id: string,
+  data: UpdateUserRequest
+): Promise<AdminUser> {
+  return api.patch(`users/${id}`, { json: data }).json<AdminUser>()
+}
+
+/**
+ * Delete a user (admin-only) — returns 204 No Content
+ */
+export async function deleteUser(id: string): Promise<void> {
+  await api.delete(`users/${id}`)
 }
 
 // ============================================================================

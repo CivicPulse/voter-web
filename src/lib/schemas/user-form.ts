@@ -42,3 +42,19 @@ export const createUserSchema = z
  * TypeScript type inferred from the Zod schema
  */
 export type CreateUserFormValues = z.infer<typeof createUserSchema>
+
+/**
+ * Zod schema for user edit form (no username or password fields)
+ */
+export const editUserSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  role: z.enum(["admin", "analyst", "viewer"], {
+    message: "Please select a valid role",
+  }),
+  is_active: z.boolean(),
+})
+
+/**
+ * TypeScript type inferred from the edit user Zod schema
+ */
+export type EditUserFormValues = z.infer<typeof editUserSchema>
