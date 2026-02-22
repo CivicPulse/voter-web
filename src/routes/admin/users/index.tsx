@@ -424,8 +424,7 @@ function UserManagementPage() {
               to{" "}
               <span className="font-semibold uppercase">
                 {pendingEditData?.role}
-              </span>
-              .
+              </span>.
             </p>
             <p className="text-sm text-muted-foreground mt-2">
               {pendingEditData?.role === "admin"
