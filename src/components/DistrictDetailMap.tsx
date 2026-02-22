@@ -157,7 +157,12 @@ export function DistrictDetailMap({
       name: string,
       county: string | null,
     ) => {
-      if (!stateAbbrev) return
+      if (!stateAbbrev) {
+        if (import.meta.env.DEV) {
+          console.warn("[DistrictDetailMap] handleDistrictDblClick: stateAbbrev is undefined; navigation skipped")
+        }
+        return
+      }
       const typeSlug = slugify(boundaryType)
       const nameSlug = slugify(name)
       if (county) {

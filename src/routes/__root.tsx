@@ -336,6 +336,12 @@ function RootLayout() {
     [activeElections],
   )
 
+  // Shared across all LayerBar instances — avoids repeating the same ternary four times
+  const overlayFeatureCount =
+    selectedType && overlayData && !isOverlayLoading
+      ? overlayData.features.length
+      : null
+
   const headerTitle = resolveHeaderTitle({
     isOnDistrictRoute,
     district,
@@ -534,11 +540,7 @@ function RootLayout() {
             isTypesLoading={isTypesLoading}
             selectedType={selectedType}
             onTypeChange={handleTypeChange}
-            overlayFeatureCount={
-              selectedType && overlayData && !isOverlayLoading
-                ? overlayData.features.length
-                : null
-            }
+            overlayFeatureCount={overlayFeatureCount}
             countyName={county.name}
             electionTypes={electionTypes}
           />
@@ -549,11 +551,7 @@ function RootLayout() {
             isTypesLoading={isStatewideTypesLoading}
             selectedType={selectedType}
             onTypeChange={handleTypeChange}
-            overlayFeatureCount={
-              selectedType && overlayData && !isOverlayLoading
-                ? overlayData.features.length
-                : null
-            }
+            overlayFeatureCount={overlayFeatureCount}
             countyName={homeStateName}
             statewide
             electionTypes={electionTypes}
@@ -565,11 +563,7 @@ function RootLayout() {
             isTypesLoading={isStatewideTypesLoading}
             selectedType={selectedType}
             onTypeChange={handleTypeChange}
-            overlayFeatureCount={
-              selectedType && overlayData && !isOverlayLoading
-                ? overlayData.features.length
-                : null
-            }
+            overlayFeatureCount={overlayFeatureCount}
             countyName={
               ABBREV_TO_NAME[stateMatch.params.state] ??
               stateMatch.params.state.toUpperCase()
@@ -584,11 +578,7 @@ function RootLayout() {
             isTypesLoading={isTypesLoading}
             selectedType={selectedType}
             onTypeChange={handleTypeChange}
-            overlayFeatureCount={
-              selectedType && overlayData && !isOverlayLoading
-                ? overlayData.features.length
-                : null
-            }
+            overlayFeatureCount={overlayFeatureCount}
             countyName={district.county}
             electionTypes={electionTypes}
           />
