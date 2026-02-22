@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getUsers, createUser } from "@/lib/api/admin"
-import type { CreateUserRequest } from "@/types/admin"
+import { getUsers, createUser, updateUser, deleteUser } from "@/lib/api/admin"
+import type { CreateUserRequest, UpdateUserRequest } from "@/types/admin"
 import {
   AuthenticationError,
   PermissionError,
@@ -70,6 +70,69 @@ export function useCreateUser() {
       } else {
         toast.error("Failed to create user", {
           description: error.message || "An error occurred while creating the user.",
+        })
+      }
+    },
+  })
+}
+
+/**
+ * Hook to update an existing user
+ *
+ * Automatically invalidates the user list query on success
+ * Shows success/error toast notifications
+ */
+export function useUpdateUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateUserRequest }) =>
+      updateUser(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "users"] })
+      toast.success("User updated", {
+        description: "The user account has been updated successfully.",
+      })
+    },
+    onError: (error: Error) => {
+      if (error instanceof AuthenticationError) {
+        toast.error("Session expired", { description: error.message })
+      } else if (error instanceof PermissionError) {
+        toast.error("Access denied", { description: error.message })
+      } else {
+        toast.error("Failed to update user", {
+          description: error.message || "An error occurred while updating the user.",
+        })
+      }
+    },
+  })
+}
+
+/**
+ * Hook to delete a user
+ *
+ * Automatically invalidates the user list query on success
+ * Shows success/error toast notifications
+ */
+export function useDeleteUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteUser(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "users"] })
+      toast.success("User deleted", {
+        description: "The user account has been deleted.",
+      })
+    },
+    onError: (error: Error) => {
+      if (error instanceof AuthenticationError) {
+        toast.error("Session expired", { description: error.message })
+      } else if (error instanceof PermissionError) {
+        toast.error("Access denied", { description: error.message })
+      } else {
+        toast.error("Failed to delete user", {
+          description: error.message || "An error occurred while deleting the user.",
         })
       }
     },

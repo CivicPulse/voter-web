@@ -171,12 +171,9 @@ export function CountyDetailContent({
                               <dd className="text-sm text-muted-foreground">
                                 {county.voter_stats.by_status
                                   .map((s) => {
-                                    const label =
-                                      s.status === "A"
-                                        ? "Active"
-                                        : s.status === "I"
-                                          ? "Inactive"
-                                          : s.status
+                                    let label = s.status
+                                    if (s.status === "A") label = "Active"
+                                    else if (s.status === "I") label = "Inactive"
                                     return `${label}: ${s.count.toLocaleString()}`
                                   })
                                   .join(" · ")}

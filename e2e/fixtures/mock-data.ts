@@ -403,7 +403,7 @@ export const voterGeocodeResultResponse = [
     id: "loc-003",
     voter_id: VOTER_ID,
     latitude: 32.8415,
-    longitude: -83.6320,
+    longitude: -83.632,
     confidence_score: 0.82,
     source_type: "osm",
     is_primary: false,

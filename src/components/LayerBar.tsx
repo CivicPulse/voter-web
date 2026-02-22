@@ -27,7 +27,7 @@ export function LayerBar({
   statewide,
   jurisdictionUnit = "County",
   electionTypes,
-}: LayerBarProps) {
+}: Readonly<LayerBarProps>) {
   const [expanded, setExpanded] = useState(false)
   const barRef = useRef<HTMLDivElement>(null)
 

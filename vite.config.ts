@@ -6,6 +6,18 @@ import { defineConfig } from "vite"
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/openapi.json": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+    },
+  },
   plugins: [
     tanstackRouter({
       target: "react",

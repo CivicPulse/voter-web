@@ -35,7 +35,7 @@ vi.mock("react-leaflet", () => ({
 }))
 
 vi.mock("leaflet", () => {
-  class MockIcon {}
+  const MockIcon = vi.fn()
   return {
     default: {
       Icon: MockIcon,

@@ -118,14 +118,28 @@ export interface CreateUserRequest {
 export type CreateUserResponse = AdminUser
 
 /**
+ * Request payload for updating an existing user.
+ * All fields are optional — only supplied fields are updated.
+ */
+export interface UpdateUserRequest {
+  email?: string
+  role?: UserRole
+  is_active?: boolean
+}
+
+/**
  * Response from user list endpoint.
  * Returns array of all users (admin-only operation).
  */
 export interface UserListResponse {
-  /** Array of all users in the system */
-  users: AdminUser[]
-  /** Total count of users (may differ from array length if pagination is added) */
-  total: number
+  /** Array of users on the current page */
+  items: AdminUser[]
+  /** Pagination metadata */
+  pagination: {
+    page: number
+    page_size: number
+    total: number
+  }
 }
 
 // ============================================================================

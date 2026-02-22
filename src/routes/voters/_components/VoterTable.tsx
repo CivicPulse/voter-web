@@ -23,17 +23,17 @@ function SortIcon({
   field,
   currentSort,
   currentOrder,
-}: {
+}: Readonly<{
   field: SortField
   currentSort?: SortField
   currentOrder?: "asc" | "desc"
-}) {
+}>) {
   if (currentSort !== field) return <ArrowUpDown className="h-3 w-3 ml-1" />
   if (currentOrder === "asc") return <ArrowUp className="h-3 w-3 ml-1" />
   return <ArrowDown className="h-3 w-3 ml-1" />
 }
 
-export function VoterTable({ data, params }: VoterTableProps) {
+export function VoterTable({ data, params }: Readonly<VoterTableProps>) {
   const navigate = useNavigate()
 
   const handleSort = (field: SortField) => {

@@ -55,8 +55,8 @@ export function useDistrictSlugResolverScoped(
 
     if (countySlug) {
       if (!props.county || slugify(props.county) !== countySlug) return false
-    } else {
-      if (props.county) return false
+    } else if (props.county) {
+      return false
     }
 
     return slugify(props.name) === nameSlug

@@ -16,7 +16,7 @@ interface VoterSearchFiltersProps {
   params: VoterSearchParams
 }
 
-export function VoterSearchFilters({ params }: VoterSearchFiltersProps) {
+export function VoterSearchFilters({ params }: Readonly<VoterSearchFiltersProps>) {
   const navigate = useNavigate()
   const { data: filters } = useVoterFilters()
   const [searchInput, setSearchInput] = useState(params.q ?? "")
