@@ -1,10 +1,12 @@
 import { useEffect } from "react"
+import { z } from "zod"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Loader2, AlertCircle } from "lucide-react"
 import { DisambiguationPage } from "@/components/DisambiguationPage"
 import { useDistrictDisambiguation } from "@/hooks/useDistrictDisambiguation"
 
 export const Route = createFileRoute("/districts/$type/$name")({
+  validateSearch: z.object({ overlay: z.string().optional() }),
   component: LegacyDistrictSlugPage,
 })
 

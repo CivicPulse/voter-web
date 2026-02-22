@@ -22,6 +22,7 @@ import { useNavigationContext } from "@/stores/navigation-context"
 import { useCountyBoundary } from "@/hooks/useCountyBoundary"
 import { useCountySlugResolver } from "@/hooks/useCountySlugResolver"
 import { useDistrictSlugResolver } from "@/hooks/useDistrictSlugResolver"
+import { useDistrictSlugResolverScoped } from "@/hooks/useDistrictSlugResolverScoped"
 import { useBoundaryTypes } from "@/hooks/useBoundaryTypes"
 import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import { useStatewideOverlayTypes } from "@/hooks/useStatewideOverlayTypes"
@@ -249,6 +250,20 @@ function RootLayout() {
     districtSlugName,
   )
 
+  // Resolve scoped district slug routes to UUID
+  const { districtId: resolvedScopedDistrictId } = useDistrictSlugResolverScoped(
+    scopedDistrictMatch?.params?.state ?? "",
+    null,
+    scopedDistrictMatch?.params?.type ?? "",
+    scopedDistrictMatch?.params?.name ?? "",
+  )
+  const { districtId: resolvedScopedCountyDistrictId } = useDistrictSlugResolverScoped(
+    scopedCountyDistrictMatch?.params?.state ?? "",
+    scopedCountyDistrictMatch?.params?.county ?? null,
+    scopedCountyDistrictMatch?.params?.type ?? "",
+    scopedCountyDistrictMatch?.params?.name ?? "",
+  )
+
   // County data hooks (enabled guards prevent fetches when not on county route)
   const isOnCountyRoute = !!(countyIdMatch || countySlugMatch)
   const countyId = countyIdMatch?.params?.countyId ?? resolvedSlugId ?? ""
@@ -262,7 +277,11 @@ function RootLayout() {
     scopedCountyDistrictMatch
   )
   const districtId =
-    districtIdMatch?.params?.districtId ?? resolvedDistrictSlugId ?? ""
+    districtIdMatch?.params?.districtId ??
+    resolvedDistrictSlugId ??
+    resolvedScopedDistrictId ??
+    resolvedScopedCountyDistrictId ??
+    ""
   const { data: district } = useCountyBoundary(districtId)
 
   const isOnHomePage = !!homeMatch
@@ -282,17 +301,28 @@ function RootLayout() {
     ?.overlay
   const stateOverlay = (stateMatch?.search as { overlay?: string } | undefined)
     ?.overlay
-  const selectedType = countyOverlay ?? homeOverlay ?? stateOverlay ?? null
+  const districtOverlay =
+    (districtIdMatch?.search as { overlay?: string } | undefined)?.overlay ??
+    (districtSlugMatch?.search as { overlay?: string } | undefined)?.overlay ??
+    (scopedDistrictMatch?.search as { overlay?: string } | undefined)?.overlay ??
+    (scopedCountyDistrictMatch?.search as { overlay?: string } | undefined)?.overlay
+  const selectedType = countyOverlay ?? homeOverlay ?? stateOverlay ?? districtOverlay ?? null
 
   const { data: boundaryTypes, isLoading: isTypesLoading } =
     useBoundaryTypes()
   const { data: statewideTypes, isLoading: isStatewideTypesLoading } =
     useStatewideOverlayTypes()
+  const districtOverlayTypes = useMemo(() => {
+    if (!district || !boundaryTypes) return undefined
+    if (district.boundary_type === "county_precinct") return boundaryTypes
+    return boundaryTypes.filter((t) => t === "county_precinct")
+  }, [district, boundaryTypes])
+  const overlayCountyFilter =
+    isOnCountyRoute ? (county?.name ?? null) :
+    isOnDistrictRoute ? (district?.county ?? null) :
+    null
   const { data: overlayData, isLoading: isOverlayLoading } =
-    useBoundaryTypeGeoJSON(
-      selectedType,
-      isOnCountyRoute ? (county?.name ?? null) : null,
-    )
+    useBoundaryTypeGeoJSON(selectedType, overlayCountyFilter)
 
   // Active election awareness for LayerBar indicators
   const { data: activeElections } = useActiveElections()
@@ -349,10 +379,38 @@ function RootLayout() {
         search: { overlay: type },
         replace: true,
       })
-    } else {
+    } else if (isOnCountyRoute) {
       navigate({
         to: "/counties/$countyId",
         params: { countyId },
+        search: { overlay: type },
+        replace: true,
+      })
+    } else if (scopedCountyDistrictMatch) {
+      navigate({
+        to: "/districts/$state/$county/$type/$name",
+        params: scopedCountyDistrictMatch.params,
+        search: { overlay: type },
+        replace: true,
+      })
+    } else if (scopedDistrictMatch) {
+      navigate({
+        to: "/districts/$state/$type/$name",
+        params: scopedDistrictMatch.params,
+        search: { overlay: type },
+        replace: true,
+      })
+    } else if (districtSlugMatch) {
+      navigate({
+        to: "/districts/$type/$name",
+        params: districtSlugMatch.params,
+        search: { overlay: type },
+        replace: true,
+      })
+    } else if (districtIdMatch) {
+      navigate({
+        to: "/districts/$districtId",
+        params: districtIdMatch.params,
         search: { overlay: type },
         replace: true,
       })
@@ -512,6 +570,21 @@ function RootLayout() {
               stateMatch.params.state.toUpperCase()
             }
             statewide
+            electionTypes={electionTypes}
+          />
+        )}
+        {isOnDistrictRoute && district?.county && (
+          <LayerBar
+            boundaryTypes={districtOverlayTypes}
+            isTypesLoading={isTypesLoading}
+            selectedType={selectedType}
+            onTypeChange={handleTypeChange}
+            overlayFeatureCount={
+              selectedType && overlayData && !isOverlayLoading
+                ? overlayData.features.length
+                : null
+            }
+            countyName={district.county}
             electionTypes={electionTypes}
           />
         )}

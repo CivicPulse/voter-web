@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef } from "react"
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
+import { useNavigate } from "@tanstack/react-router"
 import type { PathOptions } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { geometryToLeafletBounds } from "@/lib/geo"
+import { slugify } from "@/lib/slugs"
+import { OverlayLayer } from "@/components/OverlayLayer"
+import type { BoundaryFeatureCollection } from "@/types/boundary"
+import type { Election } from "@/types/elections"
 import type { CountyFeatureCollection, CountyProperties } from "@/types/boundaries"
 
 const DEFAULT_CENTER: [number, number] = [39.8283, -98.5795]
@@ -39,6 +44,9 @@ const COUNTY_SELECTED_STYLE: PathOptions = {
 interface DistrictDetailMapProps {
   districtGeometry?: Record<string, unknown> | null
   counties?: CountyFeatureCollection | null
+  overlayData?: BoundaryFeatureCollection | null
+  activeElections?: Election[]
+  stateAbbrev?: string
   isDistrictLoading?: boolean
   isCountiesLoading?: boolean
   className?: string
@@ -133,10 +141,49 @@ function CountyOutlinesLayer({
 export function DistrictDetailMap({
   districtGeometry,
   counties,
+  overlayData,
+  activeElections,
+  stateAbbrev,
   isDistrictLoading,
   isCountiesLoading,
   className,
 }: Readonly<DistrictDetailMapProps>) {
+  const navigate = useNavigate()
+
+  const handleDistrictDblClick = useCallback(
+    (
+      _featureId: string,
+      boundaryType: string,
+      name: string,
+      county: string | null,
+    ) => {
+      if (!stateAbbrev) return
+      const typeSlug = slugify(boundaryType)
+      const nameSlug = slugify(name)
+      if (county) {
+        navigate({
+          to: "/districts/$state/$county/$type/$name",
+          params: {
+            state: stateAbbrev,
+            county: slugify(county),
+            type: typeSlug,
+            name: nameSlug,
+          },
+        })
+      } else {
+        navigate({
+          to: "/districts/$state/$type/$name",
+          params: {
+            state: stateAbbrev,
+            type: typeSlug,
+            name: nameSlug,
+          },
+        })
+      }
+    },
+    [navigate, stateAbbrev],
+  )
+
   const isLoading = isDistrictLoading || isCountiesLoading
 
   return (
@@ -145,6 +192,7 @@ export function DistrictDetailMap({
         center={DEFAULT_CENTER}
         zoom={DEFAULT_ZOOM}
         scrollWheelZoom={true}
+        doubleClickZoom={false}
         className={cn("h-full w-full rounded-lg border", className)}
       >
         <TileLayer
@@ -158,6 +206,13 @@ export function DistrictDetailMap({
           <DistrictBoundaryLayer geometry={districtGeometry} />
         )}
         {counties && <CountyOutlinesLayer counties={counties} />}
+        {overlayData && overlayData.features.length > 0 && (
+          <OverlayLayer
+            data={overlayData}
+            activeElections={activeElections}
+            onDistrictDblClick={handleDistrictDblClick}
+          />
+        )}
       </MapContainer>
       {isLoading && (
         <div className="pointer-events-none absolute left-1/2 top-3 z-[1000] -translate-x-1/2">

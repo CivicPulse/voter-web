@@ -1,3 +1,4 @@
+import { z } from "zod"
 import { createFileRoute } from "@tanstack/react-router"
 import { Loader2, AlertCircle } from "lucide-react"
 import { DistrictDetailContent } from "@/components/DistrictDetailContent"
@@ -7,11 +8,13 @@ import { ABBREV_TO_FIPS } from "@/lib/states"
 export const Route = createFileRoute(
   "/districts/$state/$county/$type/$name",
 )({
+  validateSearch: z.object({ overlay: z.string().optional() }),
   component: CountyDistrictPage,
 })
 
 function CountyDistrictPage() {
   const { state, county, type, name } = Route.useParams()
+  const { overlay } = Route.useSearch()
   const isValidState = !!ABBREV_TO_FIPS[state]
 
   const { districtId, isLoading, isNotFound } = useDistrictSlugResolverScoped(
@@ -56,5 +59,5 @@ function CountyDistrictPage() {
     )
   }
 
-  return <DistrictDetailContent districtId={districtId} />
+  return <DistrictDetailContent districtId={districtId} overlay={overlay} stateAbbrev={state} />
 }

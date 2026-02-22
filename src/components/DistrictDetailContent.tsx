@@ -26,10 +26,12 @@ import { ActiveElectionBanner } from "@/components/ActiveElectionBanner"
 import { ElectedOfficialsCard } from "@/components/ElectedOfficialsCard"
 import { useCountyBoundary } from "@/hooks/useCountyBoundary"
 import { useCountyBoundaries } from "@/hooks/useCountyBoundaries"
+import { useBoundaryTypeGeoJSON } from "@/hooks/useBoundaryTypeGeoJSON"
 import {
   useActiveElections,
   electionsForDistrict,
 } from "@/lib/hooks/use-active-elections"
+import { fipsToAbbrev } from "@/lib/states"
 
 const boundaryTypeLabels: Record<string, string> = {
   congressional: "Congressional District",
@@ -40,10 +42,14 @@ const boundaryTypeLabels: Record<string, string> = {
 
 interface DistrictDetailContentProps {
   districtId: string
+  overlay?: string | null
+  stateAbbrev?: string
 }
 
 export function DistrictDetailContent({
   districtId,
+  overlay,
+  stateAbbrev,
 }: Readonly<DistrictDetailContentProps>) {
   const {
     data: district,
@@ -54,6 +60,16 @@ export function DistrictDetailContent({
   const { data: counties, isLoading: isCountiesLoading } =
     useCountyBoundaries()
   const { data: activeElections } = useActiveElections()
+  const { data: overlayData } = useBoundaryTypeGeoJSON(
+    overlay ?? null,
+    district?.county ?? null,
+  )
+  // Derive stateAbbrev from route param (preferred) or FIPS boundary_identifier prefix
+  const resolvedStateAbbrev =
+    stateAbbrev ??
+    (district?.boundary_identifier
+      ? fipsToAbbrev(district.boundary_identifier.slice(0, 2))
+      : undefined)
   const matchingElections = useMemo(
     () =>
       district && activeElections
@@ -75,6 +91,9 @@ export function DistrictDetailContent({
         <DistrictDetailMap
           districtGeometry={district?.geometry ?? null}
           counties={counties ?? null}
+          overlayData={overlayData}
+          activeElections={activeElections ?? undefined}
+          stateAbbrev={resolvedStateAbbrev}
           isDistrictLoading={isDistrictLoading}
           isCountiesLoading={isCountiesLoading}
           className="rounded-none border-0"
