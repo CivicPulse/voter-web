@@ -1,5 +1,5 @@
 ---
-description: Review and resolve all the comments, feedback, suggestions, and unresolved conversions on current PR. 
+description: Review and resolve all unresolved review threads on the current PR.
 ---
 
 ## User Input
@@ -12,62 +12,174 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Goal
 
-Identify and resolve all comments, feedback, suggestions, and unresolved conversations on the current PR. This command MUST run only after a PR has been created and is active.
+Fetch all **unresolved** review threads on the current PR, deduplicate related feedback, implement fixes, push, then reply and resolve each thread. This command MUST run only after a PR has been created and is active.
 
 ## Operating Constraints
 
-Keep changes focused on addressing the feedback without introducing unrelated modifications. Ensure that all resolutions are clearly documented in the PR conversation for transparency.
-
-**Constitution Authority**: The project constitution (`.specify/memory/constitution.md`) is **non-negotiable** within this analysis scope. Constitution conflicts are automatically CRITICAL and require adjustment of the spec, plan, or tasks—not dilution, reinterpretation, or silent ignoring of the principle. If a principle itself needs to change, that must occur in a separate, explicit constitution update outside `/hatchkit.prfix`.
+- Keep changes focused on addressing feedback — no unrelated modifications.
+- The project constitution (`.specify/memory/constitution.md`) is non-negotiable; constitution conflicts are automatically CRITICAL.
+- **Do NOT use `get_pull_request_comments` or `get_pull_request_reviews` MCP tools** — they return all comments (resolved + unresolved) and can exceed context limits on large PRs. Use the GraphQL API via `gh api graphql` exclusively for thread retrieval.
 
 ## Execution Steps
 
-### 1. Fetch PR Feedback
+### 1. Discover the PR
 
-Use the GitHub MCP, CLI, or API to retrieve all comments, feedback, suggestions, and unresolved conversations associated with the current PR. Organize them by file, line number, and author for clarity.
+Auto-detect the PR number from the current branch:
 
-### 2. Analyze Feedback
+```bash
+gh pr view --json number,url,headRefName --jq '{number, url, headRefName}'
+```
 
-Categorize feedback into actionable items, such as:
+If no PR is found, stop and inform the user.
 
-- Code changes (e.g., refactoring, bug fixes)
-- Documentation updates
-- Design adjustments
-- Clarification requests
-- Non-actionable feedback (e.g., compliments, general comments)
-- Findings that you disagree with (these require a response rather than a change)
+### 2. Fetch Unresolved Review Threads
 
-### 3. Prioritize and Plan Resolutions
+Use the GraphQL API to retrieve only **unresolved** threads. Filter client-side on `isResolved == false`:
 
-Prioritize actionable items based on severity, impact, and dependencies. Create a resolution plan that outlines the specific changes needed, the files affected, and the rationale for each change.
+```bash
+gh api graphql -f query='
+  query($owner: String!, $repo: String!, $pr: Int!) {
+    repository(owner: $owner, name: $repo) {
+      pullRequest(number: $pr) {
+        reviewThreads(first: 100) {
+          nodes {
+            id
+            isResolved
+            path
+            line
+            comments(first: 10) {
+              nodes {
+                author { login }
+                body
+                createdAt
+              }
+            }
+          }
+        }
+      }
+    }
+  }' -f owner=OWNER -f repo=REPO -F pr=NUMBER
+```
 
-### 4. Implement Resolutions
+Replace `OWNER`, `REPO`, and `NUMBER` with actual values from Step 1. Filter the result to only threads where `isResolved == false`.
 
-Make the necessary code changes, documentation updates, or design adjustments to address the feedback. Ensure that all changes are focused on resolving the specific feedback without introducing unrelated modifications.
+If the PR has zero unresolved threads, stop and inform the user.
 
-### 5. Document Resolutions
+### 3. Deduplicate and Categorize
 
-For each resolved item, add a comment in the PR conversation explaining how the feedback was addressed. If you disagree with certain feedback, provide a clear and respectful explanation for your decision.
+Before implementing anything, group threads by **file + topic**. Multiple reviewers (or bots like CodeRabbit) often flag the same issue — e.g., three threads about error handling in the same file. Identify clusters and plan a single fix per cluster.
 
-### 6. Run Tests, linting, and CI
+Categorize each item as:
 
-After implementing changes, run all relevant tests, linters, and CI checks to ensure that the resolutions do not introduce new issues. Address any failures that arise from the changes.
+- **Code change** — refactoring, bug fix, performance, style
+- **Documentation update** — comments, docstrings, README
+- **Disagree** — provide a respectful explanation instead of a code change
+- **Non-actionable** — compliments, general comments (acknowledge and resolve)
 
-### 7. Commit and Push Changes
+Note: CodeRabbit feedback often includes an AI prompt to consider. If you disagree, explain your reasoning when replying in Step 8.
 
-Commit the changes with a clear message that references the resolved feedback (e.g., "Resolve feedback from @reviewer on line 42 of file.js"). Push the changes to the PR branch.
+### 4. Prioritize and Plan
 
-### 8. Resolve Conversations
+Order work by severity and dependencies. Outline the specific changes needed per file. If the user provided input, incorporate their priorities.
 
-After pushing changes, mark the relevant conversations as resolved in the PR interface. Ensure that all feedback has been addressed and that the PR is ready for final review or merging. If any feedback remains unresolved, provide a clear explanation in the PR conversation and seek further clarification if needed.
+### 5. Implement Fixes
 
-### 9. Await Actions
+Make the necessary code changes, documentation updates, or design adjustments. Address each deduplicated cluster, not each individual thread.
 
-After resolving all conversations, wait for all github actions to complete. If any actions fail, investigate the cause, address any issues, and push necessary fixes. Ensure that the PR is in a mergeable state with all checks passing before proceeding. 
+### 6. Lint and Test
 
-### 10. Finaize Comment
+```bash
+uv run ruff check . && uv run ruff format --check .
+uv run pytest
+```
 
-Once all feedback has been addressed and all conversations resolved, add a final comment summarizing the changes made in response to the feedback and thanking the reviewers for their input. This promotes a positive and collaborative review process.
+Fix any failures introduced by the changes. If available, use the SonarQube MCP to check code quality.
+
+### 7. Commit and Push
+
+Commit with a summary-style message grouped by theme, not per-thread:
+
+```
+fix(test): address PR review feedback
+
+- batch user deletes in E2E cleanup for performance
+- replace bare dict with typed Pydantic model in 3 endpoints
+- add missing 404 assertion to boundary detail test
+```
+
+Push to the PR branch.
+
+### 8. Reply and Resolve Threads
+
+**After pushing** (so reviewers see the fix commit), reply to each thread and resolve it. Use the GraphQL `resolveReviewThread` mutation:
+
+```bash
+gh api graphql -f query='
+  mutation($threadId: ID!) {
+    resolveReviewThread(input: { threadId: $threadId }) {
+      thread { isResolved }
+    }
+  }' -f threadId=THREAD_NODE_ID
+```
+
+For each thread:
+1. Add a reply comment explaining how the feedback was addressed (or why you disagree)
+2. Resolve the thread using the mutation above
+
+The `threadId` is the `id` field from the `reviewThreads.nodes` returned in Step 2.
+
+**Batch pattern** — when there are >10 threads, use a shell loop:
+
+```bash
+for tid in THREAD_ID_1 THREAD_ID_2 THREAD_ID_3; do
+  gh api graphql -f query='
+    mutation($threadId: ID!) {
+      resolveReviewThread(input: { threadId: $threadId }) {
+        thread { isResolved }
+      }
+    }' -f threadId="$tid"
+done
+```
+
+To add a reply comment before resolving:
+
+```bash
+gh api graphql -f query='
+  mutation($threadId: ID!, $body: String!) {
+    addPullRequestReviewThreadReply(input: {
+      pullRequestReviewThreadId: $threadId
+      body: $body
+    }) {
+      comment { id }
+    }
+  }' -f threadId=THREAD_NODE_ID -f body="Fixed in latest push — ..."
+```
+
+### 9. Verify CI
+
+After pushing, compare the check status to what it was **before** your changes. Pre-existing failures are not your responsibility — only ensure you haven't introduced new ones:
+
+```bash
+gh pr checks
+```
+
+If a check that was previously passing now fails, investigate and fix.
+
+### 10. Finalize Comment
+
+Add a final PR comment summarizing:
+- How many threads were resolved
+- Key changes grouped by theme
+- Any threads where you disagreed and why
+
+## GraphQL Quick Reference
+
+| Operation | Mutation / Query | Key Input Field |
+|-----------|-----------------|-----------------|
+| List threads | `pullRequest.reviewThreads` | `first: 100` |
+| Resolve thread | `resolveReviewThread` | `threadId` (node ID from query) |
+| Reply to thread | `addPullRequestReviewThreadReply` | `pullRequestReviewThreadId` (same node ID) |
+| Add issue comment | `addComment` | `subjectId` (PR node ID) |
 
 ## Context
 
