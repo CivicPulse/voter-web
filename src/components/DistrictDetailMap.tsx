@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react"
-import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
+import { useCallback, useEffect, useMemo, useRef } from "react"
+import { MapContainer, TileLayer, GeoJSON, Pane, useMap } from "react-leaflet"
 import { useNavigate } from "@tanstack/react-router"
 import type { PathOptions } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
@@ -73,17 +73,6 @@ function FitBoundsToDistrict({
   return null
 }
 
-function CreateDistrictPane() {
-  const map = useMap()
-  useLayoutEffect(() => {
-    if (!map.getPane("districtBoundaryPane")) {
-      const pane = map.createPane("districtBoundaryPane")
-      pane.style.zIndex = "450" // above overlayPane (400), below popupPane (700)
-    }
-  }, [map])
-  return null
-}
-
 function DistrictBoundaryLayer({
   geometry,
   overlayActive = false,
@@ -107,7 +96,6 @@ function DistrictBoundaryLayer({
       data={geoJsonData}
       style={style}
       interactive={false}
-      pane={overlayActive ? "districtBoundaryPane" : undefined}
     />
   )
 }
@@ -232,7 +220,6 @@ export function DistrictDetailMap({
         doubleClickZoom={false}
         className={cn("h-full w-full rounded-lg border", className)}
       >
-        <CreateDistrictPane />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -244,15 +231,17 @@ export function DistrictDetailMap({
           <DistrictBoundaryLayer geometry={districtGeometry} />
         )}
         {counties && <CountyOutlinesLayer counties={counties} />}
-        {hasOverlay && (
+        {hasOverlay && overlayData && (
           <OverlayLayer
-            data={overlayData!}
+            data={overlayData}
             activeElections={activeElections}
             onDistrictDblClick={handleDistrictDblClick}
           />
         )}
         {districtGeometry && hasOverlay && (
-          <DistrictBoundaryLayer geometry={districtGeometry} overlayActive />
+          <Pane name="districtBoundaryPane" style={{ zIndex: 450 }}>
+            <DistrictBoundaryLayer geometry={districtGeometry} overlayActive />
+          </Pane>
         )}
       </MapContainer>
       {isLoading && (
