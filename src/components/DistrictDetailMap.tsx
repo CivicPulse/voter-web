@@ -23,6 +23,14 @@ const DISTRICT_STYLE: PathOptions = {
   opacity: 1,
 }
 
+const DISTRICT_OVERLAY_STYLE: PathOptions = {
+  color: "#1e3a8a",
+  weight: 5,
+  fillColor: "transparent",
+  fillOpacity: 0,
+  opacity: 1,
+}
+
 const COUNTY_OUTLINE_STYLE: PathOptions = {
   color: "#6b7280",
   weight: 2,
@@ -67,7 +75,8 @@ function FitBoundsToDistrict({
 
 function DistrictBoundaryLayer({
   geometry,
-}: Readonly<{ geometry: Record<string, unknown> }>) {
+  overlayActive = false,
+}: Readonly<{ geometry: Record<string, unknown>; overlayActive?: boolean }>) {
   const geoJsonData = useMemo(
     () => ({
       type: "Feature" as const,
@@ -77,7 +86,10 @@ function DistrictBoundaryLayer({
     [geometry],
   )
 
-  const style = useCallback(() => ({ ...DISTRICT_STYLE }), [])
+  const style = useCallback(
+    () => ({ ...(overlayActive ? DISTRICT_OVERLAY_STYLE : DISTRICT_STYLE) }),
+    [overlayActive],
+  )
 
   return <GeoJSON data={geoJsonData} style={style} interactive={false} />
 }
@@ -191,6 +203,7 @@ export function DistrictDetailMap({
   )
 
   const isLoading = isDistrictLoading || isCountiesLoading
+  const hasOverlay = !!(overlayData && overlayData.features.length > 0)
 
   return (
     <div className="relative h-full w-full">
@@ -208,16 +221,19 @@ export function DistrictDetailMap({
         {districtGeometry && (
           <FitBoundsToDistrict geometry={districtGeometry} />
         )}
-        {districtGeometry && (
+        {districtGeometry && !hasOverlay && (
           <DistrictBoundaryLayer geometry={districtGeometry} />
         )}
         {counties && <CountyOutlinesLayer counties={counties} />}
-        {overlayData && overlayData.features.length > 0 && (
+        {hasOverlay && (
           <OverlayLayer
-            data={overlayData}
+            data={overlayData!}
             activeElections={activeElections}
             onDistrictDblClick={handleDistrictDblClick}
           />
+        )}
+        {districtGeometry && hasOverlay && (
+          <DistrictBoundaryLayer geometry={districtGeometry} overlayActive />
         )}
       </MapContainer>
       {isLoading && (
