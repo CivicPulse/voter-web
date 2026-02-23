@@ -14,6 +14,7 @@ import {
   voterGeocodedLocationsResponse,
   voterPointLookupResponse,
   voterGeocodeResultResponse,
+  voterHistoryResponse,
 } from "./mock-data"
 
 export interface VoterMockOptions {
@@ -108,6 +109,15 @@ export async function setupVoterApiMocks(
         body: JSON.stringify(locationsData),
       })
     },
+  )
+
+  // Voter history
+  await page.route(`**/api/v1/voters/*/history`, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(voterHistoryResponse),
+    }),
   )
 
   // Voter detail

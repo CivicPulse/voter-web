@@ -411,3 +411,86 @@ export const voterGeocodeResultResponse = [
     geocoded_at: "2026-02-18T14:00:00Z",
   },
 ]
+
+// ---------------------------------------------------------------------------
+// GET /voters/{voter_registration_number}/history
+// ---------------------------------------------------------------------------
+
+export const voterHistoryResponse = [
+  {
+    election_id: ELECTION_ID,
+    election_name: "State Senate District 18 Special",
+    election_date: ELECTION_DATE,
+    election_type: "special",
+    voting_method: "In Person",
+  },
+  {
+    election_id: "e-002",
+    election_name: "2024 General Election",
+    election_date: "2024-11-05",
+    election_type: "general",
+    voting_method: "Early Voting",
+  },
+  {
+    election_id: "e-003",
+    election_name: "2024 Primary Election",
+    election_date: "2024-05-21",
+    election_type: "primary",
+    voting_method: "Absentee by Mail",
+  },
+]
+
+// ---------------------------------------------------------------------------
+// GET /elections/{id}/participation/stats
+// ---------------------------------------------------------------------------
+
+export const participationStatsResponse = {
+  election_id: ELECTION_ID,
+  total_eligible: 45000,
+  total_voted: 22300,
+  turnout_percentage: 49.56,
+  is_preliminary: true,
+  party_breakdown: [
+    { party: "Democrat", count: 10500, percentage: 47.09 },
+    { party: "Republican", count: 8200, percentage: 36.77 },
+    { party: "Independent", count: 2800, percentage: 12.56 },
+    { party: "Libertarian", count: 800, percentage: 3.59 },
+  ],
+  method_breakdown: [
+    { method: "In Person", count: 12000, percentage: 53.81 },
+    { method: "Early Voting", count: 6500, percentage: 29.15 },
+    { method: "Absentee by Mail", count: 3200, percentage: 14.35 },
+    { method: "Provisional", count: 600, percentage: 2.69 },
+  ],
+}
+
+// ---------------------------------------------------------------------------
+// GET /elections/{id}/participation
+// ---------------------------------------------------------------------------
+
+export const electionParticipantsResponse = {
+  items: [
+    {
+      voter_id: "f1e2d3c4-b5a6-7890-1234-567890abcdef",
+      voter_registration_number: "GA-12345678",
+      first_name: "Jane",
+      last_name: "Doe",
+      county: "Bibb",
+      voting_method: "In Person",
+    },
+    {
+      voter_id: "a2b3c4d5-e6f7-8901-2345-678901bcdef0",
+      voter_registration_number: "GA-87654321",
+      first_name: "John",
+      last_name: "Smith",
+      county: "Houston",
+      voting_method: "Early Voting",
+    },
+  ],
+  pagination: {
+    total: 22300,
+    page: 1,
+    page_size: 25,
+    total_pages: 892,
+  },
+}

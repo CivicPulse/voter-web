@@ -110,10 +110,10 @@
 
 **Purpose**: Validation, quality checks, and E2E coverage
 
-- [ ] T025 [P] Run ESLint and fix any linting issues across all new and modified files (`npm run lint`)
-- [ ] T026 Run TypeScript type check and production build (`npm run build`)
-- [ ] T027 [P] Add E2E mock data to `e2e/fixtures/mock-data.ts` (voter history records, participation stats, election participants) and create E2E test spec in `e2e/voter-history.spec.ts` covering: voter history card on voter detail page, election participation tab with stats, and voter list for admin users
-- [ ] T028 Visual verification of all affected pages using Playwright MCP — voter detail page with history card, election detail page with Results/Participation tabs, stats charts, and voter list; include both desktop and mobile (375px) viewports (save screenshots to `screenshots/`)
+- [x] T025 [P] Run ESLint and fix any linting issues across all new and modified files (`npm run lint`)
+- [x] T026 Run TypeScript type check and production build (`npm run build`)
+- [x] T027 [P] Add E2E mock data to `e2e/fixtures/mock-data.ts` (voter history records, participation stats, election participants) and create E2E test spec in `e2e/voter-history.spec.ts` covering: voter history card on voter detail page, election participation tab with stats, and voter list for admin users
+- [x] T028 Visual verification of all affected pages using Playwright MCP — voter detail page with history card, election detail page with Results/Participation tabs, stats charts, and voter list; include both desktop and mobile (375px) viewports (save screenshots to `screenshots/`)
 
 ---
 

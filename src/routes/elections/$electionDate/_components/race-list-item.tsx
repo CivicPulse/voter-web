@@ -13,6 +13,7 @@ export function RaceListItem({ race, electionDate }: RaceListItemProps) {
     <Link
       to="/elections/$electionDate/$electionId"
       params={{ electionDate, electionId: race.id }}
+      search={{ tab: "results" }}
       className="flex items-center justify-between gap-4 border rounded-lg p-4 hover:bg-accent/50 transition-colors"
     >
       <div className="flex-1 min-w-0">

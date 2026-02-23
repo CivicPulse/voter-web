@@ -141,9 +141,15 @@ export async function getVoterFilters(): Promise<VoterFilterOptions> {
 export async function getVoterHistory(
   voterRegistrationNumber: string,
 ): Promise<import("@/types/voter").VoterParticipationRecord[]> {
-  return api
+  const raw = await api
     .get(`voters/${voterRegistrationNumber}/history`)
-    .json<import("@/types/voter").VoterParticipationRecord[]>()
+    .json<
+      | import("@/types/voter").VoterParticipationRecord[]
+      | { items: import("@/types/voter").VoterParticipationRecord[] }
+    >()
+
+  // Backend may return a plain array (per spec) or { items, pagination } wrapper
+  return Array.isArray(raw) ? raw : raw.items
 }
 
 export async function triggerVoterGeocode(voterId: string): Promise<void> {

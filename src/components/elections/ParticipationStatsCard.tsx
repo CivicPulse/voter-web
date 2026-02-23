@@ -133,10 +133,10 @@ export function ParticipationStatsCard({
                           ))}
                         </Pie>
                         <Tooltip
-                          formatter={(value: number, name: string) => [
+                          formatter={((value: number, name: string) => [
                             formatNumber(value),
                             name,
-                          ]}
+                          ]) as never}
                         />
                       </PieChart>
                     </ResponsiveContainer>
@@ -183,10 +183,10 @@ export function ParticipationStatsCard({
                         tick={{ fontSize: 12 }}
                       />
                       <Tooltip
-                        formatter={(value: number) => [
+                        formatter={((value: number) => [
                           formatNumber(value),
                           "Votes",
-                        ]}
+                        ]) as never}
                       />
                       <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} />
                     </BarChart>

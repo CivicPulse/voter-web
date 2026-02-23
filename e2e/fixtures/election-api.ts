@@ -21,6 +21,9 @@ import {
   countyGeoJSONResponse,
   precinctGeoJSONResponse,
   boundaryGeoJSONResponse,
+  voterHistoryResponse,
+  participationStatsResponse,
+  electionParticipantsResponse,
 } from "./mock-data"
 
 export interface MockOptions {
@@ -74,11 +77,39 @@ export async function setupElectionApiMocks(
     },
   )
 
+  // Participation stats
+  await page.route(
+    `**/api/v1/elections/${ELECTION_ID}/participation/stats`,
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(participationStatsResponse),
+      }),
+  )
+
+  // Election participants
+  await page.route(
+    `**/api/v1/elections/${ELECTION_ID}/participation*`,
+    (route, request) => {
+      if (request.url().includes("/stats")) return route.fallback()
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(electionParticipantsResponse),
+      })
+    },
+  )
+
   // Election detail
   await page.route(
     `**/api/v1/elections/${ELECTION_ID}`,
     (route, request) => {
-      if (request.url().includes("/results")) return route.fallback()
+      if (
+        request.url().includes("/results") ||
+        request.url().includes("/participation")
+      )
+        return route.fallback()
       return route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -112,6 +143,15 @@ export async function setupElectionApiMocks(
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(boundaryGeoJSONResponse),
+    }),
+  )
+
+  // Voter history
+  await page.route("**/api/v1/voters/*/history", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(voterHistoryResponse),
     }),
   )
 

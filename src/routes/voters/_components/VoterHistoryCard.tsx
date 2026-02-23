@@ -160,6 +160,7 @@ export function VoterHistoryCard({
                       electionDate: record.election_date,
                       electionId: record.election_id,
                     }}
+                    search={{ tab: "results" }}
                     className="flex items-center justify-between py-3 hover:bg-muted/50 -mx-2 px-2 rounded-md transition-colors"
                   >
                     <div className="space-y-0.5">
