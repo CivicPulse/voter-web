@@ -1,0 +1,135 @@
+# Election Participation Statistics API Contract
+# Endpoint consumed by the election detail page's participation tab
+
+openapi: 3.0.3
+info:
+  title: Election Participation Stats API
+  version: 1.0.0
+
+paths:
+  /elections/{election_id}/participation/stats:
+    get:
+      summary: Get aggregate participation statistics for an election
+      description: |
+        Returns pre-aggregated turnout statistics including headline figures
+        (total eligible, total voted, turnout percentage) and breakdowns by
+        party affiliation and voting method.
+        Accessible to all authenticated users (no role restriction).
+      operationId: getParticipationStats
+      tags:
+        - Elections
+      parameters:
+        - name: election_id
+          in: path
+          required: true
+          description: UUID of the election
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Participation statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParticipationStats"
+              example:
+                election_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                total_eligible: 125000
+                total_voted: 78500
+                turnout_percentage: 62.8
+                is_preliminary: false
+                party_breakdown:
+                  - party: "Dem"
+                    count: 35200
+                    percentage: 44.8
+                  - party: "Rep"
+                    count: 32100
+                    percentage: 40.9
+                  - party: "Ind"
+                    count: 8400
+                    percentage: 10.7
+                  - party: "Lib"
+                    count: 1800
+                    percentage: 2.3
+                  - party: "Grn"
+                    count: 1000
+                    percentage: 1.3
+                method_breakdown:
+                  - method: "In Person"
+                    count: 42300
+                    percentage: 53.9
+                  - method: "Early Voting"
+                    count: 24100
+                    percentage: 30.7
+                  - method: "Absentee by Mail"
+                    count: 12100
+                    percentage: 15.4
+        "401":
+          description: Authentication required
+        "404":
+          description: Election not found
+
+components:
+  schemas:
+    ParticipationStats:
+      type: object
+      required:
+        - election_id
+        - total_eligible
+        - total_voted
+        - turnout_percentage
+        - is_preliminary
+        - party_breakdown
+        - method_breakdown
+      properties:
+        election_id:
+          type: string
+          format: uuid
+        total_eligible:
+          type: integer
+          description: Total eligible voters for this election
+        total_voted:
+          type: integer
+          description: Total voters who participated
+        turnout_percentage:
+          type: number
+          format: float
+          description: Pre-calculated turnout percentage (0-100)
+        is_preliminary:
+          type: boolean
+          description: Whether vote counting is still in progress
+        party_breakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/PartyBreakdownItem"
+        method_breakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/MethodBreakdownItem"
+
+    PartyBreakdownItem:
+      type: object
+      required: [party, count, percentage]
+      properties:
+        party:
+          type: string
+          description: Party abbreviation (e.g., "Dem", "Rep", "Lib")
+        count:
+          type: integer
+        percentage:
+          type: number
+          format: float
+
+    MethodBreakdownItem:
+      type: object
+      required: [method, count, percentage]
+      properties:
+        method:
+          type: string
+          description: Voting method name (e.g., "In Person", "Early Voting")
+        count:
+          type: integer
+        percentage:
+          type: number
+          format: float

@@ -1,0 +1,135 @@
+# Election Participants API Contract
+# Endpoint consumed by the election detail page's voter list (admin/analyst only)
+
+openapi: 3.0.3
+info:
+  title: Election Participants API
+  version: 1.0.0
+
+paths:
+  /elections/{election_id}/participation:
+    get:
+      summary: List voters who participated in an election
+      description: |
+        Returns a paginated list of individual voters who participated in a
+        specific election. Supports text search by voter name or registration number.
+        Restricted to admin and analyst roles (returns 403 for viewer role).
+      operationId: getElectionParticipants
+      tags:
+        - Elections
+      parameters:
+        - name: election_id
+          in: path
+          required: true
+          description: UUID of the election
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          required: false
+          description: Page number (1-based)
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: page_size
+          in: query
+          required: false
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 25
+            minimum: 1
+            maximum: 100
+        - name: q
+          in: query
+          required: false
+          description: Text search filter (matches voter name or registration number)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated list of election participants
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ElectionParticipantsResponse"
+              example:
+                items:
+                  - voter_id: "f1e2d3c4-b5a6-7890-1234-567890abcdef"
+                    voter_registration_number: "12345678"
+                    first_name: "Jane"
+                    last_name: "Doe"
+                    county: "Bibb"
+                    voting_method: "In Person"
+                  - voter_id: "a2b3c4d5-e6f7-8901-2345-678901bcdef0"
+                    voter_registration_number: "87654321"
+                    first_name: "John"
+                    last_name: "Smith"
+                    county: "Houston"
+                    voting_method: "Early Voting"
+                pagination:
+                  total: 78500
+                  page: 1
+                  page_size: 25
+                  total_pages: 3140
+        "401":
+          description: Authentication required
+        "403":
+          description: Forbidden — viewer role cannot access participant lists
+        "404":
+          description: Election not found
+
+components:
+  schemas:
+    ElectionParticipantsResponse:
+      type: object
+      required: [items, pagination]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ElectionParticipant"
+        pagination:
+          $ref: "#/components/schemas/PaginationInfo"
+
+    ElectionParticipant:
+      type: object
+      required:
+        - voter_id
+        - voter_registration_number
+        - first_name
+        - last_name
+        - county
+        - voting_method
+      properties:
+        voter_id:
+          type: string
+          format: uuid
+          description: Internal UUID of the voter (for navigation to detail page)
+        voter_registration_number:
+          type: string
+          description: Voter's registration number (display identifier)
+        first_name:
+          type: string
+        last_name:
+          type: string
+        county:
+          type: string
+        voting_method:
+          type: string
+          description: How this voter cast their ballot
+
+    PaginationInfo:
+      type: object
+      required: [total, page, page_size, total_pages]
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
