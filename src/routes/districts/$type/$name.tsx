@@ -1,15 +1,18 @@
 import { useEffect } from "react"
+import { z } from "zod"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Loader2, AlertCircle } from "lucide-react"
 import { DisambiguationPage } from "@/components/DisambiguationPage"
 import { useDistrictDisambiguation } from "@/hooks/useDistrictDisambiguation"
 
 export const Route = createFileRoute("/districts/$type/$name")({
+  validateSearch: z.object({ overlay: z.string().optional() }),
   component: LegacyDistrictSlugPage,
 })
 
 function LegacyDistrictSlugPage() {
   const { type, name } = Route.useParams()
+  const { overlay } = Route.useSearch()
   const { matches, isLoading, isSingleMatch } = useDistrictDisambiguation(
     type,
     name,
@@ -20,10 +23,11 @@ function LegacyDistrictSlugPage() {
     if (isSingleMatch && matches[0]) {
       navigate({
         to: matches[0].fullyQualifiedUrl,
+        search: overlay ? { overlay } : undefined,
         replace: true,
       })
     }
-  }, [isSingleMatch, matches, navigate])
+  }, [isSingleMatch, matches, navigate, overlay])
 
   if (isLoading || isSingleMatch) {
     return (
