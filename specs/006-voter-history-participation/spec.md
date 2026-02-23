@@ -35,9 +35,9 @@ An election analyst or administrator opens an election's detail page and wants t
 
 **Acceptance Scenarios**:
 
-1. **Given** an election detail page is open, **When** the user views the participation statistics section, **Then** they see total eligible voters, total votes cast, and overall turnout percentage.
-2. **Given** participation statistics are displayed, **When** the user examines the breakdown by party, **Then** they see the number of voters who participated from each party affiliation.
-3. **Given** participation statistics are displayed, **When** the user examines the breakdown by voting method, **Then** they see counts for each voting method (e.g., in-person, early voting, absentee/mail-in).
+1. **Given** an election detail page is open, **When** the user views the participation statistics section, **Then** they see prominent headline figures for total eligible voters, total votes cast, and overall turnout percentage.
+2. **Given** participation statistics are displayed, **When** the user examines the breakdown by party, **Then** they see a visual chart showing the number of voters who participated from each party affiliation, along with numeric values.
+3. **Given** participation statistics are displayed, **When** the user examines the breakdown by voting method, **Then** they see a visual chart showing counts for each voting method (e.g., in-person, early voting, absentee/mail-in), along with numeric values.
 4. **Given** an election has no participation data available, **When** the user views the statistics section, **Then** a clear message indicates that participation data is not yet available.
 
 ---
@@ -57,6 +57,8 @@ An election analyst or administrator wants to see which specific voters particip
 3. **Given** the participation list has more voters than fit on one page, **When** the user advances to the next page, **Then** the next set of voters is loaded and displayed.
 4. **Given** the participation list is displayed, **When** the user clicks on a voter's name or registration number, **Then** they are navigated to that voter's detail page.
 5. **Given** an election has no participation records, **When** the user views the participation list, **Then** a clear empty state message is displayed.
+6. **Given** the participation list is displayed, **When** the user enters a voter name or registration number in the search field, **Then** the list is filtered to show only matching voters.
+7. **Given** the user has entered a search term that matches no voters, **When** the results update, **Then** a clear message indicates no voters match the search criteria.
 
 ---
 
@@ -86,6 +88,12 @@ An election analyst or administrator wants to see which specific voters particip
 - **FR-012**: All participation views MUST display appropriate empty states when no data is available.
 - **FR-013**: All participation views MUST display user-friendly error messages when data cannot be loaded, with an option to retry.
 - **FR-014**: Active elections with in-progress vote counting MUST clearly label participation statistics as preliminary.
+- **FR-015**: The election participant voter list (User Story 3) MUST be restricted to users with admin or analyst roles. Viewer-role users MUST NOT see or access the voter list.
+- **FR-016**: Voter participation history (User Story 1) and aggregate participation statistics (User Story 2) MUST be accessible to all authenticated users regardless of role.
+- **FR-017**: The election detail page MUST use a tabbed interface with a "Results" tab (existing race results and map) and a "Participation" tab (aggregate statistics and voter list).
+- **FR-018**: The election participant voter list MUST include a text search field that filters by voter name or registration number.
+- **FR-019**: Participation statistics MUST display total eligible voters, total votes cast, and turnout percentage as prominent headline figures.
+- **FR-020**: Party affiliation and voting method breakdowns MUST be presented as visual charts (bar or donut) in addition to numeric values.
 
 ### Key Entities
 
@@ -105,6 +113,16 @@ An election analyst or administrator wants to see which specific voters particip
 - **SC-006**: Empty states and error messages are clear and actionable, requiring no external documentation to understand.
 - **SC-007**: Preliminary statistics for active elections are visually distinguished from final statistics for completed elections.
 
+## Clarifications
+
+### Session 2026-02-23
+
+- Q: Should participation data have role-based access restrictions? → A: Voter history (P1) and aggregate statistics (P2) are visible to all authenticated users. The election participant voter list (P3) is restricted to admin/analyst roles only.
+- Q: How should voter history integrate into the existing voter detail page layout? → A: As a new card section added below the existing cards, matching the current vertical stack layout.
+- Q: How should participation stats and voter list integrate into the election detail page? → A: Tabbed interface — "Results" tab (existing race results + map content) and "Participation" tab (aggregate stats + voter list).
+- Q: Should the election participant voter list support searching or filtering? → A: Text search by voter name or registration number, plus pagination. No additional dropdown filters needed.
+- Q: How should aggregate participation statistics be visualized? → A: Headline summary numbers (total eligible, total voted, turnout %) plus simple charts (bar or donut) for party and voting method breakdowns.
+
 ## Assumptions
 
 - The backend API endpoints (`/voters/{voter_registration_number}/history`, `/elections/{election_id}/participation`, `/elections/{election_id}/participation/stats`) are implemented and available.
@@ -113,5 +131,5 @@ An election analyst or administrator wants to see which specific voters particip
 - Pagination for the election participation voter list follows the same pattern as existing paginated endpoints in the application (page number + page size).
 - Party affiliation in statistics refers to the voter's registered party, not the party of candidates they voted for.
 - Voting method categories (in-person, early voting, absentee/mail-in) are defined by the backend and may vary by jurisdiction.
-- The voter history section integrates into the existing voter detail page layout alongside current sections (registration info, geocoded locations, map, district assignments).
-- The participation statistics and voter list integrate into the existing election detail page alongside current race results and map views.
+- The voter history section is a new card added to the existing voter detail page's vertical stack layout, below the current sections (registration info, geocoded locations, map, district assignments).
+- The election detail page uses a tabbed interface: a "Results" tab containing the existing race results and map views, and a "Participation" tab containing aggregate statistics and the voter participation list.
