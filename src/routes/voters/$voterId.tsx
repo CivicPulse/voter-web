@@ -7,6 +7,7 @@ import { VoterRegistrationCard } from "@/routes/voters/_components/VoterRegistra
 import { GeocodedLocationsCard } from "@/routes/voters/_components/GeocodedLocationsCard"
 import { GeocodedLocationMap } from "@/routes/voters/_components/GeocodedLocationMap"
 import { DistrictAssignmentsCard } from "@/routes/voters/_components/DistrictAssignmentsCard"
+import { VoterHistoryCard } from "@/routes/voters/_components/VoterHistoryCard"
 
 export const Route = createFileRoute("/voters/$voterId")({
   component: VoterDetailPage,
@@ -68,6 +69,8 @@ function VoterDetailPage() {
       </div>
 
       <DistrictAssignmentsCard districts={voter} />
+
+      <VoterHistoryCard voterRegistrationNumber={voter.voter_id} />
     </div>
   )
 }

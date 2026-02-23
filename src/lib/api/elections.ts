@@ -108,6 +108,34 @@ export async function getPrecinctGeoJSON(
 }
 
 // ============================================================================
+// Participation Endpoints
+// ============================================================================
+
+/** Get aggregate participation statistics for an election */
+export async function getParticipationStats(
+  electionId: string,
+): Promise<import("@/types/elections").ParticipationStats> {
+  return api
+    .get(`elections/${electionId}/participation/stats`)
+    .json<import("@/types/elections").ParticipationStats>()
+}
+
+/** Get paginated list of voters who participated in an election */
+export async function getElectionParticipants(
+  electionId: string,
+  params?: { page?: number; page_size?: number; q?: string },
+): Promise<import("@/types/elections").ElectionParticipantsResponse> {
+  const searchParams: Record<string, string> = {}
+  if (params?.page) searchParams.page = String(params.page)
+  if (params?.page_size) searchParams.page_size = String(params.page_size)
+  if (params?.q) searchParams.q = params.q
+
+  return api
+    .get(`elections/${electionId}/participation`, { searchParams })
+    .json<import("@/types/elections").ElectionParticipantsResponse>()
+}
+
+// ============================================================================
 // Admin Endpoints (Requires admin Role)
 // ============================================================================
 

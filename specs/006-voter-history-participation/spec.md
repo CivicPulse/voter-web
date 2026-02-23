@@ -22,6 +22,7 @@ A campaign volunteer or election analyst opens a voter's detail page and wants t
 3. **Given** a voter has participated in multiple elections, **When** the user filters by date range, **Then** only elections within that range are displayed.
 4. **Given** a voter has no participation history, **When** the user views the history section, **Then** a clear empty state message is displayed indicating no records are available.
 5. **Given** the voter history section is displayed, **When** the user views the list, **Then** elections are sorted with the most recent first by default.
+6. **Given** a voter's participation history is displayed, **When** the user clicks on an election entry, **Then** they are navigated to that election's detail page.
 
 ---
 
@@ -65,7 +66,7 @@ An election analyst or administrator wants to see which specific voters particip
 ### Edge Cases
 
 - What happens when the participation history API returns an error or times out? The system should display a user-friendly error message and allow the user to retry.
-- What happens when a voter has hundreds of participation records? The history list should handle large volumes gracefully without performance degradation.
+- What happens when a voter has hundreds of participation records? The history list loads all records in a single API call and applies filtering client-side. The scrollable list handles large volumes without performance degradation.
 - What happens when participation statistics show zero eligible voters? The turnout percentage should display as "N/A" or "0%" with appropriate context rather than a division error.
 - How does the system handle elections that are still active (vote counting in progress)? Statistics should be clearly labeled as preliminary/in-progress.
 - What happens when a voter's registration number has changed or been re-assigned? The system should display whatever records the API returns for the current registration number.
@@ -75,7 +76,7 @@ An election analyst or administrator wants to see which specific voters particip
 ### Functional Requirements
 
 - **FR-001**: The voter detail page MUST display a section showing the voter's election participation history.
-- **FR-002**: Each participation history entry MUST show the election date, election type, and voting method.
+- **FR-002**: Each participation history entry MUST show the election name, election date, election type, and voting method.
 - **FR-003**: The participation history list MUST be sorted by election date, most recent first.
 - **FR-004**: Users MUST be able to filter participation history by election type (general, primary, special, runoff).
 - **FR-005**: Users MUST be able to filter participation history by date range.
@@ -94,6 +95,7 @@ An election analyst or administrator wants to see which specific voters particip
 - **FR-018**: The election participant voter list MUST include a text search field that filters by voter name or registration number.
 - **FR-019**: Participation statistics MUST display total eligible voters, total votes cast, and turnout percentage as prominent headline figures.
 - **FR-020**: Party affiliation and voting method breakdowns MUST be presented as visual charts (bar or donut) in addition to numeric values.
+- **FR-021**: Each entry in the voter's participation history MUST be clickable, navigating the user to the corresponding election's detail page.
 
 ### Key Entities
 
@@ -122,14 +124,17 @@ An election analyst or administrator wants to see which specific voters particip
 - Q: How should participation stats and voter list integrate into the election detail page? → A: Tabbed interface — "Results" tab (existing race results + map content) and "Participation" tab (aggregate stats + voter list).
 - Q: Should the election participant voter list support searching or filtering? → A: Text search by voter name or registration number, plus pagination. No additional dropdown filters needed.
 - Q: How should aggregate participation statistics be visualized? → A: Headline summary numbers (total eligible, total voted, turnout %) plus simple charts (bar or donut) for party and voting method breakdowns.
+- Q: Should voter history entries link to the corresponding election detail page? → A: Yes — each history entry links to the election detail page, providing bidirectional navigation between voters and elections.
+- Q: How should the voter history list handle large datasets? → A: Load all records in a single API call with client-side filtering. No pagination needed — a scrollable list is sufficient for a single voter's history.
 
 ## Assumptions
 
 - The backend API endpoints (`/voters/{voter_registration_number}/history`, `/elections/{election_id}/participation`, `/elections/{election_id}/participation/stats`) are implemented and available.
 - Voter participation history is identified by voter registration number (not internal UUID).
-- The API's date and type filtering parameters for voter history are query parameters (standard REST convention).
+- Voter participation history filtering (by election type and date range) is performed client-side. The API returns the complete history in a single response with no server-side filter parameters.
 - Pagination for the election participation voter list follows the same pattern as existing paginated endpoints in the application (page number + page size).
 - Party affiliation in statistics refers to the voter's registered party, not the party of candidates they voted for.
 - Voting method categories (in-person, early voting, absentee/mail-in) are defined by the backend and may vary by jurisdiction.
 - The voter history section is a new card added to the existing voter detail page's vertical stack layout, below the current sections (registration info, geocoded locations, map, district assignments).
 - The election detail page uses a tabbed interface: a "Results" tab containing the existing race results and map views, and a "Participation" tab containing aggregate statistics and the voter participation list.
+- Voter participation history (User Story 1) loads all records in a single API call. Filtering by election type and date range is performed client-side. No server-side pagination is needed for this list.

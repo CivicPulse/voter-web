@@ -361,6 +361,51 @@ export interface FeedImportResponse {
   elections: FeedImportedElection[]
 }
 
+// ============================================================================
+// Participation Types
+// ============================================================================
+
+export interface PartyBreakdownItem {
+  party: string
+  count: number
+  percentage: number
+}
+
+export interface MethodBreakdownItem {
+  method: string
+  count: number
+  percentage: number
+}
+
+export interface ParticipationStats {
+  election_id: string
+  total_eligible: number
+  total_voted: number
+  turnout_percentage: number
+  is_preliminary: boolean
+  party_breakdown: PartyBreakdownItem[]
+  method_breakdown: MethodBreakdownItem[]
+}
+
+export interface ElectionParticipant {
+  voter_id: string
+  voter_registration_number: string
+  first_name: string
+  last_name: string
+  county: string
+  voting_method: string
+}
+
+export interface ElectionParticipantsResponse {
+  items: ElectionParticipant[]
+  pagination: {
+    total: number
+    page: number
+    page_size: number
+    total_pages: number
+  }
+}
+
 /** Group an array of elections by election_date into ElectionEvents */
 export function groupElectionsByDate(elections: Election[]): ElectionEvent[] {
   const grouped = new Map<string, Election[]>()

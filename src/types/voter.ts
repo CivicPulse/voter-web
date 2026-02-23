@@ -58,6 +58,14 @@ export interface VoterFilterOptions {
   residence_zipcodes: string[]
 }
 
+export interface VoterParticipationRecord {
+  election_id: string
+  election_name: string
+  election_date: string
+  election_type: import("@/types/elections").ElectionType
+  voting_method: string
+}
+
 export interface VoterSearchParams {
   q?: string
   county?: string

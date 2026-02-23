@@ -82,21 +82,23 @@ src/
 │       ├── ParticipationTab.tsx           # NEW: container for stats + voter list
 │       ├── ParticipationStatsCard.tsx     # NEW: headline stats + Recharts bar/donut charts
 │       └── ElectionParticipantList.tsx    # NEW: paginated voter table with search (admin/analyst only)
-└── tests/
-    ├── hooks/
-    │   ├── useVoterHistory.test.ts        # NEW
-    │   ├── use-participation-stats.test.ts # NEW
-    │   └── use-election-participants.test.ts # NEW
-    ├── components/
-    │   ├── VoterHistoryCard.test.tsx       # NEW
-    │   ├── ParticipationTab.test.tsx       # NEW
-    │   ├── ParticipationStatsCard.test.tsx # NEW
-    │   └── ElectionParticipantList.test.tsx # NEW
-    └── routes/
-        ├── voters/
-        │   └── $voterId.test.tsx           # MODIFY: add participation history assertions
-        └── elections/
-            └── $electionId.test.tsx         # MODIFY: add tab switching + participation assertions
+
+tests/
+├── hooks/
+│   ├── useVoterHistory.test.ts            # NEW
+│   ├── use-participation-stats.test.ts    # NEW
+│   └── use-election-participants.test.ts  # NEW
+├── components/
+│   ├── VoterHistoryCard.test.tsx          # NEW
+│   ├── ParticipationTab.test.tsx          # NEW
+│   ├── ParticipationStatsCard.test.tsx    # NEW
+│   └── ElectionParticipantList.test.tsx   # NEW
+└── routes/
+    ├── voters/
+    │   └── $voterId.test.tsx              # MODIFY: add participation history assertions
+    └── elections/
+        └── $electionDate/
+            └── $electionId.test.tsx        # MODIFY: add tab switching + participation assertions
 
 e2e/
 ├── fixtures/

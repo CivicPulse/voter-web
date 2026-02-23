@@ -138,6 +138,14 @@ export async function getVoterFilters(): Promise<VoterFilterOptions> {
   return api.get("voters/filters").json<VoterFilterOptions>()
 }
 
+export async function getVoterHistory(
+  voterRegistrationNumber: string,
+): Promise<import("@/types/voter").VoterParticipationRecord[]> {
+  return api
+    .get(`voters/${voterRegistrationNumber}/history`)
+    .json<import("@/types/voter").VoterParticipationRecord[]>()
+}
+
 export async function triggerVoterGeocode(voterId: string): Promise<void> {
   await api.post(`geocoding/voter/${voterId}/geocode-all`)
 }
