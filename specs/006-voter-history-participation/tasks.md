@@ -46,15 +46,15 @@
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Add `useVoterHistory(voterRegistrationNumber: string)` TanStack Query hook to `src/hooks/useVoters.ts` — fetches voter history via `getVoterHistory()`, returns `{ data, isLoading, isError, refetch }`
-- [ ] T007 [US1] Create `VoterHistoryCard` component in `src/routes/voters/_components/VoterHistoryCard.tsx` — renders shadcn Card with: chronological list (most recent first) showing election name, election date, election type badge, voting method; election type dropdown filter (all/general/primary/special/runoff); date range filter; clickable rows navigating to election detail page via TanStack Router; loading skeleton; error state with retry button; empty state message when no history exists
-- [ ] T008 [US1] Integrate `VoterHistoryCard` into voter detail page below the District Assignments card in `src/routes/voters/$voterId.tsx` — pass `voter_registration_number` from voter detail data
+- [x] T006 [US1] Add `useVoterHistory(voterRegistrationNumber: string)` TanStack Query hook to `src/hooks/useVoters.ts` — fetches voter history via `getVoterHistory()`, returns `{ data, isLoading, isError, refetch }`
+- [x] T007 [US1] Create `VoterHistoryCard` component in `src/routes/voters/_components/VoterHistoryCard.tsx` — renders shadcn Card with: chronological list (most recent first) showing election name, election date, election type badge, voting method; election type dropdown filter (all/general/primary/special/runoff); date range filter; clickable rows navigating to election detail page via TanStack Router; loading skeleton; error state with retry button; empty state message when no history exists
+- [x] T008 [US1] Integrate `VoterHistoryCard` into voter detail page below the District Assignments card in `src/routes/voters/$voterId.tsx` — pass `voter_registration_number` from voter detail data
 
 ### Tests for User Story 1
 
-- [ ] T009 [P] [US1] Unit tests for `useVoterHistory` hook in `tests/hooks/useVoterHistory.test.ts` — test successful fetch, loading state, error state, refetch, and empty response
-- [ ] T010 [P] [US1] Unit tests for `VoterHistoryCard` component in `tests/components/VoterHistoryCard.test.tsx` — test rendering with data (election name, date, type badge, voting method), empty state, error state with retry, election type filter, date range filter, click navigation to election detail page, most-recent-first sorting
-- [ ] T011 [US1] Update voter detail page tests in `tests/routes/voters/$voterId.test.tsx` — add assertions for VoterHistoryCard presence below District Assignments card
+- [x] T009 [P] [US1] Unit tests for `useVoterHistory` hook in `tests/hooks/useVoterHistory.test.ts` — test successful fetch, loading state, error state, refetch, and empty response
+- [x] T010 [P] [US1] Unit tests for `VoterHistoryCard` component in `tests/components/VoterHistoryCard.test.tsx` — test rendering with data (election name, date, type badge, voting method), empty state, error state with retry, election type filter, date range filter, click navigation to election detail page, most-recent-first sorting
+- [x] T011 [US1] Update voter detail page tests in `tests/routes/voters/$voterId.test.tsx` — add assertions for VoterHistoryCard presence below District Assignments card
 
 **Checkpoint**: User Story 1 is fully functional and tested — voter history card visible on voter detail page with filtering and navigation
 
