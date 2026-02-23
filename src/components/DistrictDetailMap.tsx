@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from "react"
-import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
+import { MapContainer, TileLayer, GeoJSON, Pane, useMap } from "react-leaflet"
 import { useNavigate } from "@tanstack/react-router"
 import type { PathOptions } from "leaflet"
 import type { Feature, MultiPolygon, Polygon } from "geojson"
@@ -20,6 +20,14 @@ const DISTRICT_STYLE: PathOptions = {
   weight: 3,
   fillColor: "#3b82f6",
   fillOpacity: 0.15,
+  opacity: 1,
+}
+
+const DISTRICT_OVERLAY_STYLE: PathOptions = {
+  color: "#1e3a8a",
+  weight: 5,
+  fillColor: "transparent",
+  fillOpacity: 0,
   opacity: 1,
 }
 
@@ -67,7 +75,8 @@ function FitBoundsToDistrict({
 
 function DistrictBoundaryLayer({
   geometry,
-}: Readonly<{ geometry: Record<string, unknown> }>) {
+  overlayActive = false,
+}: Readonly<{ geometry: Record<string, unknown>; overlayActive?: boolean }>) {
   const geoJsonData = useMemo(
     () => ({
       type: "Feature" as const,
@@ -77,9 +86,18 @@ function DistrictBoundaryLayer({
     [geometry],
   )
 
-  const style = useCallback(() => ({ ...DISTRICT_STYLE }), [])
+  const style = useCallback(
+    () => ({ ...(overlayActive ? DISTRICT_OVERLAY_STYLE : DISTRICT_STYLE) }),
+    [overlayActive],
+  )
 
-  return <GeoJSON data={geoJsonData} style={style} interactive={false} />
+  return (
+    <GeoJSON
+      data={geoJsonData}
+      style={style}
+      interactive={false}
+    />
+  )
 }
 
 function CountyOutlinesLayer({
@@ -156,6 +174,7 @@ export function DistrictDetailMap({
       boundaryType: string,
       name: string,
       county: string | null,
+      _boundaryIdentifier: string,
     ) => {
       if (!stateAbbrev) {
         if (import.meta.env.DEV) {
@@ -190,6 +209,7 @@ export function DistrictDetailMap({
   )
 
   const isLoading = isDistrictLoading || isCountiesLoading
+  const hasOverlay = !!(overlayData && overlayData.features.length > 0)
 
   return (
     <div className="relative h-full w-full">
@@ -207,16 +227,21 @@ export function DistrictDetailMap({
         {districtGeometry && (
           <FitBoundsToDistrict geometry={districtGeometry} />
         )}
-        {districtGeometry && (
+        {districtGeometry && !hasOverlay && (
           <DistrictBoundaryLayer geometry={districtGeometry} />
         )}
         {counties && <CountyOutlinesLayer counties={counties} />}
-        {overlayData && overlayData.features.length > 0 && (
+        {hasOverlay && overlayData && (
           <OverlayLayer
             data={overlayData}
             activeElections={activeElections}
             onDistrictDblClick={handleDistrictDblClick}
           />
+        )}
+        {districtGeometry && hasOverlay && (
+          <Pane name="districtBoundaryPane" style={{ zIndex: 450 }}>
+            <DistrictBoundaryLayer geometry={districtGeometry} overlayActive />
+          </Pane>
         )}
       </MapContainer>
       {isLoading && (
