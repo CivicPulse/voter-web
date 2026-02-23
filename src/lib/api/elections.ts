@@ -111,13 +111,62 @@ export async function getPrecinctGeoJSON(
 // Participation Endpoints
 // ============================================================================
 
+/** Raw backend shape for GET /elections/{id}/participation/stats */
+interface RawParticipationStats {
+  election_id: string
+  total_participants: number
+  by_county: { county: string; count: number }[]
+  by_ballot_style: { ballot_style: string; count: number }[]
+}
+
 /** Get aggregate participation statistics for an election */
 export async function getParticipationStats(
   electionId: string,
 ): Promise<import("@/types/elections").ParticipationStats> {
-  return api
+  const raw = await api
     .get(`elections/${electionId}/participation/stats`)
-    .json<import("@/types/elections").ParticipationStats>()
+    .json<RawParticipationStats>()
+
+  const total = raw.total_participants
+
+  // Map by_county → party_breakdown (county-based breakdown is the closest available)
+  const countyBreakdown = raw.by_county.map((c) => ({
+    party: c.county,
+    count: c.count,
+    percentage: total > 0 ? (c.count / total) * 100 : 0,
+  }))
+
+  // Map by_ballot_style → method_breakdown
+  const methodBreakdown = raw.by_ballot_style.map((b) => ({
+    method: b.ballot_style,
+    count: b.count,
+    percentage: total > 0 ? (b.count / total) * 100 : 0,
+  }))
+
+  return {
+    election_id: raw.election_id,
+    total_eligible: total, // Backend only provides total_participants
+    total_voted: total,
+    turnout_percentage: 100, // Cannot compute without eligible voter count
+    is_preliminary: false,
+    party_breakdown: countyBreakdown,
+    method_breakdown: methodBreakdown,
+  }
+}
+
+/** Raw backend shape for election participation records */
+interface RawElectionParticipant {
+  id: string
+  voter_registration_number: string
+  county: string
+  election_date: string
+  election_type: string
+  normalized_election_type: string
+  party: string | null
+  ballot_style: string | null
+  absentee: boolean
+  provisional: boolean
+  supplemental: boolean
 }
 
 /** Get paginated list of voters who participated in an election */
@@ -130,9 +179,32 @@ export async function getElectionParticipants(
   if (params?.page_size) searchParams.page_size = String(params.page_size)
   if (params?.q) searchParams.q = params.q
 
-  return api
+  const raw = await api
     .get(`elections/${electionId}/participation`, { searchParams })
-    .json<import("@/types/elections").ElectionParticipantsResponse>()
+    .json<{
+      items: RawElectionParticipant[]
+      pagination: { total: number; page: number; page_size: number; total_pages: number }
+    }>()
+
+  return {
+    items: raw.items.map((r) => {
+      // Derive voting method from boolean flags
+      let votingMethod = "In Person"
+      if (r.absentee) votingMethod = "Absentee"
+      else if (r.provisional) votingMethod = "Provisional"
+      else if (r.supplemental) votingMethod = "Supplemental"
+
+      return {
+        voter_id: r.id,
+        voter_registration_number: r.voter_registration_number,
+        first_name: "", // Not provided by backend
+        last_name: "",
+        county: r.county,
+        voting_method: votingMethod,
+      }
+    }),
+    pagination: raw.pagination,
+  }
 }
 
 // ============================================================================

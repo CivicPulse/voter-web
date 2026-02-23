@@ -138,18 +138,45 @@ export async function getVoterFilters(): Promise<VoterFilterOptions> {
   return api.get("voters/filters").json<VoterFilterOptions>()
 }
 
+/** Raw backend shape for voter history records */
+interface RawVoterHistoryRecord {
+  id: string
+  voter_registration_number: string
+  county: string
+  election_date: string
+  election_type: string
+  normalized_election_type: string
+  party: string | null
+  ballot_style: string | null
+  absentee: boolean
+  provisional: boolean
+  supplemental: boolean
+  created_at: string
+}
+
+function deriveVotingMethod(r: RawVoterHistoryRecord): string {
+  if (r.absentee) return "Absentee by Mail"
+  if (r.provisional) return "Provisional"
+  if (r.supplemental) return "Supplemental"
+  return "In Person"
+}
+
 export async function getVoterHistory(
   voterRegistrationNumber: string,
 ): Promise<import("@/types/voter").VoterParticipationRecord[]> {
   const raw = await api
     .get(`voters/${voterRegistrationNumber}/history`)
-    .json<
-      | import("@/types/voter").VoterParticipationRecord[]
-      | { items: import("@/types/voter").VoterParticipationRecord[] }
-    >()
+    .json<{ items: RawVoterHistoryRecord[] } | RawVoterHistoryRecord[]>()
 
-  // Backend may return a plain array (per spec) or { items, pagination } wrapper
-  return Array.isArray(raw) ? raw : raw.items
+  const items = Array.isArray(raw) ? raw : raw.items
+
+  return items.map((r) => ({
+    election_id: r.id,
+    election_name: `${r.election_date} ${r.election_type}`,
+    election_date: r.election_date,
+    election_type: (r.normalized_election_type || r.election_type) as import("@/types/elections").ElectionType,
+    voting_method: deriveVotingMethod(r),
+  }))
 }
 
 export async function triggerVoterGeocode(voterId: string): Promise<void> {
