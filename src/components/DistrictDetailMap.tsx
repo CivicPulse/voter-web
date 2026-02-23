@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react"
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
 import { useNavigate } from "@tanstack/react-router"
 import type { PathOptions } from "leaflet"
@@ -73,6 +73,17 @@ function FitBoundsToDistrict({
   return null
 }
 
+function CreateDistrictPane() {
+  const map = useMap()
+  useLayoutEffect(() => {
+    if (!map.getPane("districtBoundaryPane")) {
+      const pane = map.createPane("districtBoundaryPane")
+      pane.style.zIndex = "450" // above overlayPane (400), below popupPane (700)
+    }
+  }, [map])
+  return null
+}
+
 function DistrictBoundaryLayer({
   geometry,
   overlayActive = false,
@@ -91,7 +102,14 @@ function DistrictBoundaryLayer({
     [overlayActive],
   )
 
-  return <GeoJSON data={geoJsonData} style={style} interactive={false} />
+  return (
+    <GeoJSON
+      data={geoJsonData}
+      style={style}
+      interactive={false}
+      pane={overlayActive ? "districtBoundaryPane" : undefined}
+    />
+  )
 }
 
 function CountyOutlinesLayer({
@@ -214,6 +232,7 @@ export function DistrictDetailMap({
         doubleClickZoom={false}
         className={cn("h-full w-full rounded-lg border", className)}
       >
+        <CreateDistrictPane />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
