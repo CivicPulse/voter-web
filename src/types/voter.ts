@@ -59,7 +59,7 @@ export interface VoterFilterOptions {
 }
 
 export interface VoterParticipationRecord {
-  election_id: string
+  election_id: string | null
   election_name: string
   election_date: string
   election_type: import("@/types/elections").ElectionType

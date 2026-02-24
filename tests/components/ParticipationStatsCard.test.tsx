@@ -122,7 +122,7 @@ describe("ParticipationStatsCard", () => {
     mockHookReturn.data = mockParticipationStats()
     render(<ParticipationStatsCard electionId="election-001" />)
 
-    expect(screen.getByText("Party Affiliation")).toBeInTheDocument()
+    expect(screen.getByText("By County")).toBeInTheDocument()
     expect(screen.getByTestId("pie-chart")).toBeInTheDocument()
     // Party legend entries
     expect(screen.getByText(/Dem/)).toBeInTheDocument()
@@ -144,7 +144,7 @@ describe("ParticipationStatsCard", () => {
     })
     render(<ParticipationStatsCard electionId="election-001" />)
 
-    expect(screen.queryByText("Party Affiliation")).not.toBeInTheDocument()
+    expect(screen.queryByText("By County")).not.toBeInTheDocument()
     expect(screen.queryByText("Voting Method")).not.toBeInTheDocument()
   })
 })

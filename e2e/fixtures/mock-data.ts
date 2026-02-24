@@ -420,7 +420,8 @@ export const voterGeocodeResultResponse = [
 export const voterHistoryResponse = {
   items: [
     {
-      id: ELECTION_ID,
+      id: "7343267d-e218-448c-8b3a-65553a894905",
+      election_id: ELECTION_ID,
       voter_registration_number: "GA-12345678",
       county: "Bibb",
       election_date: ELECTION_DATE,
@@ -435,6 +436,7 @@ export const voterHistoryResponse = {
     },
     {
       id: "e-002",
+      election_id: "d4e5f6a7-b8c9-0123-def0-456789abcdef",
       voter_registration_number: "GA-12345678",
       county: "Bibb",
       election_date: "2024-11-05",
@@ -449,6 +451,7 @@ export const voterHistoryResponse = {
     },
     {
       id: "e-003",
+      election_id: null,
       voter_registration_number: "GA-12345678",
       county: "Bibb",
       election_date: "2024-05-21",

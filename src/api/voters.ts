@@ -141,6 +141,7 @@ export async function getVoterFilters(): Promise<VoterFilterOptions> {
 /** Raw backend shape for voter history records */
 interface RawVoterHistoryRecord {
   id: string
+  election_id: string | null
   voter_registration_number: string
   county: string
   election_date: string
@@ -171,7 +172,7 @@ export async function getVoterHistory(
   const items = Array.isArray(raw) ? raw : raw.items
 
   return items.map((r) => ({
-    election_id: r.id,
+    election_id: r.election_id,
     election_name: `${r.election_date} ${r.election_type}`,
     election_date: r.election_date,
     election_type: (r.normalized_election_type || r.election_type) as import("@/types/elections").ElectionType,

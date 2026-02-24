@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useParticipationStats } from "@/lib/hooks/use-participation-stats"
-import { getPartyColor } from "@/types/elections"
+import { getCountyColor } from "@/types/elections"
 
 function LoadingSkeleton() {
   return (
@@ -111,7 +111,7 @@ export function ParticipationStatsCard({
             {/* Party affiliation donut chart */}
             {stats.party_breakdown.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium mb-3">Party Affiliation</h4>
+                <h4 className="text-sm font-medium mb-3">By County</h4>
                 <div className="flex items-center gap-4">
                   <div className="h-48 w-48 flex-shrink-0">
                     <ResponsiveContainer width="100%" height="100%">
@@ -125,10 +125,10 @@ export function ParticipationStatsCard({
                           innerRadius={40}
                           outerRadius={70}
                         >
-                          {stats.party_breakdown.map((entry) => (
+                          {stats.party_breakdown.map((entry, index) => (
                             <Cell
                               key={entry.party}
-                              fill={getPartyColor(entry.party).fill}
+                              fill={getCountyColor(index)}
                             />
                           ))}
                         </Pie>
@@ -142,7 +142,7 @@ export function ParticipationStatsCard({
                     </ResponsiveContainer>
                   </div>
                   <div className="space-y-1.5">
-                    {stats.party_breakdown.map((entry) => (
+                    {stats.party_breakdown.map((entry, index) => (
                       <div
                         key={entry.party}
                         className="flex items-center gap-2 text-sm"
@@ -150,7 +150,7 @@ export function ParticipationStatsCard({
                         <span
                           className="inline-block h-3 w-3 rounded-full"
                           style={{
-                            backgroundColor: getPartyColor(entry.party).fill,
+                            backgroundColor: getCountyColor(index),
                           }}
                         />
                         <span>

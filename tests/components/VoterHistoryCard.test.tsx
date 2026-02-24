@@ -130,6 +130,20 @@ describe("VoterHistoryCard", () => {
     expect(params.electionId).toBe("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
   })
 
+  it("renders plain text (no link) when election_id is null", () => {
+    mockHookReturn.data = [
+      mockVoterParticipationRecord({
+        election_id: null,
+        election_name: "Unlinked Election",
+        election_date: "2023-06-01",
+      }),
+    ]
+    render(<VoterHistoryCard voterRegistrationNumber="12345678" />)
+
+    expect(screen.getByText("Unlinked Election")).toBeInTheDocument()
+    expect(screen.queryByTestId("election-link")).not.toBeInTheDocument()
+  })
+
   it("renders election type filter dropdown", () => {
     mockHookReturn.data = mockVoterHistory()
     render(<VoterHistoryCard voterRegistrationNumber="12345678" />)

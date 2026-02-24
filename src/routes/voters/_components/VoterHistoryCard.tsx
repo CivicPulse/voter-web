@@ -152,32 +152,52 @@ export function VoterHistoryCard({
               </p>
             ) : (
               <div className="divide-y">
-                {filtered.map((record) => (
-                  <Link
-                    key={record.election_id}
-                    to="/elections/$electionDate/$electionId"
-                    params={{
-                      electionDate: record.election_date,
-                      electionId: record.election_id,
-                    }}
-                    search={{ tab: "results" }}
-                    className="flex items-center justify-between py-3 hover:bg-muted/50 -mx-2 px-2 rounded-md transition-colors"
-                  >
-                    <div className="space-y-0.5">
-                      <p className="text-sm font-medium">
-                        {record.election_name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(record.election_date + "T00:00:00").toLocaleDateString(
-                          "en-US",
-                          { year: "numeric", month: "long", day: "numeric" },
-                        )}{" "}
-                        · {record.voting_method}
-                      </p>
+                {filtered.map((record) => {
+                  const key = record.election_id ?? `${record.election_date}-${record.election_name}`
+                  const content = (
+                    <>
+                      <div className="space-y-0.5">
+                        <p className="text-sm font-medium">
+                          {record.election_name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(record.election_date + "T00:00:00").toLocaleDateString(
+                            "en-US",
+                            { year: "numeric", month: "long", day: "numeric" },
+                          )}{" "}
+                          · {record.voting_method}
+                        </p>
+                      </div>
+                      <ElectionTypeBadge type={record.election_type} />
+                    </>
+                  )
+
+                  if (record.election_id) {
+                    return (
+                      <Link
+                        key={key}
+                        to="/elections/$electionDate/$electionId"
+                        params={{
+                          electionDate: record.election_date,
+                          electionId: record.election_id,
+                        }}
+                        search={{ tab: "results" }}
+                        className="flex items-center justify-between py-3 hover:bg-muted/50 -mx-2 px-2 rounded-md transition-colors"
+                      >
+                        {content}
+                      </Link>
+                    )
+                  }
+
+                  return (
+                    <div
+                      key={key}
+                      className="flex items-center justify-between py-3 -mx-2 px-2"
+                    >
+                      {content}
                     </div>
-                    <ElectionTypeBadge type={record.election_type} />
-                  </Link>
-                ))}
+                  )
+                })}
               </div>
             )}
           </>
