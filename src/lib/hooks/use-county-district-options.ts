@@ -45,7 +45,9 @@ export function useCountyDistrictOptions(
             seen.set(id, props.precinct_name ?? id)
           }
         } else {
-          const id = props.boundary_identifier
+          const id =
+            props.boundary_identifier?.replace(/^0+/, "") ||
+            props.boundary_identifier
           if (id && !seen.has(id)) {
             seen.set(id, props.name ?? id)
           }

@@ -88,7 +88,7 @@ describe("useCountyDistrictOptions", () => {
     ])
   })
 
-  it("fetches commission options and extracts boundary_identifier", async () => {
+  it("fetches commission options and strips leading zeros from boundary_identifier", async () => {
     mockJson.mockResolvedValue({
       type: "FeatureCollection",
       features: [
@@ -98,7 +98,7 @@ describe("useCountyDistrictOptions", () => {
           properties: {
             name: "Commission District 1",
             boundary_type: "county_commission",
-            boundary_identifier: "cc-001",
+            boundary_identifier: "001",
             source: "census-tiger",
             county: "Bibb",
           },
@@ -107,9 +107,9 @@ describe("useCountyDistrictOptions", () => {
           type: "Feature",
           geometry: { type: "Polygon", coordinates: [] },
           properties: {
-            name: "Commission District 2",
+            name: "Commission District 5",
             boundary_type: "county_commission",
-            boundary_identifier: "cc-002",
+            boundary_identifier: "005",
             source: "census-tiger",
             county: "Bibb",
           },
@@ -128,8 +128,8 @@ describe("useCountyDistrictOptions", () => {
       searchParams: { boundary_type: "county_commission", county: "Bibb" },
     })
     expect(result.current.data).toEqual([
-      { value: "cc-001", label: "Commission District 1" },
-      { value: "cc-002", label: "Commission District 2" },
+      { value: "1", label: "Commission District 1" },
+      { value: "5", label: "Commission District 5" },
     ])
   })
 
@@ -194,7 +194,7 @@ describe("useCountyDistrictOptions", () => {
     expect(result.current.data).toEqual([])
   })
 
-  it("returns sorted options", async () => {
+  it("returns sorted options with stripped leading zeros", async () => {
     mockJson.mockResolvedValue({
       type: "FeatureCollection",
       features: [
@@ -204,7 +204,7 @@ describe("useCountyDistrictOptions", () => {
           properties: {
             name: "School Board 3",
             boundary_type: "school_board",
-            boundary_identifier: "sb-003",
+            boundary_identifier: "003",
             source: "census-tiger",
             county: "Bibb",
           },
@@ -215,7 +215,7 @@ describe("useCountyDistrictOptions", () => {
           properties: {
             name: "School Board 1",
             boundary_type: "school_board",
-            boundary_identifier: "sb-001",
+            boundary_identifier: "001",
             source: "census-tiger",
             county: "Bibb",
           },
@@ -231,8 +231,8 @@ describe("useCountyDistrictOptions", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
     expect(result.current.data).toEqual([
-      { value: "sb-001", label: "School Board 1" },
-      { value: "sb-003", label: "School Board 3" },
+      { value: "1", label: "School Board 1" },
+      { value: "3", label: "School Board 3" },
     ])
   })
 })
