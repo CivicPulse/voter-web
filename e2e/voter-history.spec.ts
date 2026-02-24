@@ -108,6 +108,65 @@ electionTest.describe("Election Participation Tab", () => {
 })
 
 // ==========================================================================
+// Unauthenticated Participation Tab (no redirect to login)
+// Uses base test to verify public users can view stats without being
+// redirected to /login.
+// ==========================================================================
+
+base.describe("Election Participation Tab (unauthenticated)", () => {
+  base.beforeEach(async ({ page, baseURL }) => {
+    await setupElectionApiMocks(page)
+
+    // Navigate to set localStorage — do NOT set access_token
+    await page.goto(baseURL ?? "http://localhost:4173")
+    await page.evaluate(() =>
+      localStorage.setItem("welcome_dismissed", "true"),
+    )
+  })
+
+  base("shows participation stats without redirecting to login", async ({
+    page,
+  }) => {
+    await page.goto(`${RACE_URL}?tab=participation`)
+
+    // Should NOT have redirected to /login
+    await expect(page).not.toHaveURL(/\/login/)
+
+    // Stats should be visible
+    await expect(page.getByText("Participation Statistics")).toBeVisible()
+    await expect(page.getByText("Votes Cast")).toBeVisible()
+
+    // Voter list should NOT be visible (no auth)
+    await expect(page.getByText("Voter List")).not.toBeVisible()
+  })
+
+  base("shows error state instead of redirecting when stats endpoint returns 401", async ({
+    page,
+  }) => {
+    // Override participation stats to return 401
+    await page.route(
+      `**/api/v1/elections/${ELECTION_ID}/participation/stats`,
+      (route) =>
+        route.fulfill({
+          status: 401,
+          contentType: "application/json",
+          body: JSON.stringify({ detail: "Not authenticated" }),
+        }),
+    )
+
+    await page.goto(`${RACE_URL}?tab=participation`)
+
+    // Should NOT redirect to /login
+    await expect(page).not.toHaveURL(/\/login/)
+
+    // Should show error state
+    await expect(
+      page.getByText("Failed to load participation statistics."),
+    ).toBeVisible()
+  })
+})
+
+// ==========================================================================
 // Election Participant List (admin role)
 // Uses base test (no auto-fixture) to control auth setup before page loads.
 // ==========================================================================
