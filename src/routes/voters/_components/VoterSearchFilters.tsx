@@ -10,7 +10,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useVoterFilters } from "@/hooks/useVoters"
-import { useCountyDistrictOptions } from "@/lib/hooks/use-county-district-options"
 import type { VoterSearchParams } from "@/types/voter"
 
 interface VoterSearchFiltersProps {
@@ -19,7 +18,7 @@ interface VoterSearchFiltersProps {
 
 export function VoterSearchFilters({ params }: Readonly<VoterSearchFiltersProps>) {
   const navigate = useNavigate()
-  const { data: filters } = useVoterFilters()
+  const { data: filters, isFetching } = useVoterFilters(params.county)
   const [searchInput, setSearchInput] = useState(params.q ?? "")
 
   // Track previous county to reset county-level filters on change
@@ -47,20 +46,14 @@ export function VoterSearchFilters({ params }: Readonly<VoterSearchFiltersProps>
     }
   }, [params, navigate])
 
-  // Fetch county-level district options
-  const { data: precinctOptions, isLoading: precinctsLoading } =
-    useCountyDistrictOptions("county_precinct", params.county ?? null)
-  const { data: commissionOptions, isLoading: commissionLoading } =
-    useCountyDistrictOptions("county_commission", params.county ?? null)
-  const { data: schoolBoardOptions, isLoading: schoolBoardLoading } =
-    useCountyDistrictOptions("school_board", params.county ?? null)
+  const countyPrecincts = filters?.county_precincts
+  const commissionDistricts = filters?.county_commission_districts
+  const schoolBoardDistricts = filters?.school_board_districts
 
-  const countyDistrictsLoading =
-    precinctsLoading || commissionLoading || schoolBoardLoading
   const hasCountyDistrictOptions =
-    (precinctOptions && precinctOptions.length > 0) ||
-    (commissionOptions && commissionOptions.length > 0) ||
-    (schoolBoardOptions && schoolBoardOptions.length > 0)
+    (countyPrecincts && countyPrecincts.length > 0) ||
+    (commissionDistricts && commissionDistricts.length > 0) ||
+    (schoolBoardDistricts && schoolBoardDistricts.length > 0)
 
   // Debounced search — update URL after 300ms of inactivity
   useEffect(() => {
@@ -209,17 +202,17 @@ export function VoterSearchFilters({ params }: Readonly<VoterSearchFiltersProps>
         </Select>
       </div>
 
-      {params.county && (countyDistrictsLoading || hasCountyDistrictOptions) && (
+      {params.county && (isFetching || hasCountyDistrictOptions) && (
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-sm font-medium text-muted-foreground">
             {params.county} districts:
           </span>
 
-          {countyDistrictsLoading && (
+          {isFetching && (
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
           )}
 
-          {precinctOptions && precinctOptions.length > 0 && (
+          {countyPrecincts && countyPrecincts.length > 0 && (
             <Select
               value={params.county_precinct ?? "all"}
               onValueChange={(v) =>
@@ -233,16 +226,16 @@ export function VoterSearchFilters({ params }: Readonly<VoterSearchFiltersProps>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Precincts</SelectItem>
-                {precinctOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
+                {countyPrecincts.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           )}
 
-          {commissionOptions && commissionOptions.length > 0 && (
+          {commissionDistricts && commissionDistricts.length > 0 && (
             <Select
               value={params.county_commission_district ?? "all"}
               onValueChange={(v) =>
@@ -256,16 +249,16 @@ export function VoterSearchFilters({ params }: Readonly<VoterSearchFiltersProps>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Commission</SelectItem>
-                {commissionOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
+                {commissionDistricts.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           )}
 
-          {schoolBoardOptions && schoolBoardOptions.length > 0 && (
+          {schoolBoardDistricts && schoolBoardDistricts.length > 0 && (
             <Select
               value={params.school_board_district ?? "all"}
               onValueChange={(v) =>
@@ -279,9 +272,9 @@ export function VoterSearchFilters({ params }: Readonly<VoterSearchFiltersProps>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All School Board</SelectItem>
-                {schoolBoardOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
+                {schoolBoardDistricts.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
                   </SelectItem>
                 ))}
               </SelectContent>

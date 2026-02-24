@@ -30,10 +30,10 @@ export function useVoterDetail(voterId: string | null) {
   })
 }
 
-export function useVoterFilters() {
+export function useVoterFilters(county?: string) {
   return useQuery({
-    queryKey: ["voters", "filters"],
-    queryFn: getVoterFilters,
+    queryKey: ["voters", "filters", county ?? null],
+    queryFn: () => getVoterFilters(county),
     staleTime: 1000 * 60 * 30,
     gcTime: 1000 * 60 * 60,
   })

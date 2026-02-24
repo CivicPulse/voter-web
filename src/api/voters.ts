@@ -151,8 +151,10 @@ export async function getVoterDetail(
   }
 }
 
-export async function getVoterFilters(): Promise<VoterFilterOptions> {
-  return api.get("voters/filters").json<VoterFilterOptions>()
+export async function getVoterFilters(county?: string): Promise<VoterFilterOptions> {
+  const searchParams: Record<string, string> = {}
+  if (county) searchParams.county = county
+  return api.get("voters/filters", { searchParams }).json<VoterFilterOptions>()
 }
 
 /** Raw backend shape for voter history records */

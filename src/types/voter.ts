@@ -56,6 +56,9 @@ export interface VoterFilterOptions {
   state_house_districts: string[]
   residence_cities: string[]
   residence_zipcodes: string[]
+  county_precincts?: string[]
+  county_commission_districts?: string[]
+  school_board_districts?: string[]
 }
 
 export interface VoterParticipationRecord {

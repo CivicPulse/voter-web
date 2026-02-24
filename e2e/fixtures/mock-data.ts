@@ -406,6 +406,13 @@ export const voterFilterOptionsResponse = {
   residence_zipcodes: ["31201", "30301"],
 }
 
+export const voterFilterOptionsWithCountyResponse = {
+  ...voterFilterOptionsResponse,
+  county_precincts: ["BI1", "BI2", "BI3"],
+  county_commission_districts: ["1", "2", "3"],
+  school_board_districts: ["1", "2"],
+}
+
 export const voterGeocodedLocationsResponse = [
   {
     id: "loc-001",

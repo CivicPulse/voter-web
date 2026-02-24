@@ -11,19 +11,18 @@ vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => mockNavigate,
 }))
 
-vi.mock("@/hooks/useVoters", () => ({
-  useVoterFilters: () => ({ data: mockVoterFilterOptions() }),
-}))
+const mockUseVoterFilters = vi.fn()
 
-vi.mock("@/lib/hooks/use-county-district-options", () => ({
-  useCountyDistrictOptions: () => ({
-    data: undefined,
-    isLoading: false,
-  }),
+vi.mock("@/hooks/useVoters", () => ({
+  useVoterFilters: (...args: unknown[]) => mockUseVoterFilters(...args),
 }))
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockUseVoterFilters.mockReturnValue({
+    data: mockVoterFilterOptions(),
+    isFetching: false,
+  })
 })
 
 describe("VoterSearchFilters", () => {
@@ -82,5 +81,40 @@ describe("VoterSearchFilters", () => {
     render(<VoterSearchFilters params={{}} />)
 
     expect(screen.queryByText(/districts:/)).not.toBeInTheDocument()
+  })
+
+  it("passes county param to useVoterFilters", () => {
+    render(<VoterSearchFilters params={{ county: "BIBB" }} />)
+
+    expect(mockUseVoterFilters).toHaveBeenCalledWith("BIBB")
+  })
+
+  it("shows county district dropdowns when filters include county data", () => {
+    mockUseVoterFilters.mockReturnValue({
+      data: mockVoterFilterOptions({
+        county_precincts: ["BI1", "BI2", "BI3"],
+        county_commission_districts: ["1", "2", "3"],
+        school_board_districts: ["1", "2"],
+      }),
+      isFetching: false,
+    })
+
+    render(<VoterSearchFilters params={{ county: "BIBB" }} />)
+
+    expect(screen.getByText("BIBB districts:")).toBeInTheDocument()
+    expect(screen.getByLabelText("Filter by precinct")).toBeInTheDocument()
+    expect(screen.getByLabelText("Filter by commission district")).toBeInTheDocument()
+    expect(screen.getByLabelText("Filter by school board district")).toBeInTheDocument()
+  })
+
+  it("does not show county district row when county is set but no county-level data", () => {
+    mockUseVoterFilters.mockReturnValue({
+      data: mockVoterFilterOptions(),
+      isFetching: false,
+    })
+
+    render(<VoterSearchFilters params={{ county: "BIBB" }} />)
+
+    expect(screen.queryByText("BIBB districts:")).not.toBeInTheDocument()
   })
 })

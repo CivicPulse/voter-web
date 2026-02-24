@@ -209,13 +209,31 @@ describe("getVoterDetail", () => {
 })
 
 describe("getVoterFilters", () => {
-  it("calls GET /voters/filters", async () => {
+  it("calls GET /voters/filters with no params", async () => {
     const filters = mockVoterFilterOptions()
     mockJson.mockResolvedValue(filters)
 
     const result = await getVoterFilters()
 
-    expect(mockGet).toHaveBeenCalledWith("voters/filters")
+    expect(mockGet).toHaveBeenCalledWith("voters/filters", {
+      searchParams: {},
+    })
+    expect(result).toEqual(filters)
+  })
+
+  it("calls GET /voters/filters with county param", async () => {
+    const filters = mockVoterFilterOptions({
+      county_precincts: ["BI1", "BI2", "BI3"],
+      county_commission_districts: ["1", "2", "3"],
+      school_board_districts: ["1", "2"],
+    })
+    mockJson.mockResolvedValue(filters)
+
+    const result = await getVoterFilters("Bibb")
+
+    expect(mockGet).toHaveBeenCalledWith("voters/filters", {
+      searchParams: { county: "Bibb" },
+    })
     expect(result).toEqual(filters)
   })
 })

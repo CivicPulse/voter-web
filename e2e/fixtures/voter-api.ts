@@ -11,6 +11,7 @@ import {
   voterSearchResponse,
   voterDetailResponse,
   voterFilterOptionsResponse,
+  voterFilterOptionsWithCountyResponse,
   voterGeocodedLocationsResponse,
   voterPointLookupResponse,
   voterGeocodeResultResponse,
@@ -46,14 +47,19 @@ export async function setupVoterApiMocks(
     }),
   )
 
-  // Voter filters
-  await page.route("**/api/v1/voters/filters", (route) =>
-    route.fulfill({
+  // Voter filters (county-aware)
+  await page.route("**/api/v1/voters/filters*", (route, request) => {
+    const url = new URL(request.url())
+    const county = url.searchParams.get("county")
+    const data = county
+      ? voterFilterOptionsWithCountyResponse
+      : voterFilterOptionsResponse
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(voterFilterOptionsResponse),
-    }),
-  )
+      body: JSON.stringify(data),
+    })
+  })
 
   // Voter search (bare path — when not a sub-resource)
   await page.route("**/api/v1/voters", (route, request) => {
