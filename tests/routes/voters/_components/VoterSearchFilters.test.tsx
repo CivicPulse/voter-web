@@ -86,7 +86,31 @@ describe("VoterSearchFilters", () => {
   it("passes county param to useVoterFilters", () => {
     render(<VoterSearchFilters params={{ county: "BIBB" }} />)
 
-    expect(mockUseVoterFilters).toHaveBeenCalledWith("BIBB")
+    expect(mockUseVoterFilters).toHaveBeenCalledWith({
+      county: "BIBB",
+      county_precinct: undefined,
+      county_commission_district: undefined,
+      school_board_district: undefined,
+    })
+  })
+
+  it("passes cascading county-level params to useVoterFilters", () => {
+    render(
+      <VoterSearchFilters
+        params={{
+          county: "BIBB",
+          county_precinct: "BI1",
+          county_commission_district: "5",
+        }}
+      />,
+    )
+
+    expect(mockUseVoterFilters).toHaveBeenCalledWith({
+      county: "BIBB",
+      county_precinct: "BI1",
+      county_commission_district: "5",
+      school_board_district: undefined,
+    })
   })
 
   it("shows county district dropdowns when filters include county data", () => {

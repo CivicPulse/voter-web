@@ -229,12 +229,56 @@ describe("getVoterFilters", () => {
     })
     mockJson.mockResolvedValue(filters)
 
-    const result = await getVoterFilters("Bibb")
+    const result = await getVoterFilters({ county: "Bibb" })
 
     expect(mockGet).toHaveBeenCalledWith("voters/filters", {
       searchParams: { county: "Bibb" },
     })
     expect(result).toEqual(filters)
+  })
+
+  it("calls GET /voters/filters with cascading county params", async () => {
+    const filters = mockVoterFilterOptions({
+      county_precincts: ["BI1", "BI2", "BI3"],
+      county_commission_districts: ["1"],
+      school_board_districts: ["2"],
+    })
+    mockJson.mockResolvedValue(filters)
+
+    const result = await getVoterFilters({
+      county: "Bibb",
+      county_precinct: "BI1",
+    })
+
+    expect(mockGet).toHaveBeenCalledWith("voters/filters", {
+      searchParams: { county: "Bibb", county_precinct: "BI1" },
+    })
+    expect(result).toEqual(filters)
+  })
+
+  it("passes all cascading params when provided", async () => {
+    const filters = mockVoterFilterOptions({
+      county_precincts: ["BI1"],
+      county_commission_districts: ["1"],
+      school_board_districts: ["2"],
+    })
+    mockJson.mockResolvedValue(filters)
+
+    await getVoterFilters({
+      county: "Bibb",
+      county_precinct: "BI1",
+      county_commission_district: "1",
+      school_board_district: "2",
+    })
+
+    expect(mockGet).toHaveBeenCalledWith("voters/filters", {
+      searchParams: {
+        county: "Bibb",
+        county_precinct: "BI1",
+        county_commission_district: "1",
+        school_board_district: "2",
+      },
+    })
   })
 })
 

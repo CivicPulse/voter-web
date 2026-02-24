@@ -151,9 +151,19 @@ export async function getVoterDetail(
   }
 }
 
-export async function getVoterFilters(county?: string): Promise<VoterFilterOptions> {
+export interface VoterFilterParams {
+  county?: string
+  county_precinct?: string
+  county_commission_district?: string
+  school_board_district?: string
+}
+
+export async function getVoterFilters(params?: VoterFilterParams): Promise<VoterFilterOptions> {
   const searchParams: Record<string, string> = {}
-  if (county) searchParams.county = county
+  if (params?.county) searchParams.county = params.county
+  if (params?.county_precinct) searchParams.county_precinct = params.county_precinct
+  if (params?.county_commission_district) searchParams.county_commission_district = params.county_commission_district
+  if (params?.school_board_district) searchParams.school_board_district = params.school_board_district
   return api.get("voters/filters", { searchParams }).json<VoterFilterOptions>()
 }
 

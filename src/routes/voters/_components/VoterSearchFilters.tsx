@@ -18,7 +18,16 @@ interface VoterSearchFiltersProps {
 
 export function VoterSearchFilters({ params }: Readonly<VoterSearchFiltersProps>) {
   const navigate = useNavigate()
-  const { data: filters, isFetching } = useVoterFilters(params.county)
+  const { data: filters, isFetching } = useVoterFilters(
+    params.county
+      ? {
+          county: params.county,
+          county_precinct: params.county_precinct,
+          county_commission_district: params.county_commission_district,
+          school_board_district: params.school_board_district,
+        }
+      : undefined,
+  )
   const [searchInput, setSearchInput] = useState(params.q ?? "")
 
   // Track previous county to reset county-level filters on change

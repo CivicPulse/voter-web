@@ -107,7 +107,7 @@ describe("useVoterDetail", () => {
 })
 
 describe("useVoterFilters", () => {
-  it("fetches filter options without county", async () => {
+  it("fetches filter options without params", async () => {
     const filters = mockVoterFilterOptions()
     mockedGetVoterFilters.mockResolvedValue(filters)
 
@@ -130,13 +130,13 @@ describe("useVoterFilters", () => {
     mockedGetVoterFilters.mockResolvedValue(filters)
 
     const { result } = renderHook(
-      () => useVoterFilters("Bibb"),
+      () => useVoterFilters({ county: "Bibb" }),
       { wrapper: createWrapper() },
     )
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(result.current.data).toEqual(filters)
-    expect(mockedGetVoterFilters).toHaveBeenCalledWith("Bibb")
+    expect(mockedGetVoterFilters).toHaveBeenCalledWith({ county: "Bibb" })
   })
 })
 
