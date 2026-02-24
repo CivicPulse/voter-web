@@ -1,4 +1,9 @@
-import { render, type RenderOptions } from "@testing-library/react"
+import {
+  render,
+  renderHook as rtlRenderHook,
+  type RenderOptions,
+  type RenderHookOptions,
+} from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import type { ReactElement, ReactNode } from "react"
 
@@ -36,4 +41,16 @@ function customRender(
   return render(ui, { wrapper: TestProviders, ...options })
 }
 
-export { customRender as render, createTestQueryClient }
+/**
+ * Custom renderHook that wraps hooks with test providers.
+ * Use this instead of @testing-library/react renderHook for hooks
+ * that use TanStack Query.
+ */
+function customRenderHook<Result, Props>(
+  hook: (props: Props) => Result,
+  options?: Omit<RenderHookOptions<Props>, "wrapper">,
+) {
+  return rtlRenderHook(hook, { wrapper: TestProviders, ...options })
+}
+
+export { customRender as render, customRenderHook as renderHook, createTestQueryClient }

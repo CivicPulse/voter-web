@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { renderHook, waitFor } from "@testing-library/react"
-import { createTestQueryClient } from "@/test/render"
-import { QueryClientProvider } from "@tanstack/react-query"
-import type { ReactNode } from "react"
+import { waitFor } from "@testing-library/react"
+import { renderHook } from "@/test/render"
 import { useElectionParticipants } from "@/lib/hooks/use-election-participants"
 import { mockElectionParticipantsResponse } from "@/test/mocks/elections"
 
@@ -13,15 +11,6 @@ vi.mock("@/lib/api/elections", () => ({
 import { getElectionParticipants } from "@/lib/api/elections"
 
 const mockedGetParticipants = vi.mocked(getElectionParticipants)
-
-function createWrapper() {
-  const queryClient = createTestQueryClient()
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    )
-  }
-}
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -39,7 +28,7 @@ describe("useElectionParticipants", () => {
           { page: 1, pageSize: 25, search: "" },
           true,
         ),
-      { wrapper: createWrapper() },
+
     )
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
@@ -62,7 +51,7 @@ describe("useElectionParticipants", () => {
           { page: 1, pageSize: 25, search: "Jane" },
           true,
         ),
-      { wrapper: createWrapper() },
+
     )
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
@@ -81,7 +70,7 @@ describe("useElectionParticipants", () => {
           { page: 1, pageSize: 25, search: "" },
           false,
         ),
-      { wrapper: createWrapper() },
+
     )
 
     expect(result.current.fetchStatus).toBe("idle")
@@ -98,7 +87,7 @@ describe("useElectionParticipants", () => {
           { page: 1, pageSize: 25, search: "" },
           true,
         ),
-      { wrapper: createWrapper() },
+
     )
 
     expect(result.current.isLoading).toBe(true)
@@ -114,7 +103,7 @@ describe("useElectionParticipants", () => {
           { page: 1, pageSize: 25, search: "" },
           true,
         ),
-      { wrapper: createWrapper() },
+
     )
 
     await waitFor(

@@ -99,7 +99,7 @@ export function ParticipationStatsCard({
             </div>
 
             {/* County breakdown donut — only shown for multi-county elections */}
-            {stats.party_breakdown.length > 1 && (
+            {stats.county_breakdown.length > 1 && (
               <div>
                 <h4 className="text-sm font-medium mb-3">By County</h4>
                 <div className="flex items-center gap-4">
@@ -107,17 +107,17 @@ export function ParticipationStatsCard({
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
-                          data={stats.party_breakdown}
+                          data={stats.county_breakdown}
                           dataKey="count"
-                          nameKey="party"
+                          nameKey="county"
                           cx="50%"
                           cy="50%"
                           innerRadius={40}
                           outerRadius={70}
                         >
-                          {stats.party_breakdown.map((entry, index) => (
+                          {stats.county_breakdown.map((entry, index) => (
                             <Cell
-                              key={entry.party}
+                              key={entry.county}
                               fill={getCountyColor(index)}
                             />
                           ))}
@@ -132,9 +132,9 @@ export function ParticipationStatsCard({
                     </ResponsiveContainer>
                   </div>
                   <div className="space-y-1.5">
-                    {stats.party_breakdown.map((entry, index) => (
+                    {stats.county_breakdown.map((entry, index) => (
                       <div
-                        key={entry.party}
+                        key={entry.county}
                         className="flex items-center gap-2 text-sm"
                       >
                         <span
@@ -144,7 +144,7 @@ export function ParticipationStatsCard({
                           }}
                         />
                         <span>
-                          {entry.party} — {formatNumber(entry.count)} (
+                          {entry.county} — {formatNumber(entry.count)} (
                           {entry.percentage.toFixed(1)}%)
                         </span>
                       </div>
@@ -204,10 +204,10 @@ function PrecinctBreakdownChart({
 }>) {
   const counties = useMemo(
     () =>
-      stats.party_breakdown
-        .map((c) => c.party)
+      stats.county_breakdown
+        .map((c) => c.county)
         .sort((a, b) => a.localeCompare(b)),
-    [stats.party_breakdown],
+    [stats.county_breakdown],
   )
 
   // Default to first county in sorted list

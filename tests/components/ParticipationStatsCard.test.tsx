@@ -127,13 +127,13 @@ describe("ParticipationStatsCard", () => {
     expect(screen.getByText("By County")).toBeInTheDocument()
     expect(screen.getByTestId("pie-chart")).toBeInTheDocument()
     // County legend entries
-    expect(screen.getByText(/Dem/)).toBeInTheDocument()
-    expect(screen.getByText(/Rep/)).toBeInTheDocument()
+    expect(screen.getByText(/Bibb/)).toBeInTheDocument()
+    expect(screen.getByText(/Houston/)).toBeInTheDocument()
   })
 
   it("hides county breakdown for single-county elections", () => {
     mockHookReturn.data = mockParticipationStats({
-      party_breakdown: [{ party: "BIBB", count: 5000, percentage: 100 }],
+      county_breakdown: [{ county: "BIBB", count: 5000, percentage: 100 }],
     })
     render(<ParticipationStatsCard electionId="election-001" />)
 
@@ -147,7 +147,7 @@ describe("ParticipationStatsCard", () => {
       isLoading: false,
     }
     mockHookReturn.data = mockParticipationStats({
-      party_breakdown: [{ party: "Bibb", count: 500, percentage: 100 }],
+      county_breakdown: [{ county: "Bibb", count: 500, percentage: 100 }],
       precinct_breakdown: [
         { precinct: "P1", precinct_name: "Precinct 1", count: 300, percentage: 60 },
         { precinct: "P2", precinct_name: "Precinct 2", count: 200, percentage: 40 },
@@ -166,9 +166,9 @@ describe("ParticipationStatsCard", () => {
       isLoading: false,
     }
     mockHookReturn.data = mockParticipationStats({
-      party_breakdown: [
-        { party: "Bibb", count: 300, percentage: 60 },
-        { party: "Houston", count: 200, percentage: 40 },
+      county_breakdown: [
+        { county: "Bibb", count: 300, percentage: 60 },
+        { county: "Houston", count: 200, percentage: 40 },
       ],
       precinct_breakdown: [
         { precinct: "P1", precinct_name: "Precinct 1", count: 300, percentage: 60 },
@@ -194,7 +194,7 @@ describe("ParticipationStatsCard", () => {
 
   it("does not render charts when breakdowns are empty", () => {
     mockHookReturn.data = mockParticipationStats({
-      party_breakdown: [],
+      county_breakdown: [],
       method_breakdown: [],
     })
     render(<ParticipationStatsCard electionId="election-001" />)

@@ -175,9 +175,10 @@ interface RawVoterHistoryRecord {
   county: string
   election_date: string
   election_type: string
-  normalized_election_type: string
+  normalized_election_type: string | null
   party: string | null
   ballot_style: string | null
+  early_voting: boolean
   absentee: boolean
   provisional: boolean
   supplemental: boolean
@@ -186,6 +187,7 @@ interface RawVoterHistoryRecord {
 
 function deriveVotingMethod(r: RawVoterHistoryRecord): string {
   if (r.absentee) return "Absentee by Mail"
+  if (r.early_voting) return "Early Voting"
   if (r.provisional) return "Provisional"
   if (r.supplemental) return "Supplemental"
   return "In Person"

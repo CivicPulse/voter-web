@@ -12,9 +12,11 @@ paths:
       summary: Get aggregate participation statistics for an election
       description: |
         Returns pre-aggregated turnout statistics including headline figures
-        (total eligible, total voted, turnout percentage) and breakdowns by
-        party affiliation and voting method.
+        (total voted) and breakdowns by county and voting method.
         Accessible to all authenticated users (no role restriction).
+        Note: The backend provides by_county (not party) breakdowns.
+        Total eligible voter count and turnout percentage are not yet
+        available from this endpoint.
       operationId: getParticipationStats
       tags:
         - Elections
@@ -35,24 +37,22 @@ paths:
                 $ref: "#/components/schemas/ParticipationStats"
               example:
                 election_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-                total_eligible: 125000
                 total_voted: 78500
-                turnout_percentage: 62.8
-                is_preliminary: false
-                party_breakdown:
-                  - party: "Dem"
+                is_preliminary: true
+                county_breakdown:
+                  - county: "Bibb"
                     count: 35200
                     percentage: 44.8
-                  - party: "Rep"
+                  - county: "Houston"
                     count: 32100
                     percentage: 40.9
-                  - party: "Ind"
+                  - county: "Peach"
                     count: 8400
                     percentage: 10.7
-                  - party: "Lib"
+                  - county: "Crawford"
                     count: 1800
                     percentage: 2.3
-                  - party: "Grn"
+                  - county: "Twiggs"
                     count: 1000
                     percentage: 1.3
                 method_breakdown:
@@ -76,45 +76,36 @@ components:
       type: object
       required:
         - election_id
-        - total_eligible
         - total_voted
-        - turnout_percentage
         - is_preliminary
-        - party_breakdown
+        - county_breakdown
         - method_breakdown
       properties:
         election_id:
           type: string
           format: uuid
-        total_eligible:
-          type: integer
-          description: Total eligible voters for this election
         total_voted:
           type: integer
           description: Total voters who participated
-        turnout_percentage:
-          type: number
-          format: float
-          description: Pre-calculated turnout percentage (0-100)
         is_preliminary:
           type: boolean
-          description: Whether vote counting is still in progress
-        party_breakdown:
+          description: Whether data is preliminary (e.g., eligible count unavailable)
+        county_breakdown:
           type: array
           items:
-            $ref: "#/components/schemas/PartyBreakdownItem"
+            $ref: "#/components/schemas/CountyBreakdownItem"
         method_breakdown:
           type: array
           items:
             $ref: "#/components/schemas/MethodBreakdownItem"
 
-    PartyBreakdownItem:
+    CountyBreakdownItem:
       type: object
-      required: [party, count, percentage]
+      required: [county, count, percentage]
       properties:
-        party:
+        county:
           type: string
-          description: Party abbreviation (e.g., "Dem", "Rep", "Lib")
+          description: County name (e.g., "Bibb", "Houston")
         count:
           type: integer
         percentage:

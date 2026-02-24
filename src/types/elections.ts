@@ -384,8 +384,8 @@ export interface FeedImportResponse {
 // Participation Types
 // ============================================================================
 
-export interface PartyBreakdownItem {
-  party: string
+export interface CountyBreakdownItem {
+  county: string
   count: number
   percentage: number
 }
@@ -405,11 +405,9 @@ export interface PrecinctBreakdownItem {
 
 export interface ParticipationStats {
   election_id: string
-  total_eligible?: number
   total_voted: number
-  turnout_percentage?: number
   is_preliminary: boolean
-  party_breakdown: PartyBreakdownItem[]
+  county_breakdown: CountyBreakdownItem[]
   method_breakdown: MethodBreakdownItem[]
   precinct_breakdown?: PrecinctBreakdownItem[]
 }
@@ -418,6 +416,8 @@ export interface ElectionParticipant {
   id: string
   voter_id: string | null
   voter_registration_number: string
+  first_name: string
+  last_name: string
   county: string
   voting_method: string
 }

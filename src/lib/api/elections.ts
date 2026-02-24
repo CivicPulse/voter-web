@@ -130,9 +130,9 @@ export async function getParticipationStats(
 
   const total = raw.total_participants
 
-  // Map by_county → party_breakdown (county-based breakdown is the closest available)
+  // Map by_county → county_breakdown
   const countyBreakdown = raw.by_county.map((c) => ({
-    party: c.county,
+    county: c.county,
     count: c.count,
     percentage: total > 0 ? (c.count / total) * 100 : 0,
   }))
@@ -155,8 +155,8 @@ export async function getParticipationStats(
   return {
     election_id: raw.election_id,
     total_voted: total,
-    is_preliminary: false,
-    party_breakdown: countyBreakdown,
+    is_preliminary: true,
+    county_breakdown: countyBreakdown,
     method_breakdown: methodBreakdown,
     ...(precinctBreakdown && precinctBreakdown.length > 0 && { precinct_breakdown: precinctBreakdown }),
   }
@@ -167,12 +167,15 @@ interface RawElectionParticipant {
   id: string
   voter_id: string | null
   voter_registration_number: string
+  first_name?: string | null
+  last_name?: string | null
   county: string
   election_date: string
   election_type: string
   normalized_election_type: string
   party: string | null
   ballot_style: string | null
+  early_voting: boolean
   absentee: boolean
   provisional: boolean
   supplemental: boolean
@@ -199,7 +202,8 @@ export async function getElectionParticipants(
     items: raw.items.map((r) => {
       // Derive voting method from boolean flags
       let votingMethod = "In Person"
-      if (r.absentee) votingMethod = "Absentee"
+      if (r.absentee) votingMethod = "Absentee by Mail"
+      else if (r.early_voting) votingMethod = "Early Voting"
       else if (r.provisional) votingMethod = "Provisional"
       else if (r.supplemental) votingMethod = "Supplemental"
 
@@ -207,6 +211,8 @@ export async function getElectionParticipants(
         id: r.id,
         voter_id: r.voter_id,
         voter_registration_number: r.voter_registration_number,
+        first_name: r.first_name ?? "",
+        last_name: r.last_name ?? "",
         county: r.county,
         voting_method: votingMethod,
       }
