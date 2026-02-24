@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { render, screen, waitFor } from "@testing-library/react"
+import { screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { VoterSearchFilters } from "@/routes/voters/_components/VoterSearchFilters"
 import { mockVoterFilterOptions } from "@/test/mocks/voters"
+import { render } from "@/test/render"
 
 const mockNavigate = vi.fn()
 
@@ -12,6 +13,13 @@ vi.mock("@tanstack/react-router", () => ({
 
 vi.mock("@/hooks/useVoters", () => ({
   useVoterFilters: () => ({ data: mockVoterFilterOptions() }),
+}))
+
+vi.mock("@/lib/hooks/use-county-district-options", () => ({
+  useCountyDistrictOptions: () => ({
+    data: undefined,
+    isLoading: false,
+  }),
 }))
 
 beforeEach(() => {
@@ -68,5 +76,11 @@ describe("VoterSearchFilters", () => {
     expect(
       screen.getByPlaceholderText("Search voters by name..."),
     ).toBeInTheDocument()
+  })
+
+  it("does not show county district row when no county selected", () => {
+    render(<VoterSearchFilters params={{}} />)
+
+    expect(screen.queryByText(/districts:/)).not.toBeInTheDocument()
   })
 })

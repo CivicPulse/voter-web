@@ -266,6 +266,69 @@ export const countyPrecinctBoundaries: Record<string, { type: string; features: 
 export const boundaryGeoJSONResponse = countyPrecinctBoundaries.Bibb
 
 // ---------------------------------------------------------------------------
+// GET /boundaries/geojson?boundary_type=county_commission&county=...
+// ---------------------------------------------------------------------------
+
+function makeCommissionFeature(county: string, id: string, name: string) {
+  return {
+    type: "Feature" as const,
+    geometry: {
+      type: "Polygon" as const,
+      coordinates: [[[-83.65, 32.85], [-83.6, 32.85], [-83.6, 32.9], [-83.65, 32.9], [-83.65, 32.85]]],
+    },
+    properties: {
+      name,
+      boundary_type: "county_commission",
+      boundary_identifier: id,
+      source: "census-tiger",
+      county,
+    },
+  }
+}
+
+export const countyCommissionBoundaries: Record<string, { type: string; features: ReturnType<typeof makeCommissionFeature>[] }> = {
+  Bibb: {
+    type: "FeatureCollection",
+    features: [
+      makeCommissionFeature("Bibb", "cc-001", "Commission District 1"),
+      makeCommissionFeature("Bibb", "cc-002", "Commission District 2"),
+      makeCommissionFeature("Bibb", "cc-003", "Commission District 3"),
+    ],
+  },
+}
+
+// ---------------------------------------------------------------------------
+// GET /boundaries/geojson?boundary_type=school_board&county=...
+// ---------------------------------------------------------------------------
+
+function makeSchoolBoardFeature(county: string, id: string, name: string) {
+  return {
+    type: "Feature" as const,
+    geometry: {
+      type: "Polygon" as const,
+      coordinates: [[[-83.65, 32.85], [-83.6, 32.85], [-83.6, 32.9], [-83.65, 32.9], [-83.65, 32.85]]],
+    },
+    properties: {
+      name,
+      boundary_type: "school_board",
+      boundary_identifier: id,
+      source: "census-tiger",
+      county,
+    },
+  }
+}
+
+export const schoolBoardBoundaries: Record<string, { type: string; features: ReturnType<typeof makeSchoolBoardFeature>[] }> = {
+  Bibb: {
+    type: "FeatureCollection",
+    features: [
+      makeSchoolBoardFeature("Bibb", "sb-001", "School Board District 1"),
+      makeSchoolBoardFeature("Bibb", "sb-002", "School Board District 2"),
+    ],
+  },
+}
+
+// ---------------------------------------------------------------------------
 // Voter Search & Geocoding
 // ---------------------------------------------------------------------------
 

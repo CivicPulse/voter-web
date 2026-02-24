@@ -15,6 +15,9 @@ import {
   voterPointLookupResponse,
   voterGeocodeResultResponse,
   voterHistoryResponse,
+  countyPrecinctBoundaries,
+  countyCommissionBoundaries,
+  schoolBoardBoundaries,
 } from "./mock-data"
 
 export interface VoterMockOptions {
@@ -128,6 +131,35 @@ export async function setupVoterApiMocks(
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(detailData),
+    })
+  })
+
+  // Boundary GeoJSON (county-level districts)
+  await page.route("**/api/v1/boundaries/geojson*", (route, request) => {
+    const url = new URL(request.url())
+    const boundaryType = url.searchParams.get("boundary_type")
+    const county = url.searchParams.get("county")
+
+    let data: { type: string; features: unknown[] } = {
+      type: "FeatureCollection",
+      features: [],
+    }
+
+    if (boundaryType === "county_precinct" && county) {
+      data =
+        countyPrecinctBoundaries[county] ?? data
+    } else if (boundaryType === "county_commission" && county) {
+      data =
+        countyCommissionBoundaries[county] ?? data
+    } else if (boundaryType === "school_board" && county) {
+      data =
+        schoolBoardBoundaries[county] ?? data
+    }
+
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(data),
     })
   })
 

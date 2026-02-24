@@ -16,6 +16,9 @@ const voterSearchSchema = z.object({
   congressional_district: z.string().optional().catch(undefined),
   state_senate_district: z.string().optional().catch(undefined),
   state_house_district: z.string().optional().catch(undefined),
+  county_precinct: z.string().optional().catch(undefined),
+  county_commission_district: z.string().optional().catch(undefined),
+  school_board_district: z.string().optional().catch(undefined),
   sort_by: z
     .enum(["name", "county", "registration_date", "voter_id"])
     .optional()

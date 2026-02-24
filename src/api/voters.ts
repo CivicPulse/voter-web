@@ -69,6 +69,13 @@ export async function searchVoters(
     searchParams.state_senate_district = params.state_senate_district
   if (params.state_house_district)
     searchParams.state_house_district = params.state_house_district
+  if (params.county_precinct)
+    searchParams.county_precinct = params.county_precinct
+  if (params.county_commission_district)
+    searchParams.county_commission_district =
+      params.county_commission_district
+  if (params.school_board_district)
+    searchParams.school_board_district = params.school_board_district
   if (params.sort_by) searchParams.sort_by = params.sort_by
   if (params.sort_order) searchParams.sort_order = params.sort_order
   if (params.page) searchParams.page = String(params.page)

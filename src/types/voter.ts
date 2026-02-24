@@ -73,6 +73,9 @@ export interface VoterSearchParams {
   congressional_district?: string
   state_senate_district?: string
   state_house_district?: string
+  county_precinct?: string
+  county_commission_district?: string
+  school_board_district?: string
   sort_by?: "name" | "county" | "registration_date" | "voter_id"
   sort_order?: "asc" | "desc"
   page?: number
