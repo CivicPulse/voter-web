@@ -85,6 +85,7 @@ describe("ElectionParticipantList", () => {
     mockHookReturn.data = mockElectionParticipantsResponse()
     render(<ElectionParticipantList electionId="election-001" />)
 
+    expect(screen.getByText("Name")).toBeInTheDocument()
     expect(screen.getByText("Registration #")).toBeInTheDocument()
     expect(screen.getByText("County")).toBeInTheDocument()
     expect(screen.getByText("Voting Method")).toBeInTheDocument()
@@ -94,9 +95,11 @@ describe("ElectionParticipantList", () => {
     mockHookReturn.data = mockElectionParticipantsResponse()
     render(<ElectionParticipantList electionId="election-001" />)
 
+    expect(screen.getByText("Jane Doe")).toBeInTheDocument()
     expect(screen.getByText("12345678")).toBeInTheDocument()
     expect(screen.getByText("Bibb")).toBeInTheDocument()
 
+    expect(screen.getByText("John Smith")).toBeInTheDocument()
     expect(screen.getByText("87654321")).toBeInTheDocument()
     expect(screen.getByText("Houston")).toBeInTheDocument()
   })

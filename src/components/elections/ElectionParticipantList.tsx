@@ -89,6 +89,7 @@ export function ElectionParticipantList({
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Name</TableHead>
                     <TableHead>Registration #</TableHead>
                     <TableHead>County</TableHead>
                     <TableHead>Voting Method</TableHead>
@@ -97,6 +98,11 @@ export function ElectionParticipantList({
                 <TableBody>
                   {data.items.map((participant) => (
                     <TableRow key={participant.id}>
+                      <TableCell>
+                        {participant.first_name || participant.last_name
+                          ? `${participant.first_name} ${participant.last_name}`.trim()
+                          : "—"}
+                      </TableCell>
                       <TableCell className="font-mono text-sm">
                         {participant.voter_id ? (
                           <Link
