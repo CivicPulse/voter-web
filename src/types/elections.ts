@@ -396,21 +396,27 @@ export interface MethodBreakdownItem {
   percentage: number
 }
 
+export interface PrecinctBreakdownItem {
+  precinct: string
+  count: number
+  percentage: number
+}
+
 export interface ParticipationStats {
   election_id: string
-  total_eligible: number
+  total_eligible?: number
   total_voted: number
-  turnout_percentage: number
+  turnout_percentage?: number
   is_preliminary: boolean
   party_breakdown: PartyBreakdownItem[]
   method_breakdown: MethodBreakdownItem[]
+  precinct_breakdown?: PrecinctBreakdownItem[]
 }
 
 export interface ElectionParticipant {
-  voter_id: string
+  id: string
+  voter_id: string | null
   voter_registration_number: string
-  first_name: string
-  last_name: string
   county: string
   voting_method: string
 }

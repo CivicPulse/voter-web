@@ -1,5 +1,4 @@
 import { useState, useDeferredValue } from "react"
-import { Link } from "@tanstack/react-router"
 import { Search, AlertCircle, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react"
 import {
   Table,
@@ -89,7 +88,6 @@ export function ElectionParticipantList({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
                     <TableHead>Registration #</TableHead>
                     <TableHead>County</TableHead>
                     <TableHead>Voting Method</TableHead>
@@ -97,16 +95,7 @@ export function ElectionParticipantList({
                 </TableHeader>
                 <TableBody>
                   {data.items.map((participant) => (
-                    <TableRow key={participant.voter_id}>
-                      <TableCell>
-                        <Link
-                          to="/voters/$voterId"
-                          params={{ voterId: participant.voter_id }}
-                          className="text-primary hover:underline"
-                        >
-                          {participant.first_name} {participant.last_name}
-                        </Link>
-                      </TableCell>
+                    <TableRow key={participant.id}>
                       <TableCell className="font-mono text-sm">
                         {participant.voter_registration_number}
                       </TableCell>

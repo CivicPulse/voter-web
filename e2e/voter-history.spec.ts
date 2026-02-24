@@ -79,9 +79,7 @@ electionTest.describe("Election Participation Tab", () => {
 
     // Verify stats card content appears
     await electionExpect(page.getByText("Participation Statistics")).toBeVisible()
-    await electionExpect(page.getByText("Eligible Voters")).toBeVisible()
     await electionExpect(page.getByText("Votes Cast")).toBeVisible()
-    await electionExpect(page.getByText("Turnout")).toBeVisible()
   })
 
   electionTest("syncs tab to URL search param", async ({ page }) => {

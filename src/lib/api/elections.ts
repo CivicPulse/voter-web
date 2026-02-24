@@ -117,6 +117,7 @@ interface RawParticipationStats {
   total_participants: number
   by_county: { county: string; count: number }[]
   by_ballot_style: { ballot_style: string; count: number }[]
+  by_precinct?: { precinct: string; count: number }[]
 }
 
 /** Get aggregate participation statistics for an election */
@@ -143,20 +144,27 @@ export async function getParticipationStats(
     percentage: total > 0 ? (b.count / total) * 100 : 0,
   }))
 
+  // Map by_precinct → precinct_breakdown (when backend provides it)
+  const precinctBreakdown = raw.by_precinct?.map((p) => ({
+    precinct: p.precinct,
+    count: p.count,
+    percentage: total > 0 ? (p.count / total) * 100 : 0,
+  }))
+
   return {
     election_id: raw.election_id,
-    total_eligible: total, // Backend only provides total_participants
     total_voted: total,
-    turnout_percentage: 100, // Cannot compute without eligible voter count
     is_preliminary: false,
     party_breakdown: countyBreakdown,
     method_breakdown: methodBreakdown,
+    ...(precinctBreakdown && precinctBreakdown.length > 0 && { precinct_breakdown: precinctBreakdown }),
   }
 }
 
 /** Raw backend shape for election participation records */
 interface RawElectionParticipant {
   id: string
+  voter_id: string | null
   voter_registration_number: string
   county: string
   election_date: string
@@ -195,10 +203,9 @@ export async function getElectionParticipants(
       else if (r.supplemental) votingMethod = "Supplemental"
 
       return {
-        voter_id: r.id,
+        id: r.id,
+        voter_id: r.voter_id,
         voter_registration_number: r.voter_registration_number,
-        first_name: "", // Not provided by backend
-        last_name: "",
         county: r.county,
         voting_method: votingMethod,
       }

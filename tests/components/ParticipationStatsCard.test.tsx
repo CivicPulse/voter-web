@@ -84,24 +84,13 @@ describe("ParticipationStatsCard", () => {
     ).toBeInTheDocument()
   })
 
-  it("renders headline figures", () => {
+  it("renders votes cast headline figure", () => {
     mockHookReturn.data = mockParticipationStats()
     render(<ParticipationStatsCard electionId="election-001" />)
 
-    expect(screen.getByTestId("total-eligible")).toHaveTextContent("125,000")
     expect(screen.getByTestId("total-voted")).toHaveTextContent("78,500")
-    expect(screen.getByTestId("turnout-percentage")).toHaveTextContent("62.8%")
-  })
-
-  it("shows N/A for turnout when total_eligible is 0", () => {
-    mockHookReturn.data = mockParticipationStats({
-      total_eligible: 0,
-      total_voted: 0,
-      turnout_percentage: 0,
-    })
-    render(<ParticipationStatsCard electionId="election-001" />)
-
-    expect(screen.getByTestId("turnout-percentage")).toHaveTextContent("N/A")
+    expect(screen.queryByText("Eligible Voters")).not.toBeInTheDocument()
+    expect(screen.queryByText("Turnout")).not.toBeInTheDocument()
   })
 
   it("renders Preliminary badge when is_preliminary is true", () => {
@@ -118,15 +107,38 @@ describe("ParticipationStatsCard", () => {
     expect(screen.queryByText("Preliminary")).not.toBeInTheDocument()
   })
 
-  it("renders party breakdown section", () => {
+  it("renders county breakdown section for multi-county elections", () => {
     mockHookReturn.data = mockParticipationStats()
     render(<ParticipationStatsCard electionId="election-001" />)
 
     expect(screen.getByText("By County")).toBeInTheDocument()
     expect(screen.getByTestId("pie-chart")).toBeInTheDocument()
-    // Party legend entries
+    // County legend entries
     expect(screen.getByText(/Dem/)).toBeInTheDocument()
     expect(screen.getByText(/Rep/)).toBeInTheDocument()
+  })
+
+  it("hides county breakdown for single-county elections", () => {
+    mockHookReturn.data = mockParticipationStats({
+      party_breakdown: [{ party: "BIBB", count: 5000, percentage: 100 }],
+    })
+    render(<ParticipationStatsCard electionId="election-001" />)
+
+    expect(screen.queryByText("By County")).not.toBeInTheDocument()
+  })
+
+  it("renders precinct breakdown when precinct data is available", () => {
+    mockHookReturn.data = mockParticipationStats({
+      precinct_breakdown: [
+        { precinct: "Precinct 1", count: 300, percentage: 60 },
+        { precinct: "Precinct 2", count: 200, percentage: 40 },
+      ],
+    })
+    render(<ParticipationStatsCard electionId="election-001" />)
+
+    expect(screen.getByText("By Precinct")).toBeInTheDocument()
+    expect(screen.getByText(/Precinct 1/)).toBeInTheDocument()
+    expect(screen.getByText(/Precinct 2/)).toBeInTheDocument()
   })
 
   it("renders voting method breakdown section", () => {

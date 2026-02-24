@@ -25,13 +25,9 @@ import { getCountyColor } from "@/types/elections"
 function LoadingSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-3 gap-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="text-center space-y-2">
-            <Skeleton className="h-8 w-20 mx-auto" />
-            <Skeleton className="h-4 w-24 mx-auto" />
-          </div>
-        ))}
+      <div className="text-center space-y-2">
+        <Skeleton className="h-8 w-20 mx-auto" />
+        <Skeleton className="h-4 w-24 mx-auto" />
       </div>
       <Skeleton className="h-48 w-full" />
       <Skeleton className="h-32 w-full" />
@@ -85,31 +81,15 @@ export function ParticipationStatsCard({
         {!isLoading && !isError && stats && (
           <div className="space-y-6">
             {/* Headline figures */}
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <p className="text-2xl font-bold" data-testid="total-eligible">
-                  {formatNumber(stats.total_eligible)}
-                </p>
-                <p className="text-sm text-muted-foreground">Eligible Voters</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold" data-testid="total-voted">
-                  {formatNumber(stats.total_voted)}
-                </p>
-                <p className="text-sm text-muted-foreground">Votes Cast</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold" data-testid="turnout-percentage">
-                  {stats.total_eligible === 0
-                    ? "N/A"
-                    : `${stats.turnout_percentage.toFixed(1)}%`}
-                </p>
-                <p className="text-sm text-muted-foreground">Turnout</p>
-              </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold" data-testid="total-voted">
+                {formatNumber(stats.total_voted)}
+              </p>
+              <p className="text-sm text-muted-foreground">Votes Cast</p>
             </div>
 
-            {/* Party affiliation donut chart */}
-            {stats.party_breakdown.length > 0 && (
+            {/* County breakdown donut — only shown for multi-county elections */}
+            {stats.party_breakdown.length > 1 && (
               <div>
                 <h4 className="text-sm font-medium mb-3">By County</h4>
                 <div className="flex items-center gap-4">
@@ -155,6 +135,62 @@ export function ParticipationStatsCard({
                         />
                         <span>
                           {entry.party} — {formatNumber(entry.count)} (
+                          {entry.percentage.toFixed(1)}%)
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Precinct breakdown donut — shown when backend provides by_precinct data */}
+            {stats.precinct_breakdown && stats.precinct_breakdown.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium mb-3">By Precinct</h4>
+                <div className="flex items-center gap-4">
+                  <div className="h-48 w-48 flex-shrink-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={stats.precinct_breakdown}
+                          dataKey="count"
+                          nameKey="precinct"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={40}
+                          outerRadius={70}
+                        >
+                          {stats.precinct_breakdown.map((entry, index) => (
+                            <Cell
+                              key={entry.precinct}
+                              fill={getCountyColor(index)}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={((value: number, name: string) => [
+                            formatNumber(value),
+                            name,
+                          ]) as never}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="space-y-1.5">
+                    {stats.precinct_breakdown.map((entry, index) => (
+                      <div
+                        key={entry.precinct}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <span
+                          className="inline-block h-3 w-3 rounded-full"
+                          style={{
+                            backgroundColor: getCountyColor(index),
+                          }}
+                        />
+                        <span>
+                          {entry.precinct} — {formatNumber(entry.count)} (
                           {entry.percentage.toFixed(1)}%)
                         </span>
                       </div>

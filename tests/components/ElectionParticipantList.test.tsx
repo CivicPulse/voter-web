@@ -2,10 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { render } from "@/test/render"
-import {
-  mockElectionParticipantsResponse,
-  mockElectionParticipant,
-} from "@/test/mocks/elections"
+import { mockElectionParticipantsResponse } from "@/test/mocks/elections"
 import type { ElectionParticipantsResponse } from "@/types/elections"
 
 const mockRefetch = vi.fn()
@@ -18,22 +15,6 @@ let mockHookReturn: {
 
 vi.mock("@/lib/hooks/use-election-participants", () => ({
   useElectionParticipants: () => mockHookReturn,
-}))
-
-vi.mock("@tanstack/react-router", () => ({
-  Link: ({
-    children,
-    to,
-    params,
-  }: {
-    children: React.ReactNode
-    to: string
-    params?: Record<string, string>
-  }) => (
-    <a href={to} data-params={JSON.stringify(params)} data-testid="voter-link">
-      {children}
-    </a>
-  ),
 }))
 
 import { ElectionParticipantList } from "@/components/elections/ElectionParticipantList"
@@ -85,7 +66,6 @@ describe("ElectionParticipantList", () => {
     mockHookReturn.data = mockElectionParticipantsResponse()
     render(<ElectionParticipantList electionId="election-001" />)
 
-    expect(screen.getByText("Name")).toBeInTheDocument()
     expect(screen.getByText("Registration #")).toBeInTheDocument()
     expect(screen.getByText("County")).toBeInTheDocument()
     expect(screen.getByText("Voting Method")).toBeInTheDocument()
@@ -95,26 +75,11 @@ describe("ElectionParticipantList", () => {
     mockHookReturn.data = mockElectionParticipantsResponse()
     render(<ElectionParticipantList electionId="election-001" />)
 
-    expect(screen.getByText("Jane Doe")).toBeInTheDocument()
     expect(screen.getByText("12345678")).toBeInTheDocument()
     expect(screen.getByText("Bibb")).toBeInTheDocument()
 
-    expect(screen.getByText("John Smith")).toBeInTheDocument()
     expect(screen.getByText("87654321")).toBeInTheDocument()
     expect(screen.getByText("Houston")).toBeInTheDocument()
-  })
-
-  it("renders clickable voter name links", () => {
-    mockHookReturn.data = mockElectionParticipantsResponse({
-      items: [mockElectionParticipant()],
-      pagination: { total: 1, page: 1, page_size: 25, total_pages: 1 },
-    })
-    render(<ElectionParticipantList electionId="election-001" />)
-
-    const link = screen.getByTestId("voter-link")
-    expect(link).toHaveAttribute("href", "/voters/$voterId")
-    const params = JSON.parse(link.getAttribute("data-params") ?? "{}")
-    expect(params.voterId).toBe("f1e2d3c4-b5a6-7890-1234-567890abcdef")
   })
 
   it("renders pagination controls", () => {

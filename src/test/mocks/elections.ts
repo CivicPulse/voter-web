@@ -287,9 +287,7 @@ export function mockParticipationStats(
 ): ParticipationStats {
   return {
     election_id: "550e8400-e29b-41d4-a716-446655440000",
-    total_eligible: 125000,
     total_voted: 78500,
-    turnout_percentage: 62.8,
     is_preliminary: false,
     party_breakdown: mockPartyBreakdown(),
     method_breakdown: mockMethodBreakdown(),
@@ -301,10 +299,8 @@ export function mockElectionParticipant(
   overrides?: Partial<ElectionParticipant>,
 ): ElectionParticipant {
   return {
-    voter_id: "f1e2d3c4-b5a6-7890-1234-567890abcdef",
+    id: "f1e2d3c4-b5a6-7890-1234-567890abcdef",
     voter_registration_number: "12345678",
-    first_name: "Jane",
-    last_name: "Doe",
     county: "Bibb",
     voting_method: "In Person",
     ...overrides,
@@ -318,10 +314,8 @@ export function mockElectionParticipantsResponse(
     items: [
       mockElectionParticipant(),
       mockElectionParticipant({
-        voter_id: "a2b3c4d5-e6f7-8901-2345-678901bcdef0",
+        id: "a2b3c4d5-e6f7-8901-2345-678901bcdef0",
         voter_registration_number: "87654321",
-        first_name: "John",
-        last_name: "Smith",
         county: "Houston",
         voting_method: "Early Voting",
       }),
