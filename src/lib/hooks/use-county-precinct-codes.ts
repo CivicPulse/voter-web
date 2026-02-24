@@ -32,6 +32,6 @@ export function useCountyPrecinctCodes(county: string | null) {
     },
     staleTime: 1000 * 60 * 60,
     gcTime: 1000 * 60 * 60 * 2,
-    enabled: !!county,
+    enabled: bareCounty.length > 0,
   })
 }
