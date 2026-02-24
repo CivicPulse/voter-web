@@ -220,7 +220,8 @@ function PrecinctBreakdownChart({
 
   const filteredPrecincts = useMemo(() => {
     const all = stats.precinct_breakdown ?? []
-    if (!selectedCounty || !precinctCodes) return all
+    if (!selectedCounty) return all
+    if (!precinctCodes) return counties.length > 1 ? [] : all
 
     const filtered = all.filter((p) => precinctCodes.has(p.precinct))
     // Recalculate percentages relative to filtered county total
@@ -229,7 +230,7 @@ function PrecinctBreakdownChart({
       ...p,
       percentage: countyTotal > 0 ? (p.count / countyTotal) * 100 : 0,
     }))
-  }, [stats.precinct_breakdown, selectedCounty, precinctCodes])
+  }, [stats.precinct_breakdown, selectedCounty, precinctCodes, counties.length])
 
   const displayName = (entry: PrecinctBreakdownItem) =>
     entry.precinct_name ?? entry.precinct

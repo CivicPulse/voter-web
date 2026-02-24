@@ -98,6 +98,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/MethodBreakdownItem"
+        precinct_breakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/PrecinctBreakdownItem"
 
     CountyBreakdownItem:
       type: object
@@ -119,6 +123,22 @@ components:
         method:
           type: string
           description: Voting method name (e.g., "In Person", "Early Voting")
+        count:
+          type: integer
+        percentage:
+          type: number
+          format: float
+
+    PrecinctBreakdownItem:
+      type: object
+      required: [precinct, count, percentage]
+      properties:
+        precinct:
+          type: string
+          description: Precinct code (e.g., "BB1", "HO2")
+        precinct_name:
+          type: string
+          description: Human-readable precinct name (e.g., "BIBB 1")
         count:
           type: integer
         percentage:
