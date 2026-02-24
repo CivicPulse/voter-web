@@ -414,77 +414,116 @@ export const voterGeocodeResultResponse = [
 
 // ---------------------------------------------------------------------------
 // GET /voters/{voter_registration_number}/history
+// (Backend returns PaginatedVoterHistoryResponse with VoterHistoryRecord items)
 // ---------------------------------------------------------------------------
 
-export const voterHistoryResponse = [
-  {
-    election_id: ELECTION_ID,
-    election_name: "State Senate District 18 Special",
-    election_date: ELECTION_DATE,
-    election_type: "special",
-    voting_method: "In Person",
+export const voterHistoryResponse = {
+  items: [
+    {
+      id: ELECTION_ID,
+      voter_registration_number: "GA-12345678",
+      county: "Bibb",
+      election_date: ELECTION_DATE,
+      election_type: "State Senate District 18 Special",
+      normalized_election_type: "special",
+      party: null,
+      ballot_style: null,
+      absentee: false,
+      provisional: false,
+      supplemental: false,
+      created_at: "2026-02-17T19:40:48Z",
+    },
+    {
+      id: "e-002",
+      voter_registration_number: "GA-12345678",
+      county: "Bibb",
+      election_date: "2024-11-05",
+      election_type: "2024 General Election",
+      normalized_election_type: "general",
+      party: "Democrat",
+      ballot_style: null,
+      absentee: false,
+      provisional: false,
+      supplemental: false,
+      created_at: "2024-11-05T20:00:00Z",
+    },
+    {
+      id: "e-003",
+      voter_registration_number: "GA-12345678",
+      county: "Bibb",
+      election_date: "2024-05-21",
+      election_type: "2024 Primary Election",
+      normalized_election_type: "primary",
+      party: null,
+      ballot_style: null,
+      absentee: true,
+      provisional: false,
+      supplemental: false,
+      created_at: "2024-05-21T20:00:00Z",
+    },
+  ],
+  pagination: {
+    total: 3,
+    page: 1,
+    page_size: 20,
+    total_pages: 1,
   },
-  {
-    election_id: "e-002",
-    election_name: "2024 General Election",
-    election_date: "2024-11-05",
-    election_type: "general",
-    voting_method: "Early Voting",
-  },
-  {
-    election_id: "e-003",
-    election_name: "2024 Primary Election",
-    election_date: "2024-05-21",
-    election_type: "primary",
-    voting_method: "Absentee by Mail",
-  },
-]
+}
 
 // ---------------------------------------------------------------------------
 // GET /elections/{id}/participation/stats
+// (Backend returns ParticipationStatsResponse)
 // ---------------------------------------------------------------------------
 
 export const participationStatsResponse = {
   election_id: ELECTION_ID,
-  total_eligible: 45000,
-  total_voted: 22300,
-  turnout_percentage: 49.56,
-  is_preliminary: true,
-  party_breakdown: [
-    { party: "Democrat", count: 10500, percentage: 47.09 },
-    { party: "Republican", count: 8200, percentage: 36.77 },
-    { party: "Independent", count: 2800, percentage: 12.56 },
-    { party: "Libertarian", count: 800, percentage: 3.59 },
+  total_participants: 22300,
+  by_county: [
+    { county: "Bibb", count: 10500 },
+    { county: "Houston", count: 8200 },
+    { county: "Peach", count: 2800 },
+    { county: "Crawford", count: 800 },
   ],
-  method_breakdown: [
-    { method: "In Person", count: 12000, percentage: 53.81 },
-    { method: "Early Voting", count: 6500, percentage: 29.15 },
-    { method: "Absentee by Mail", count: 3200, percentage: 14.35 },
-    { method: "Provisional", count: 600, percentage: 2.69 },
+  by_ballot_style: [
+    { ballot_style: "In Person", count: 12000 },
+    { ballot_style: "Early Voting", count: 6500 },
+    { ballot_style: "Absentee by Mail", count: 3200 },
+    { ballot_style: "Provisional", count: 600 },
   ],
 }
 
 // ---------------------------------------------------------------------------
 // GET /elections/{id}/participation
+// (Backend returns PaginatedElectionParticipationResponse)
 // ---------------------------------------------------------------------------
 
 export const electionParticipantsResponse = {
   items: [
     {
-      voter_id: "f1e2d3c4-b5a6-7890-1234-567890abcdef",
+      id: "f1e2d3c4-b5a6-7890-1234-567890abcdef",
       voter_registration_number: "GA-12345678",
-      first_name: "Jane",
-      last_name: "Doe",
       county: "Bibb",
-      voting_method: "In Person",
+      election_date: ELECTION_DATE,
+      election_type: "State Senate District 18 Special",
+      normalized_election_type: "special",
+      party: null,
+      ballot_style: null,
+      absentee: false,
+      provisional: false,
+      supplemental: false,
     },
     {
-      voter_id: "a2b3c4d5-e6f7-8901-2345-678901bcdef0",
+      id: "a2b3c4d5-e6f7-8901-2345-678901bcdef0",
       voter_registration_number: "GA-87654321",
-      first_name: "John",
-      last_name: "Smith",
       county: "Houston",
-      voting_method: "Early Voting",
+      election_date: ELECTION_DATE,
+      election_type: "State Senate District 18 Special",
+      normalized_election_type: "special",
+      party: null,
+      ballot_style: null,
+      absentee: false,
+      provisional: false,
+      supplemental: false,
     },
   ],
   pagination: {

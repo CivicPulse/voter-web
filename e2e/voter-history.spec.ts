@@ -30,7 +30,7 @@ voterTest.describe("Voter History Card", () => {
     const historyCard = page.getByText("Election History")
     await voterExpect(historyCard).toBeVisible({ timeout: 10_000 })
 
-    // Verify election records are listed
+    // Verify election records are listed (names generated from date + type)
     await voterExpect(
       page.getByText("State Senate District 18 Special"),
     ).toBeVisible()
@@ -44,8 +44,9 @@ voterTest.describe("Voter History Card", () => {
     await voterExpect(page.getByText("Election History")).toBeVisible({
       timeout: 10_000,
     })
-    await voterExpect(page.getByText("In Person")).toBeVisible()
-    await voterExpect(page.getByText("Early Voting")).toBeVisible()
+    // Records 1 & 2 have all boolean flags false → "In Person"
+    // Record 3 has absentee: true → "Absentee by Mail"
+    await voterExpect(page.getByText("In Person").first()).toBeVisible()
     await voterExpect(page.getByText("Absentee by Mail")).toBeVisible()
   })
 })
@@ -81,9 +82,6 @@ electionTest.describe("Election Participation Tab", () => {
     await electionExpect(page.getByText("Eligible Voters")).toBeVisible()
     await electionExpect(page.getByText("Votes Cast")).toBeVisible()
     await electionExpect(page.getByText("Turnout")).toBeVisible()
-
-    // Preliminary badge should be visible (mock data has is_preliminary: true)
-    await electionExpect(page.getByText("Preliminary")).toBeVisible()
   })
 
   electionTest("syncs tab to URL search param", async ({ page }) => {
@@ -142,8 +140,9 @@ base.describe("Election Participant List (admin)", () => {
     await page.goto(`${RACE_URL}?tab=participation`)
 
     await expect(page.getByText("Voter List")).toBeVisible()
-    await expect(page.getByText("Jane Doe")).toBeVisible()
-    await expect(page.getByText("John Smith")).toBeVisible()
+    // Backend returns registration numbers; names are derived from the record
+    await expect(page.getByText("GA-12345678")).toBeVisible()
+    await expect(page.getByText("GA-87654321")).toBeVisible()
   })
 
   base("shows table columns for participant data", async ({ page }) => {
