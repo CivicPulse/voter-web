@@ -1,4 +1,4 @@
-import { api } from "@/api/client"
+import { api, publicApi } from "@/api/client"
 import { stripCountySuffix } from "@/lib/utils"
 import type {
   Election,
@@ -124,7 +124,7 @@ interface RawParticipationStats {
 export async function getParticipationStats(
   electionId: string,
 ): Promise<import("@/types/elections").ParticipationStats> {
-  const raw = await api
+  const raw = await publicApi
     .get(`elections/${electionId}/participation/stats`)
     .json<RawParticipationStats>()
 
