@@ -58,6 +58,11 @@ function VoterSearchPage() {
         <div className="flex items-center gap-3">
           <Users className="h-6 w-6" />
           <h1 className="text-2xl font-bold">Voters</h1>
+          {data?.total != null && (
+            <span className="text-sm font-medium text-muted-foreground tabular-nums">
+              {data.total.toLocaleString()} {data.total === 1 ? "result" : "results"}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <DriverLicenseScannerButton />

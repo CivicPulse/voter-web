@@ -22,10 +22,18 @@ interface RawVoterSummary {
 /** Raw paginated response shape returned by the backend */
 interface RawVoterSearchResponse {
   items: RawVoterSummary[]
-  pages: number
-  total: number
-  page: number
-  page_size: number
+  // Flat pagination fields (legacy shape)
+  pages?: number
+  total?: number
+  page?: number
+  page_size?: number
+  // Nested pagination (current backend shape)
+  pagination?: {
+    total: number
+    page: number
+    page_size: number
+    total_pages: number
+  }
 }
 
 /** Address sub-object returned by the backend for voter detail */
@@ -84,6 +92,8 @@ export async function searchVoters(
     .get("voters", { searchParams })
     .json<RawVoterSearchResponse>()
 
+  const pg = raw.pagination
+
   return {
     voters: raw.items.map(
       (item): VoterSummary => ({
@@ -96,10 +106,10 @@ export async function searchVoters(
         registration_date: item.registration_date ?? null,
       }),
     ),
-    total: raw.total,
-    page: raw.page,
-    page_size: raw.page_size,
-    total_pages: raw.pages,
+    total: pg?.total ?? raw.total ?? 0,
+    page: pg?.page ?? raw.page ?? 1,
+    page_size: pg?.page_size ?? raw.page_size ?? 20,
+    total_pages: pg?.total_pages ?? raw.pages ?? 1,
   }
 }
 
