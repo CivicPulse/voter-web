@@ -46,7 +46,7 @@ function VoterSearchPage() {
       appliedRef.current = true
       navigate({
         to: "/voters",
-        search: { ...params, county: navCounty },
+        search: { ...params, county: navCounty.toUpperCase() },
         replace: true,
       })
     }

@@ -397,7 +397,7 @@ export const voterDetailResponse = {
 }
 
 export const voterFilterOptionsResponse = {
-  counties: ["Bibb", "DeKalb", "Fulton", "Gwinnett"],
+  counties: ["BIBB", "DEKALB", "FULTON", "GWINNETT"],
   statuses: ["Active", "Inactive"],
   congressional_districts: ["5", "10", "13"],
   state_senate_districts: ["18", "25"],
