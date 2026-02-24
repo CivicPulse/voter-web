@@ -91,3 +91,34 @@ export const api = ky.create({
     jitter: true,
   },
 })
+
+/**
+ * Public API client for endpoints accessible without authentication.
+ *
+ * Attaches the JWT token opportunistically (if available) but does NOT
+ * redirect to /login on 401 or throw PermissionError on 403.
+ */
+export const publicApi = ky.create({
+  prefixUrl: API_BASE_URL,
+  fetch: rateLimitedFetch,
+  hooks: {
+    beforeRequest: [
+      (request) => {
+        const token = localStorage.getItem("access_token")
+        if (token) {
+          request.headers.set("Authorization", `Bearer ${token}`)
+        }
+      },
+    ],
+  },
+  retry: {
+    limit: 3,
+    statusCodes: [408, 413, 429, 500, 502, 503, 504],
+    afterStatusCodes: [429, 503],
+    maxRetryAfter: 60_000,
+    backoffLimit: 30_000,
+    delay: (attemptCount: number) =>
+      Math.min(1000 * 2 ** (attemptCount - 1), 30_000),
+    jitter: true,
+  },
+})

@@ -56,6 +56,17 @@ export interface VoterFilterOptions {
   state_house_districts: string[]
   residence_cities: string[]
   residence_zipcodes: string[]
+  county_precincts?: string[]
+  county_commission_districts?: string[]
+  school_board_districts?: string[]
+}
+
+export interface VoterParticipationRecord {
+  election_id: string | null
+  election_name: string
+  election_date: string
+  election_type: import("@/types/elections").ElectionType
+  voting_method: string
 }
 
 export interface VoterSearchParams {
@@ -65,6 +76,9 @@ export interface VoterSearchParams {
   congressional_district?: string
   state_senate_district?: string
   state_house_district?: string
+  county_precinct?: string
+  county_commission_district?: string
+  school_board_district?: string
   sort_by?: "name" | "county" | "registration_date" | "voter_id"
   sort_order?: "asc" | "desc"
   page?: number

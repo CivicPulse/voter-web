@@ -300,6 +300,25 @@ export function getLeadingCandidate(candidates: CandidateResult[]): CandidateRes
   return candidates.reduce((leader, c) => (c.vote_count > leader.vote_count ? c : leader))
 }
 
+/** County color palette for participation breakdown charts (index-based, wraps around) */
+export const COUNTY_COLORS = [
+  "#2563eb", // blue
+  "#dc2626", // red
+  "#16a34a", // green
+  "#eab308", // amber
+  "#7c3aed", // violet
+  "#ec4899", // pink
+  "#06b6d4", // cyan
+  "#f97316", // orange
+  "#8b5cf6", // purple
+  "#14b8a6", // teal
+]
+
+/** Get a distinct color for a county by index */
+export function getCountyColor(index: number): string {
+  return COUNTY_COLORS[index % COUNTY_COLORS.length]
+}
+
 /** Precinct reporting statuses that indicate results are available */
 const REPORTED_STATUSES = new Set([
   "Reported",
@@ -359,6 +378,58 @@ export interface FeedImportResponse {
   elections_created: number
   elections_skipped: number
   elections: FeedImportedElection[]
+}
+
+// ============================================================================
+// Participation Types
+// ============================================================================
+
+export interface CountyBreakdownItem {
+  county: string
+  count: number
+  percentage: number
+}
+
+export interface MethodBreakdownItem {
+  method: string
+  count: number
+  percentage: number
+}
+
+export interface PrecinctBreakdownItem {
+  precinct: string
+  precinct_name?: string
+  count: number
+  percentage: number
+}
+
+export interface ParticipationStats {
+  election_id: string
+  total_voted: number
+  is_preliminary: boolean
+  county_breakdown: CountyBreakdownItem[]
+  method_breakdown: MethodBreakdownItem[]
+  precinct_breakdown?: PrecinctBreakdownItem[]
+}
+
+export interface ElectionParticipant {
+  id: string
+  voter_id: string | null
+  voter_registration_number: string
+  first_name: string
+  last_name: string
+  county: string
+  voting_method: string
+}
+
+export interface ElectionParticipantsResponse {
+  items: ElectionParticipant[]
+  pagination: {
+    total: number
+    page: number
+    page_size: number
+    total_pages: number
+  }
 }
 
 /** Group an array of elections by election_date into ElectionEvents */

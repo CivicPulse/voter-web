@@ -11,9 +11,14 @@ import {
   voterSearchResponse,
   voterDetailResponse,
   voterFilterOptionsResponse,
+  voterFilterOptionsWithCountyResponse,
   voterGeocodedLocationsResponse,
   voterPointLookupResponse,
   voterGeocodeResultResponse,
+  voterHistoryResponse,
+  countyPrecinctBoundaries,
+  countyCommissionBoundaries,
+  schoolBoardBoundaries,
 } from "./mock-data"
 
 export interface VoterMockOptions {
@@ -42,14 +47,19 @@ export async function setupVoterApiMocks(
     }),
   )
 
-  // Voter filters
-  await page.route("**/api/v1/voters/filters", (route) =>
-    route.fulfill({
+  // Voter filters (county-aware)
+  await page.route("**/api/v1/voters/filters*", (route, request) => {
+    const url = new URL(request.url())
+    const county = url.searchParams.get("county")
+    const data = county
+      ? voterFilterOptionsWithCountyResponse
+      : voterFilterOptionsResponse
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(voterFilterOptionsResponse),
-    }),
-  )
+      body: JSON.stringify(data),
+    })
+  })
 
   // Voter search (bare path — when not a sub-resource)
   await page.route("**/api/v1/voters", (route, request) => {
@@ -110,6 +120,15 @@ export async function setupVoterApiMocks(
     },
   )
 
+  // Voter history
+  await page.route(`**/api/v1/voters/*/history`, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(voterHistoryResponse),
+    }),
+  )
+
   // Voter detail
   await page.route(`**/api/v1/voters/${VOTER_ID}`, (route, request) => {
     if (request.url().includes(`/voters/${VOTER_ID}/`))
@@ -118,6 +137,35 @@ export async function setupVoterApiMocks(
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(detailData),
+    })
+  })
+
+  // Boundary GeoJSON (county-level districts)
+  await page.route("**/api/v1/boundaries/geojson*", (route, request) => {
+    const url = new URL(request.url())
+    const boundaryType = url.searchParams.get("boundary_type")
+    const county = url.searchParams.get("county")
+
+    let data: { type: string; features: unknown[] } = {
+      type: "FeatureCollection",
+      features: [],
+    }
+
+    if (boundaryType === "county_precinct" && county) {
+      data =
+        countyPrecinctBoundaries[county] ?? data
+    } else if (boundaryType === "county_commission" && county) {
+      data =
+        countyCommissionBoundaries[county] ?? data
+    } else if (boundaryType === "school_board" && county) {
+      data =
+        schoolBoardBoundaries[county] ?? data
+    }
+
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(data),
     })
   })
 

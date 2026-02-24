@@ -16,6 +16,9 @@ const voterSearchSchema = z.object({
   congressional_district: z.string().optional().catch(undefined),
   state_senate_district: z.string().optional().catch(undefined),
   state_house_district: z.string().optional().catch(undefined),
+  county_precinct: z.string().optional().catch(undefined),
+  county_commission_district: z.string().optional().catch(undefined),
+  school_board_district: z.string().optional().catch(undefined),
   sort_by: z
     .enum(["name", "county", "registration_date", "voter_id"])
     .optional()
@@ -43,7 +46,7 @@ function VoterSearchPage() {
       appliedRef.current = true
       navigate({
         to: "/voters",
-        search: { ...params, county: navCounty },
+        search: { ...params, county: navCounty.toUpperCase() },
         replace: true,
       })
     }
@@ -55,6 +58,11 @@ function VoterSearchPage() {
         <div className="flex items-center gap-3">
           <Users className="h-6 w-6" />
           <h1 className="text-2xl font-bold">Voters</h1>
+          {data?.total != null && (
+            <span className="text-sm font-medium text-muted-foreground tabular-nums">
+              {data.total.toLocaleString()} {data.total === 1 ? "result" : "results"}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <DriverLicenseScannerButton />

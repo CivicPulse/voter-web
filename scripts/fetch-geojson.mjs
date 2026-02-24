@@ -43,12 +43,24 @@ function loadEnvFile(filename) {
   }
 }
 
+/**
+ * If the URL is relative (starts with /), resolve it against localhost:8000
+ * since Node.js fetch cannot use relative URLs.
+ */
+function resolveUrl(url) {
+  if (url.startsWith("/")) return `http://localhost:8000${url}`
+  return url
+}
+
 function getApiBaseUrl() {
-  if (process.env.VITE_API_BASE_URL) return process.env.VITE_API_BASE_URL
-  const prod = loadEnvFile(".env.production")
-  if (prod.VITE_API_BASE_URL) return prod.VITE_API_BASE_URL
+  // Explicit env var always wins (CI sets this)
+  if (process.env.VITE_API_BASE_URL) return resolveUrl(process.env.VITE_API_BASE_URL)
+  // Local .env first (development)
   const dev = loadEnvFile(".env")
-  if (dev.VITE_API_BASE_URL) return dev.VITE_API_BASE_URL
+  if (dev.VITE_API_BASE_URL) return resolveUrl(dev.VITE_API_BASE_URL)
+  // Fall back to .env.production
+  const prod = loadEnvFile(".env.production")
+  if (prod.VITE_API_BASE_URL) return resolveUrl(prod.VITE_API_BASE_URL)
   return "http://localhost:8000/api/v1"
 }
 

@@ -22,10 +22,18 @@ interface RawVoterSummary {
 /** Raw paginated response shape returned by the backend */
 interface RawVoterSearchResponse {
   items: RawVoterSummary[]
-  pages: number
-  total: number
-  page: number
-  page_size: number
+  // Flat pagination fields (legacy shape)
+  pages?: number
+  total?: number
+  page?: number
+  page_size?: number
+  // Nested pagination (current backend shape)
+  pagination?: {
+    total: number
+    page: number
+    page_size: number
+    total_pages: number
+  }
 }
 
 /** Address sub-object returned by the backend for voter detail */
@@ -69,6 +77,13 @@ export async function searchVoters(
     searchParams.state_senate_district = params.state_senate_district
   if (params.state_house_district)
     searchParams.state_house_district = params.state_house_district
+  if (params.county_precinct)
+    searchParams.county_precinct = params.county_precinct
+  if (params.county_commission_district)
+    searchParams.county_commission_district =
+      params.county_commission_district
+  if (params.school_board_district)
+    searchParams.school_board_district = params.school_board_district
   if (params.sort_by) searchParams.sort_by = params.sort_by
   if (params.sort_order) searchParams.sort_order = params.sort_order
   if (params.page) searchParams.page = String(params.page)
@@ -76,6 +91,8 @@ export async function searchVoters(
   const raw = await api
     .get("voters", { searchParams })
     .json<RawVoterSearchResponse>()
+
+  const pg = raw.pagination
 
   return {
     voters: raw.items.map(
@@ -89,10 +106,10 @@ export async function searchVoters(
         registration_date: item.registration_date ?? null,
       }),
     ),
-    total: raw.total,
-    page: raw.page,
-    page_size: raw.page_size,
-    total_pages: raw.pages,
+    total: pg?.total ?? raw.total ?? 0,
+    page: pg?.page ?? raw.page ?? 1,
+    page_size: pg?.page_size ?? raw.page_size ?? 20,
+    total_pages: pg?.total_pages ?? raw.pages ?? 1,
   }
 }
 
@@ -134,8 +151,64 @@ export async function getVoterDetail(
   }
 }
 
-export async function getVoterFilters(): Promise<VoterFilterOptions> {
-  return api.get("voters/filters").json<VoterFilterOptions>()
+export interface VoterFilterParams {
+  county?: string
+  county_precinct?: string
+  county_commission_district?: string
+  school_board_district?: string
+}
+
+export async function getVoterFilters(params?: VoterFilterParams): Promise<VoterFilterOptions> {
+  const searchParams: Record<string, string> = {}
+  if (params?.county) searchParams.county = params.county
+  if (params?.county_precinct) searchParams.county_precinct = params.county_precinct
+  if (params?.county_commission_district) searchParams.county_commission_district = params.county_commission_district
+  if (params?.school_board_district) searchParams.school_board_district = params.school_board_district
+  return api.get("voters/filters", { searchParams }).json<VoterFilterOptions>()
+}
+
+/** Raw backend shape for voter history records */
+interface RawVoterHistoryRecord {
+  id: string
+  election_id: string | null
+  voter_registration_number: string
+  county: string
+  election_date: string
+  election_type: string
+  normalized_election_type: string | null
+  party: string | null
+  ballot_style: string | null
+  early_voting: boolean
+  absentee: boolean
+  provisional: boolean
+  supplemental: boolean
+  created_at: string
+}
+
+function deriveVotingMethod(r: RawVoterHistoryRecord): string {
+  if (r.absentee) return "Absentee by Mail"
+  if (r.early_voting) return "Early Voting"
+  if (r.provisional) return "Provisional"
+  if (r.supplemental) return "Supplemental"
+  return "In Person"
+}
+
+export async function getVoterHistory(
+  voterRegistrationNumber: string,
+): Promise<import("@/types/voter").VoterParticipationRecord[]> {
+  const raw = await api
+    .get(`voters/${voterRegistrationNumber}/history`)
+    .json<{ items: RawVoterHistoryRecord[] } | RawVoterHistoryRecord[]>()
+
+  const items = Array.isArray(raw) ? raw : raw.items
+
+  return items.map((r) => ({
+    election_id: r.election_id,
+    election_name: `${r.election_date} ${r.election_type}`,
+    election_date: r.election_date,
+    election_type: (r.normalized_election_type || r.election_type) as import("@/types/elections").ElectionType,
+    voting_method: deriveVotingMethod(r),
+  }))
 }
 
 export async function triggerVoterGeocode(voterId: string): Promise<void> {

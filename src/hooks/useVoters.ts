@@ -5,7 +5,9 @@ import {
   getVoterFilters,
   triggerVoterGeocode,
   deleteGeocodedLocation,
+  getVoterHistory,
 } from "@/api/voters"
+import type { VoterFilterParams } from "@/api/voters"
 import type { VoterSearchParams } from "@/types/voter"
 
 export function useVoterSearch(params: VoterSearchParams) {
@@ -29,10 +31,10 @@ export function useVoterDetail(voterId: string | null) {
   })
 }
 
-export function useVoterFilters() {
+export function useVoterFilters(params?: VoterFilterParams) {
   return useQuery({
-    queryKey: ["voters", "filters"],
-    queryFn: getVoterFilters,
+    queryKey: ["voters", "filters", params ?? null],
+    queryFn: () => getVoterFilters(params),
     staleTime: 1000 * 60 * 30,
     gcTime: 1000 * 60 * 60,
   })
@@ -60,5 +62,16 @@ export function useDeleteGeocodedLocation(voterId: string) {
         queryKey: ["voters", voterId, "geocoded-locations"],
       })
     },
+  })
+}
+
+export function useVoterHistory(voterRegistrationNumber: string | null) {
+  return useQuery({
+    queryKey: ["voters", voterRegistrationNumber, "history"],
+    queryFn: () => getVoterHistory(voterRegistrationNumber!),
+    enabled: !!voterRegistrationNumber,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+    retry: 1,
   })
 }

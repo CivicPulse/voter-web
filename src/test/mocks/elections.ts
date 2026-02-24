@@ -3,6 +3,11 @@ import type {
   ElectionEvent,
   CandidateResult,
   VoteMethodResult,
+  ParticipationStats,
+  CountyBreakdownItem,
+  MethodBreakdownItem,
+  ElectionParticipant,
+  ElectionParticipantsResponse,
   CountyResult,
   ElectionResultsResponse,
   PaginatedElectionListResponse,
@@ -252,5 +257,81 @@ export function mockPrecinctGeoJSON(
         },
       },
     ],
+  }
+}
+
+// ============================================================================
+// Participation Mock Factories
+// ============================================================================
+
+export function mockCountyBreakdown(): CountyBreakdownItem[] {
+  return [
+    { county: "Bibb", count: 35200, percentage: 44.8 },
+    { county: "Houston", count: 32100, percentage: 40.9 },
+    { county: "Peach", count: 8400, percentage: 10.7 },
+    { county: "Crawford", count: 1800, percentage: 2.3 },
+    { county: "Twiggs", count: 1000, percentage: 1.3 },
+  ]
+}
+
+export function mockMethodBreakdown(): MethodBreakdownItem[] {
+  return [
+    { method: "In Person", count: 42300, percentage: 53.9 },
+    { method: "Early Voting", count: 24100, percentage: 30.7 },
+    { method: "Absentee by Mail", count: 12100, percentage: 15.4 },
+  ]
+}
+
+export function mockParticipationStats(
+  overrides?: Partial<ParticipationStats>,
+): ParticipationStats {
+  return {
+    election_id: "550e8400-e29b-41d4-a716-446655440000",
+    total_voted: 78500,
+    is_preliminary: false,
+    county_breakdown: mockCountyBreakdown(),
+    method_breakdown: mockMethodBreakdown(),
+    ...overrides,
+  }
+}
+
+export function mockElectionParticipant(
+  overrides?: Partial<ElectionParticipant>,
+): ElectionParticipant {
+  return {
+    id: "f1e2d3c4-b5a6-7890-1234-567890abcdef",
+    voter_id: "e99ba779-9d57-4d0f-b520-63f9095c2391",
+    voter_registration_number: "12345678",
+    first_name: "Jane",
+    last_name: "Doe",
+    county: "Bibb",
+    voting_method: "In Person",
+    ...overrides,
+  }
+}
+
+export function mockElectionParticipantsResponse(
+  overrides?: Partial<ElectionParticipantsResponse>,
+): ElectionParticipantsResponse {
+  return {
+    items: [
+      mockElectionParticipant(),
+      mockElectionParticipant({
+        id: "a2b3c4d5-e6f7-8901-2345-678901bcdef0",
+        voter_id: "825c8a84-b761-46e5-ac44-9dd110b99c28",
+        voter_registration_number: "87654321",
+        first_name: "John",
+        last_name: "Smith",
+        county: "Houston",
+        voting_method: "Early Voting",
+      }),
+    ],
+    pagination: {
+      total: 78500,
+      page: 1,
+      page_size: 25,
+      total_pages: 3140,
+    },
+    ...overrides,
   }
 }

@@ -107,7 +107,7 @@ describe("useVoterDetail", () => {
 })
 
 describe("useVoterFilters", () => {
-  it("fetches filter options", async () => {
+  it("fetches filter options without params", async () => {
     const filters = mockVoterFilterOptions()
     mockedGetVoterFilters.mockResolvedValue(filters)
 
@@ -118,6 +118,25 @@ describe("useVoterFilters", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(result.current.data).toEqual(filters)
+    expect(mockedGetVoterFilters).toHaveBeenCalledWith(undefined)
+  })
+
+  it("fetches filter options with county", async () => {
+    const filters = mockVoterFilterOptions({
+      county_precincts: ["BI1", "BI2"],
+      county_commission_districts: ["1", "2"],
+      school_board_districts: ["1"],
+    })
+    mockedGetVoterFilters.mockResolvedValue(filters)
+
+    const { result } = renderHook(
+      () => useVoterFilters({ county: "Bibb" }),
+      { wrapper: createWrapper() },
+    )
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(result.current.data).toEqual(filters)
+    expect(mockedGetVoterFilters).toHaveBeenCalledWith({ county: "Bibb" })
   })
 })
 

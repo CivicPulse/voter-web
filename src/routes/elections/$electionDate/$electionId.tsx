@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
-import { createFileRoute, Link, useParams } from "@tanstack/react-router"
+import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router"
+import { z } from "zod"
 import { ChevronRight, Loader2, Map, Grid3X3, Volume2 } from "lucide-react"
 import { useRaceResults } from "@/lib/hooks/use-race-results"
 import { useResultsNotification } from "@/lib/hooks/use-results-notification"
@@ -13,6 +14,13 @@ import { PrecinctMapView } from "@/components/elections/PrecinctMapView"
 import { CertificationBadge } from "@/components/elections/CertificationBadge"
 import { LiveStatusIndicator } from "@/components/elections/LiveStatusIndicator"
 import { NotificationToggle } from "@/components/elections/NotificationToggle"
+import { ParticipationTab } from "@/components/elections/ParticipationTab"
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/ui/tabs"
 import {
   ToggleGroup,
   ToggleGroupItem,
@@ -30,16 +38,23 @@ import { buildCandidateColorMap } from "@/lib/candidate-colors"
 
 type MapView = "county" | "precinct"
 
+const searchSchema = z.object({
+  tab: z.enum(["results", "participation"]).catch("results"),
+})
+
 export const Route = createFileRoute(
   "/elections/$electionDate/$electionId",
 )({
   component: RaceResultsPage,
+  validateSearch: searchSchema,
 })
 
 function RaceResultsPage() {
   const { electionId, electionDate } = useParams({
     from: "/elections/$electionDate/$electionId",
   })
+  const { tab } = Route.useSearch()
+  const navigate = useNavigate({ from: Route.fullPath })
 
   const formattedDate = new Date(electionDate + "T00:00:00").toLocaleDateString(
     "en-US",
@@ -185,128 +200,152 @@ function RaceResultsPage() {
         </div>
       </div>
 
-      {/* Inline results */}
-      <div className="mb-4">
-        <ElectionResultsSection
-          results={results}
-          selectedCounty={selectedCounty}
-          onClearCounty={() => setSelectedCounty(null)}
-          candidateColorMap={candidateColorMap}
-        />
-      </div>
+      {/* Tabbed content */}
+      <Tabs
+        value={tab}
+        onValueChange={(value) => {
+          navigate({
+            search: { tab: value as "results" | "participation" },
+            replace: true,
+          })
+        }}
+      >
+        <TabsList>
+          <TabsTrigger value="results">Results</TabsTrigger>
+          <TabsTrigger value="participation">Participation</TabsTrigger>
+        </TabsList>
 
-      {/* Controls row: view toggle + county filter + layer toggles */}
-      <div className="flex items-center gap-2 mb-3 flex-wrap">
-        <ToggleGroup
-          type="single"
-          value={mapView}
-          onValueChange={(v) => {
-            if (v) setMapView(v as MapView)
-          }}
-        >
-          <ToggleGroupItem value="county" aria-label="County view">
-            <Map className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">County</span>
-          </ToggleGroupItem>
-          <ToggleGroupItem value="precinct" aria-label="Precinct view">
-            <Grid3X3 className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Precinct</span>
-          </ToggleGroupItem>
-        </ToggleGroup>
+        <TabsContent value="results">
+          {/* Inline results */}
+          <div className="mb-4">
+            <ElectionResultsSection
+              results={results}
+              selectedCounty={selectedCounty}
+              onClearCounty={() => setSelectedCounty(null)}
+              candidateColorMap={candidateColorMap}
+            />
+          </div>
 
-        {mapView === "precinct" && (
-          <Select
-            value={precinctCountyFilter ?? "all"}
-            onValueChange={(v) =>
-              setPrecinctCountyFilter(v === "all" ? undefined : v)
-            }
-          >
-            <SelectTrigger className="w-[220px]">
-              <SelectValue placeholder="Filter by county" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All counties</SelectItem>
-              {sortedCounties.map((county) => (
-                <SelectItem key={county} value={county}>
-                  {county}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+          {/* Controls row: view toggle + county filter + layer toggles */}
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <ToggleGroup
+              type="single"
+              value={mapView}
+              onValueChange={(v) => {
+                if (v) setMapView(v as MapView)
+              }}
+            >
+              <ToggleGroupItem value="county" aria-label="County view">
+                <Map className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">County</span>
+              </ToggleGroupItem>
+              <ToggleGroupItem value="precinct" aria-label="Precinct view">
+                <Grid3X3 className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Precinct</span>
+              </ToggleGroupItem>
+            </ToggleGroup>
 
-        <div className="flex items-center gap-4 ml-auto">
+            {mapView === "precinct" && (
+              <Select
+                value={precinctCountyFilter ?? "all"}
+                onValueChange={(v) =>
+                  setPrecinctCountyFilter(v === "all" ? undefined : v)
+                }
+              >
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue placeholder="Filter by county" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All counties</SelectItem>
+                  {sortedCounties.map((county) => (
+                    <SelectItem key={county} value={county}>
+                      {county}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            <div className="flex items-center gap-4 ml-auto">
+              {mapView === "precinct" && (
+                <div className="flex items-center gap-1.5">
+                  <Checkbox
+                    id="county-overlay"
+                    checked={showCountyOverlay}
+                    disabled={isCountyBoundaryError}
+                    onCheckedChange={(checked) =>
+                      setShowCountyOverlay(checked === true)
+                    }
+                  />
+                  <Label
+                    htmlFor="county-overlay"
+                    className="text-sm cursor-pointer"
+                  >
+                    Counties
+                  </Label>
+                </div>
+              )}
+              {boundaryType && (
+                <div className="flex items-center gap-1.5">
+                  <Checkbox
+                    id="district-outline"
+                    checked={showDistrictOutline}
+                    onCheckedChange={(checked) =>
+                      setShowDistrictOutline(checked === true)
+                    }
+                  />
+                  <Label
+                    htmlFor="district-outline"
+                    className="text-sm cursor-pointer"
+                  >
+                    District outline
+                  </Label>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Map views */}
           {mapView === "precinct" && (
-            <div className="flex items-center gap-1.5">
-              <Checkbox
-                id="county-overlay"
-                checked={showCountyOverlay}
-                disabled={isCountyBoundaryError}
-                onCheckedChange={(checked) =>
-                  setShowCountyOverlay(checked === true)
-                }
+            <PrecinctMapView
+              electionId={electionId}
+              countyNames={countyNames}
+              districtName={election.district}
+              candidateColorMap={candidateColorMap}
+              selectedCounty={precinctCountyFilter}
+              onCountySelect={setPrecinctCountyFilter}
+              showCountyOverlay={showCountyOverlay}
+              showDistrictOutline={showDistrictOutline}
+            />
+          )}
+
+          {mapView === "county" && hasCountyGeoJSON && (
+            <div className="h-[350px] sm:h-[500px] md:h-[600px] rounded-lg overflow-hidden">
+              <ElectionResultsMap
+                geoJSON={geoJSON}
+                selectedCounty={selectedCounty}
+                onCountyClick={handleCountyClick}
+                districtGeometry={districtGeometry}
+                showDistrictOutline={showDistrictOutline}
               />
-              <Label
-                htmlFor="county-overlay"
-                className="text-sm cursor-pointer"
-              >
-                Counties
-              </Label>
             </div>
           )}
-          {boundaryType && (
-            <div className="flex items-center gap-1.5">
-              <Checkbox
-                id="district-outline"
-                checked={showDistrictOutline}
-                onCheckedChange={(checked) =>
-                  setShowDistrictOutline(checked === true)
-                }
-              />
-              <Label
-                htmlFor="district-outline"
-                className="text-sm cursor-pointer"
-              >
-                District outline
-              </Label>
+
+          {mapView === "county" && !hasCountyGeoJSON && (
+            <div className="h-[400px] flex items-center justify-center border rounded-lg bg-muted/30">
+              <p className="text-muted-foreground">
+                No geographic data available for this race.
+              </p>
             </div>
           )}
-        </div>
-      </div>
+        </TabsContent>
 
-      {/* Map views */}
-      {mapView === "precinct" && (
-        <PrecinctMapView
-          electionId={electionId}
-          countyNames={countyNames}
-          districtName={election.district}
-          candidateColorMap={candidateColorMap}
-          selectedCounty={precinctCountyFilter}
-          onCountySelect={setPrecinctCountyFilter}
-          showCountyOverlay={showCountyOverlay}
-          showDistrictOutline={showDistrictOutline}
-        />
-      )}
-
-      {mapView === "county" && hasCountyGeoJSON && (
-        <div className="h-[350px] sm:h-[500px] md:h-[600px] rounded-lg overflow-hidden">
-          <ElectionResultsMap
-            geoJSON={geoJSON}
-            selectedCounty={selectedCounty}
-            onCountyClick={handleCountyClick}
-            districtGeometry={districtGeometry}
-            showDistrictOutline={showDistrictOutline}
-          />
-        </div>
-      )}
-
-      {mapView === "county" && !hasCountyGeoJSON && (
-        <div className="h-[400px] flex items-center justify-center border rounded-lg bg-muted/30">
-          <p className="text-muted-foreground">
-            No geographic data available for this race.
-          </p>
-        </div>
-      )}
+        <TabsContent value="participation">
+          {tab === "participation" && (
+            <ParticipationTab electionId={electionId} />
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

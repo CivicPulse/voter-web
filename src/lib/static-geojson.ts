@@ -5,6 +5,10 @@
 export async function fetchStaticGeoJSON<T>(
   boundaryType: string,
 ): Promise<T | null> {
+  // In development, skip static cache to always get fresh data from the API.
+  // Static GeoJSON may contain stale UUIDs from a different database.
+  if (import.meta.env.DEV) return null
+
   try {
     const res = await fetch(
       `${import.meta.env.BASE_URL}geojson/${boundaryType}.json`,

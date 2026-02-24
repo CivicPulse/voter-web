@@ -21,6 +21,10 @@ import {
   countyGeoJSONResponse,
   precinctGeoJSONResponse,
   boundaryGeoJSONResponse,
+  countyPrecinctBoundaries,
+  voterHistoryResponse,
+  participationStatsResponse,
+  electionParticipantsResponse,
 } from "./mock-data"
 
 export interface MockOptions {
@@ -74,11 +78,39 @@ export async function setupElectionApiMocks(
     },
   )
 
+  // Participation stats
+  await page.route(
+    `**/api/v1/elections/${ELECTION_ID}/participation/stats`,
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(participationStatsResponse),
+      }),
+  )
+
+  // Election participants
+  await page.route(
+    `**/api/v1/elections/${ELECTION_ID}/participation*`,
+    (route, request) => {
+      if (request.url().includes("/stats")) return route.fallback()
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(electionParticipantsResponse),
+      })
+    },
+  )
+
   // Election detail
   await page.route(
     `**/api/v1/elections/${ELECTION_ID}`,
     (route, request) => {
-      if (request.url().includes("/results")) return route.fallback()
+      if (
+        request.url().includes("/results") ||
+        request.url().includes("/participation")
+      )
+        return route.fallback()
       return route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -106,12 +138,25 @@ export async function setupElectionApiMocks(
     })
   })
 
-  // Precinct boundary GeoJSON
-  await page.route("**/api/v1/boundaries/geojson*", (route) =>
+  // Precinct boundary GeoJSON (county-specific when county param is present)
+  await page.route("**/api/v1/boundaries/geojson*", (route, request) => {
+    const url = new URL(request.url())
+    const county = url.searchParams.get("county")
+    const data =
+      (county && countyPrecinctBoundaries[county]) ?? boundaryGeoJSONResponse
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(data),
+    })
+  })
+
+  // Voter history
+  await page.route("**/api/v1/voters/*/history", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(boundaryGeoJSONResponse),
+      body: JSON.stringify(voterHistoryResponse),
     }),
   )
 

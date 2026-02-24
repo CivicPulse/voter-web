@@ -1,4 +1,4 @@
-import { api } from "@/api/client"
+import { api, publicApi } from "@/api/client"
 import { stripCountySuffix } from "@/lib/utils"
 import type {
   Election,
@@ -105,6 +105,120 @@ export async function getPrecinctGeoJSON(
   return api
     .get(`elections/${electionId}/results/geojson/precincts`, { searchParams })
     .json<PrecinctResultFeatureCollection>()
+}
+
+// ============================================================================
+// Participation Endpoints
+// ============================================================================
+
+/** Raw backend shape for GET /elections/{id}/participation/stats */
+interface RawParticipationStats {
+  election_id: string
+  total_participants: number
+  by_county: { county: string; count: number }[]
+  by_ballot_style: { ballot_style: string; count: number }[]
+  by_precinct?: { precinct: string; precinct_name?: string; count: number }[]
+}
+
+/** Get aggregate participation statistics for an election */
+export async function getParticipationStats(
+  electionId: string,
+): Promise<import("@/types/elections").ParticipationStats> {
+  const raw = await publicApi
+    .get(`elections/${electionId}/participation/stats`)
+    .json<RawParticipationStats>()
+
+  const total = raw.total_participants
+
+  // Map by_county → county_breakdown
+  const countyBreakdown = raw.by_county.map((c) => ({
+    county: c.county,
+    count: c.count,
+    percentage: total > 0 ? (c.count / total) * 100 : 0,
+  }))
+
+  // Map by_ballot_style → method_breakdown
+  const methodBreakdown = raw.by_ballot_style.map((b) => ({
+    method: b.ballot_style,
+    count: b.count,
+    percentage: total > 0 ? (b.count / total) * 100 : 0,
+  }))
+
+  // Map by_precinct → precinct_breakdown (when backend provides it)
+  const precinctBreakdown = raw.by_precinct?.map((p) => ({
+    precinct: p.precinct,
+    ...(p.precinct_name && { precinct_name: p.precinct_name }),
+    count: p.count,
+    percentage: total > 0 ? (p.count / total) * 100 : 0,
+  }))
+
+  return {
+    election_id: raw.election_id,
+    total_voted: total,
+    is_preliminary: true,
+    county_breakdown: countyBreakdown,
+    method_breakdown: methodBreakdown,
+    ...(precinctBreakdown && precinctBreakdown.length > 0 && { precinct_breakdown: precinctBreakdown }),
+  }
+}
+
+/** Raw backend shape for election participation records */
+interface RawElectionParticipant {
+  id: string
+  voter_id: string | null
+  voter_registration_number: string
+  first_name?: string | null
+  last_name?: string | null
+  county: string
+  election_date: string
+  election_type: string
+  normalized_election_type: string
+  party: string | null
+  ballot_style: string | null
+  early_voting: boolean
+  absentee: boolean
+  provisional: boolean
+  supplemental: boolean
+}
+
+/** Get paginated list of voters who participated in an election */
+export async function getElectionParticipants(
+  electionId: string,
+  params?: { page?: number; page_size?: number; q?: string },
+): Promise<import("@/types/elections").ElectionParticipantsResponse> {
+  const searchParams: Record<string, string> = {}
+  if (params?.page) searchParams.page = String(params.page)
+  if (params?.page_size) searchParams.page_size = String(params.page_size)
+  if (params?.q) searchParams.q = params.q
+
+  const raw = await api
+    .get(`elections/${electionId}/participation`, { searchParams })
+    .json<{
+      items: RawElectionParticipant[]
+      pagination: { total: number; page: number; page_size: number; total_pages: number }
+    }>()
+
+  return {
+    items: raw.items.map((r) => {
+      // Derive voting method from boolean flags
+      let votingMethod = "In Person"
+      if (r.absentee) votingMethod = "Absentee by Mail"
+      else if (r.early_voting) votingMethod = "Early Voting"
+      else if (r.provisional) votingMethod = "Provisional"
+      else if (r.supplemental) votingMethod = "Supplemental"
+
+      return {
+        id: r.id,
+        voter_id: r.voter_id,
+        voter_registration_number: r.voter_registration_number,
+        first_name: r.first_name ?? "",
+        last_name: r.last_name ?? "",
+        county: r.county,
+        voting_method: votingMethod,
+      }
+    }),
+    pagination: raw.pagination,
+  }
 }
 
 // ============================================================================

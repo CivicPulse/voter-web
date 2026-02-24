@@ -39,10 +39,20 @@ vi.mock("@/routes/voters/_components/GeocodedLocationMap", () => ({
   GeocodedLocationMap: () => <div data-testid="location-map" />,
 }))
 
+// Mock VoterHistoryCard to avoid hook dependency complexity
+vi.mock("@/routes/voters/_components/VoterHistoryCard", () => ({
+  VoterHistoryCard: ({ voterRegistrationNumber }: { voterRegistrationNumber: string }) => (
+    <div data-testid="voter-history-card" data-registration={voterRegistrationNumber}>
+      Election History
+    </div>
+  ),
+}))
+
 // Import the component pieces we're testing (the page composition)
 import { VoterRegistrationCard } from "@/routes/voters/_components/VoterRegistrationCard"
 import { GeocodedLocationsCard } from "@/routes/voters/_components/GeocodedLocationsCard"
 import { DistrictAssignmentsCard } from "@/routes/voters/_components/DistrictAssignmentsCard"
+import { VoterHistoryCard } from "@/routes/voters/_components/VoterHistoryCard"
 import type { VoterDetail } from "@/types/voter"
 
 // We test the page composition logic directly since route components
@@ -79,6 +89,7 @@ function VoterDetailTestPage({
       <VoterRegistrationCard voter={voter} />
       <GeocodedLocationsCard locations={locations ?? []} voterId={voterId} />
       <DistrictAssignmentsCard districts={v} />
+      <VoterHistoryCard voterRegistrationNumber={v.voter_id} />
     </div>
   )
 }
@@ -226,5 +237,21 @@ describe("VoterDetailPage", () => {
     expect(
       screen.getByText("No district assignments found."),
     ).toBeInTheDocument()
+  })
+
+  it("renders VoterHistoryCard below DistrictAssignmentsCard", () => {
+    const voter = mockVoterDetail()
+    mockUseVoterDetail.mockReturnValue({
+      data: voter,
+      isLoading: false,
+      error: null,
+    })
+
+    render(<VoterDetailTestPage voterId="v-001" />)
+
+    const historyCard = screen.getByTestId("voter-history-card")
+    expect(historyCard).toBeInTheDocument()
+    expect(historyCard).toHaveAttribute("data-registration", "GA-12345678")
+    expect(historyCard).toHaveTextContent("Election History")
   })
 })

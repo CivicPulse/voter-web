@@ -1,0 +1,146 @@
+# Election Participation Statistics API Contract
+# Endpoint consumed by the election detail page's participation tab
+
+openapi: 3.0.3
+info:
+  title: Election Participation Stats API
+  version: 1.0.0
+
+paths:
+  /elections/{election_id}/participation/stats:
+    get:
+      summary: Get aggregate participation statistics for an election
+      description: |
+        Returns pre-aggregated turnout statistics including headline figures
+        (total voted) and breakdowns by county and voting method.
+        Accessible to all authenticated users (no role restriction).
+        Note: The backend provides by_county (not party) breakdowns.
+        Total eligible voter count and turnout percentage are not yet
+        available from this endpoint.
+      operationId: getParticipationStats
+      tags:
+        - Elections
+      parameters:
+        - name: election_id
+          in: path
+          required: true
+          description: UUID of the election
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Participation statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParticipationStats"
+              example:
+                election_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                total_voted: 78500
+                is_preliminary: true
+                county_breakdown:
+                  - county: "Bibb"
+                    count: 35200
+                    percentage: 44.8
+                  - county: "Houston"
+                    count: 32100
+                    percentage: 40.9
+                  - county: "Peach"
+                    count: 8400
+                    percentage: 10.7
+                  - county: "Crawford"
+                    count: 1800
+                    percentage: 2.3
+                  - county: "Twiggs"
+                    count: 1000
+                    percentage: 1.3
+                method_breakdown:
+                  - method: "In Person"
+                    count: 42300
+                    percentage: 53.9
+                  - method: "Early Voting"
+                    count: 24100
+                    percentage: 30.7
+                  - method: "Absentee by Mail"
+                    count: 12100
+                    percentage: 15.4
+        "401":
+          description: Authentication required
+        "404":
+          description: Election not found
+
+components:
+  schemas:
+    ParticipationStats:
+      type: object
+      required:
+        - election_id
+        - total_voted
+        - is_preliminary
+        - county_breakdown
+        - method_breakdown
+      properties:
+        election_id:
+          type: string
+          format: uuid
+        total_voted:
+          type: integer
+          description: Total voters who participated
+        is_preliminary:
+          type: boolean
+          description: Whether data is preliminary (e.g., eligible count unavailable)
+        county_breakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountyBreakdownItem"
+        method_breakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/MethodBreakdownItem"
+        precinct_breakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/PrecinctBreakdownItem"
+
+    CountyBreakdownItem:
+      type: object
+      required: [county, count, percentage]
+      properties:
+        county:
+          type: string
+          description: County name (e.g., "Bibb", "Houston")
+        count:
+          type: integer
+        percentage:
+          type: number
+          format: float
+
+    MethodBreakdownItem:
+      type: object
+      required: [method, count, percentage]
+      properties:
+        method:
+          type: string
+          description: Voting method name (e.g., "In Person", "Early Voting")
+        count:
+          type: integer
+        percentage:
+          type: number
+          format: float
+
+    PrecinctBreakdownItem:
+      type: object
+      required: [precinct, count, percentage]
+      properties:
+        precinct:
+          type: string
+          description: Precinct code (e.g., "BB1", "HO2")
+        precinct_name:
+          type: string
+          description: Human-readable precinct name (e.g., "BIBB 1")
+        count:
+          type: integer
+        percentage:
+          type: number
+          format: float

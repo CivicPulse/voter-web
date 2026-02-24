@@ -4,6 +4,7 @@ import type {
   VoterSearchResponse,
   VoterFilterOptions,
   RegisteredDistricts,
+  VoterParticipationRecord,
 } from "@/types/voter"
 import type { VoterGeocodedLocation } from "@/types/lookup"
 
@@ -109,7 +110,7 @@ export function mockVoterFilterOptions(
   overrides?: Partial<VoterFilterOptions>,
 ): VoterFilterOptions {
   return {
-    counties: ["Bibb", "DeKalb", "Fulton", "Gwinnett"],
+    counties: ["BIBB", "DEKALB", "FULTON", "GWINNETT"],
     statuses: ["Active", "Inactive"],
     congressional_districts: ["5", "10", "13"],
     state_senate_districts: ["18", "25"],
@@ -135,4 +136,37 @@ export function mockVoterGeocodedLocation(
     geocoded_at: "2026-01-15T10:30:00Z",
     ...overrides,
   }
+}
+
+export function mockVoterParticipationRecord(
+  overrides?: Partial<VoterParticipationRecord>,
+): VoterParticipationRecord {
+  return {
+    election_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    election_name: "US Senate - General",
+    election_date: "2024-11-05",
+    election_type: "general",
+    voting_method: "In Person",
+    ...overrides,
+  }
+}
+
+export function mockVoterHistory(): VoterParticipationRecord[] {
+  return [
+    mockVoterParticipationRecord(),
+    mockVoterParticipationRecord({
+      election_id: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      election_name: "State House District 145 - Primary",
+      election_date: "2024-05-21",
+      election_type: "primary",
+      voting_method: "Early Voting",
+    }),
+    mockVoterParticipationRecord({
+      election_id: "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      election_name: "City Council Special",
+      election_date: "2023-03-15",
+      election_type: "special",
+      voting_method: "Absentee by Mail",
+    }),
+  ]
 }
