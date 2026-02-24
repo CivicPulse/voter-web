@@ -2,7 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { render } from "@/test/render"
-import { mockElectionParticipantsResponse } from "@/test/mocks/elections"
+import {
+  mockElectionParticipantsResponse,
+  mockElectionParticipant,
+} from "@/test/mocks/elections"
 import type { ElectionParticipantsResponse } from "@/types/elections"
 
 const mockRefetch = vi.fn()
@@ -15,6 +18,22 @@ let mockHookReturn: {
 
 vi.mock("@/lib/hooks/use-election-participants", () => ({
   useElectionParticipants: () => mockHookReturn,
+}))
+
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({
+    children,
+    to,
+    params,
+  }: {
+    children: React.ReactNode
+    to: string
+    params?: Record<string, string>
+  }) => (
+    <a href={to} data-params={JSON.stringify(params)} data-testid="voter-link">
+      {children}
+    </a>
+  ),
 }))
 
 import { ElectionParticipantList } from "@/components/elections/ElectionParticipantList"
@@ -80,6 +99,31 @@ describe("ElectionParticipantList", () => {
 
     expect(screen.getByText("87654321")).toBeInTheDocument()
     expect(screen.getByText("Houston")).toBeInTheDocument()
+  })
+
+  it("renders registration as link when voter_id is present", () => {
+    mockHookReturn.data = mockElectionParticipantsResponse({
+      items: [mockElectionParticipant()],
+      pagination: { total: 1, page: 1, page_size: 25, total_pages: 1 },
+    })
+    render(<ElectionParticipantList electionId="election-001" />)
+
+    const link = screen.getByTestId("voter-link")
+    expect(link).toHaveAttribute("href", "/voters/$voterId")
+    const params = JSON.parse(link.getAttribute("data-params") ?? "{}")
+    expect(params.voterId).toBe("e99ba779-9d57-4d0f-b520-63f9095c2391")
+    expect(link).toHaveTextContent("12345678")
+  })
+
+  it("renders registration as plain text when voter_id is null", () => {
+    mockHookReturn.data = mockElectionParticipantsResponse({
+      items: [mockElectionParticipant({ voter_id: null })],
+      pagination: { total: 1, page: 1, page_size: 25, total_pages: 1 },
+    })
+    render(<ElectionParticipantList electionId="election-001" />)
+
+    expect(screen.getByText("12345678")).toBeInTheDocument()
+    expect(screen.queryByTestId("voter-link")).not.toBeInTheDocument()
   })
 
   it("renders pagination controls", () => {

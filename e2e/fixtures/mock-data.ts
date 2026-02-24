@@ -504,6 +504,7 @@ export const electionParticipantsResponse = {
   items: [
     {
       id: "f1e2d3c4-b5a6-7890-1234-567890abcdef",
+      voter_id: "e99ba779-9d57-4d0f-b520-63f9095c2391",
       voter_registration_number: "GA-12345678",
       county: "Bibb",
       election_date: ELECTION_DATE,
@@ -517,6 +518,7 @@ export const electionParticipantsResponse = {
     },
     {
       id: "a2b3c4d5-e6f7-8901-2345-678901bcdef0",
+      voter_id: "825c8a84-b761-46e5-ac44-9dd110b99c28",
       voter_registration_number: "GA-87654321",
       county: "Houston",
       election_date: ELECTION_DATE,
