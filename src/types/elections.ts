@@ -398,6 +398,7 @@ export interface MethodBreakdownItem {
 
 export interface PrecinctBreakdownItem {
   precinct: string
+  precinct_name?: string
   count: number
   percentage: number
 }

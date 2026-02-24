@@ -210,36 +210,60 @@ export const precinctGeoJSONElectionNightComplete = {
 // GET /boundaries/geojson?boundary_type=county_precinct&county=...
 // ---------------------------------------------------------------------------
 
-export const boundaryGeoJSONResponse = {
-  type: "FeatureCollection",
-  features: [
-    {
-      type: "Feature",
-      geometry: {
-        type: "Polygon",
-        coordinates: [
-          [
-            [-83.65, 32.85],
-            [-83.6, 32.85],
-            [-83.6, 32.9],
-            [-83.65, 32.9],
-            [-83.65, 32.85],
-          ],
-        ],
-      },
-      properties: {
-        name: "Bibb Precinct 1",
-        boundary_type: "county_precinct",
-        boundary_identifier: "bibb-precinct-001",
-        source: "census-tiger",
-        county: "Bibb",
-        precinct_name: "Bibb Precinct 1",
-        precinct_id: "precinct-001",
-        precinct_county_name: "Bibb County",
-      },
+/** Helper to build a minimal precinct boundary feature */
+function makePrecinctFeature(county: string, precinctId: string, precinctName: string) {
+  return {
+    type: "Feature" as const,
+    geometry: {
+      type: "Polygon" as const,
+      coordinates: [[[-83.65, 32.85], [-83.6, 32.85], [-83.6, 32.9], [-83.65, 32.9], [-83.65, 32.85]]],
     },
-  ],
+    properties: {
+      name: precinctName,
+      boundary_type: "county_precinct",
+      boundary_identifier: `${county.toLowerCase()}-${precinctId}`,
+      source: "census-tiger",
+      county,
+      precinct_name: precinctName,
+      precinct_id: precinctId,
+      precinct_county_name: `${county} County`,
+    },
+  }
 }
+
+/** County-specific boundary GeoJSON responses (precinct_id values match by_precinct mock) */
+export const countyPrecinctBoundaries: Record<string, { type: string; features: ReturnType<typeof makePrecinctFeature>[] }> = {
+  Bibb: {
+    type: "FeatureCollection",
+    features: [
+      makePrecinctFeature("Bibb", "BI1", "BIBB 1"),
+      makePrecinctFeature("Bibb", "BI2", "BIBB 2"),
+      makePrecinctFeature("Bibb", "BI3", "BIBB 3"),
+    ],
+  },
+  Houston: {
+    type: "FeatureCollection",
+    features: [
+      makePrecinctFeature("Houston", "HO1", "HOUSTON 1"),
+      makePrecinctFeature("Houston", "HO2", "HOUSTON 2"),
+    ],
+  },
+  Peach: {
+    type: "FeatureCollection",
+    features: [
+      makePrecinctFeature("Peach", "PE1", "PEACH 1"),
+    ],
+  },
+  Crawford: {
+    type: "FeatureCollection",
+    features: [
+      makePrecinctFeature("Crawford", "CR1", "CRAWFORD 1"),
+    ],
+  },
+}
+
+/** Default boundary GeoJSON (used when county param is not matched) */
+export const boundaryGeoJSONResponse = countyPrecinctBoundaries.Bibb
 
 // ---------------------------------------------------------------------------
 // Voter Search & Geocoding
@@ -492,6 +516,15 @@ export const participationStatsResponse = {
     { ballot_style: "Early Voting", count: 6500 },
     { ballot_style: "Absentee by Mail", count: 3200 },
     { ballot_style: "Provisional", count: 600 },
+  ],
+  by_precinct: [
+    { precinct: "BI1", precinct_name: "BIBB 1", count: 3500 },
+    { precinct: "BI2", precinct_name: "BIBB 2", count: 3700 },
+    { precinct: "BI3", precinct_name: "BIBB 3", count: 3300 },
+    { precinct: "HO1", precinct_name: "HOUSTON 1", count: 4200 },
+    { precinct: "HO2", precinct_name: "HOUSTON 2", count: 4000 },
+    { precinct: "PE1", precinct_name: "PEACH 1", count: 2800 },
+    { precinct: "CR1", precinct_name: "CRAWFORD 1", count: 800 },
   ],
 }
 

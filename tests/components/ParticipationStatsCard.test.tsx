@@ -17,6 +17,15 @@ vi.mock("@/lib/hooks/use-participation-stats", () => ({
   useParticipationStats: () => mockHookReturn,
 }))
 
+// Mock the county-precinct-codes hook so the single-county precinct test doesn't need real API
+let mockPrecinctCodesReturn: {
+  data: Set<string> | undefined
+  isLoading: boolean
+}
+vi.mock("@/lib/hooks/use-county-precinct-codes", () => ({
+  useCountyPrecinctCodes: () => mockPrecinctCodesReturn,
+}))
+
 // Mock Recharts to avoid rendering SVG in jsdom
 vi.mock("recharts", () => ({
   ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
@@ -45,6 +54,10 @@ beforeEach(() => {
     isLoading: false,
     isError: false,
     refetch: mockRefetch,
+  }
+  mockPrecinctCodesReturn = {
+    data: undefined,
+    isLoading: false,
   }
 })
 
@@ -127,11 +140,17 @@ describe("ParticipationStatsCard", () => {
     expect(screen.queryByText("By County")).not.toBeInTheDocument()
   })
 
-  it("renders precinct breakdown when precinct data is available", () => {
+  it("renders precinct breakdown when precinct data is available (single county)", () => {
+    // Single county — no dropdown, precincts show directly with boundary codes
+    mockPrecinctCodesReturn = {
+      data: new Set(["P1", "P2"]),
+      isLoading: false,
+    }
     mockHookReturn.data = mockParticipationStats({
+      party_breakdown: [{ party: "Bibb", count: 500, percentage: 100 }],
       precinct_breakdown: [
-        { precinct: "Precinct 1", count: 300, percentage: 60 },
-        { precinct: "Precinct 2", count: 200, percentage: 40 },
+        { precinct: "P1", precinct_name: "Precinct 1", count: 300, percentage: 60 },
+        { precinct: "P2", precinct_name: "Precinct 2", count: 200, percentage: 40 },
       ],
     })
     render(<ParticipationStatsCard electionId="election-001" />)
@@ -139,6 +158,30 @@ describe("ParticipationStatsCard", () => {
     expect(screen.getByText("By Precinct")).toBeInTheDocument()
     expect(screen.getByText(/Precinct 1/)).toBeInTheDocument()
     expect(screen.getByText(/Precinct 2/)).toBeInTheDocument()
+  })
+
+  it("renders county dropdown for multi-county precinct breakdown", () => {
+    mockPrecinctCodesReturn = {
+      data: new Set(["P1"]),
+      isLoading: false,
+    }
+    mockHookReturn.data = mockParticipationStats({
+      party_breakdown: [
+        { party: "Bibb", count: 300, percentage: 60 },
+        { party: "Houston", count: 200, percentage: 40 },
+      ],
+      precinct_breakdown: [
+        { precinct: "P1", precinct_name: "Precinct 1", count: 300, percentage: 60 },
+        { precinct: "P2", precinct_name: "Precinct 2", count: 200, percentage: 40 },
+      ],
+    })
+    render(<ParticipationStatsCard electionId="election-001" />)
+
+    expect(screen.getByText("By Precinct")).toBeInTheDocument()
+    expect(screen.getByTestId("precinct-county-select")).toBeInTheDocument()
+    // Defaults to first county (Bibb) — only P1 matches
+    expect(screen.getByText(/Precinct 1/)).toBeInTheDocument()
+    expect(screen.queryByText(/Precinct 2/)).not.toBeInTheDocument()
   })
 
   it("renders voting method breakdown section", () => {

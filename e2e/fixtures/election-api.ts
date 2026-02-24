@@ -21,6 +21,7 @@ import {
   countyGeoJSONResponse,
   precinctGeoJSONResponse,
   boundaryGeoJSONResponse,
+  countyPrecinctBoundaries,
   voterHistoryResponse,
   participationStatsResponse,
   electionParticipantsResponse,
@@ -137,14 +138,18 @@ export async function setupElectionApiMocks(
     })
   })
 
-  // Precinct boundary GeoJSON
-  await page.route("**/api/v1/boundaries/geojson*", (route) =>
-    route.fulfill({
+  // Precinct boundary GeoJSON (county-specific when county param is present)
+  await page.route("**/api/v1/boundaries/geojson*", (route, request) => {
+    const url = new URL(request.url())
+    const county = url.searchParams.get("county")
+    const data =
+      (county && countyPrecinctBoundaries[county]) ?? boundaryGeoJSONResponse
+    return route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(boundaryGeoJSONResponse),
-    }),
-  )
+      body: JSON.stringify(data),
+    })
+  })
 
   // Voter history
   await page.route("**/api/v1/voters/*/history", (route) =>

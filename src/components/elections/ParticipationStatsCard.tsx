@@ -1,4 +1,5 @@
-import { AlertCircle, RefreshCw } from "lucide-react"
+import { useState, useMemo } from "react"
+import { AlertCircle, Loader2, RefreshCw } from "lucide-react"
 import {
   PieChart,
   Pie,
@@ -16,10 +17,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useParticipationStats } from "@/lib/hooks/use-participation-stats"
+import { useCountyPrecinctCodes } from "@/lib/hooks/use-county-precinct-codes"
+import type { ParticipationStats, PrecinctBreakdownItem } from "@/types/elections"
 import { getCountyColor } from "@/types/elections"
 
 function LoadingSkeleton() {
@@ -146,58 +156,7 @@ export function ParticipationStatsCard({
 
             {/* Precinct breakdown donut — shown when backend provides by_precinct data */}
             {stats.precinct_breakdown && stats.precinct_breakdown.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium mb-3">By Precinct</h4>
-                <div className="flex items-center gap-4">
-                  <div className="h-48 w-48 flex-shrink-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={stats.precinct_breakdown}
-                          dataKey="count"
-                          nameKey="precinct"
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={40}
-                          outerRadius={70}
-                        >
-                          {stats.precinct_breakdown.map((entry, index) => (
-                            <Cell
-                              key={entry.precinct}
-                              fill={getCountyColor(index)}
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          formatter={((value: number, name: string) => [
-                            formatNumber(value),
-                            name,
-                          ]) as never}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="space-y-1.5">
-                    {stats.precinct_breakdown.map((entry, index) => (
-                      <div
-                        key={entry.precinct}
-                        className="flex items-center gap-2 text-sm"
-                      >
-                        <span
-                          className="inline-block h-3 w-3 rounded-full"
-                          style={{
-                            backgroundColor: getCountyColor(index),
-                          }}
-                        />
-                        <span>
-                          {entry.precinct} — {formatNumber(entry.count)} (
-                          {entry.percentage.toFixed(1)}%)
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <PrecinctBreakdownChart stats={stats} />
             )}
 
             {/* Voting method bar chart */}
@@ -234,5 +193,137 @@ export function ParticipationStatsCard({
         )}
       </CardContent>
     </Card>
+  )
+}
+
+/** Sub-component: precinct breakdown donut with county filter dropdown */
+function PrecinctBreakdownChart({
+  stats,
+}: Readonly<{
+  stats: ParticipationStats
+}>) {
+  const counties = useMemo(
+    () =>
+      stats.party_breakdown
+        .map((c) => c.party)
+        .sort((a, b) => a.localeCompare(b)),
+    [stats.party_breakdown],
+  )
+
+  // Default to first county in sorted list
+  const [selectedCounty, setSelectedCounty] = useState<string | null>(
+    counties.length > 0 ? counties[0] : null,
+  )
+
+  const { data: precinctCodes, isLoading: isLoadingCodes } =
+    useCountyPrecinctCodes(selectedCounty)
+
+  const filteredPrecincts = useMemo(() => {
+    const all = stats.precinct_breakdown ?? []
+    if (!selectedCounty || !precinctCodes) return all
+
+    const filtered = all.filter((p) => precinctCodes.has(p.precinct))
+    // Recalculate percentages relative to filtered county total
+    const countyTotal = filtered.reduce((sum, p) => sum + p.count, 0)
+    return filtered.map((p) => ({
+      ...p,
+      percentage: countyTotal > 0 ? (p.count / countyTotal) * 100 : 0,
+    }))
+  }, [stats.precinct_breakdown, selectedCounty, precinctCodes])
+
+  const displayName = (entry: PrecinctBreakdownItem) =>
+    entry.precinct_name ?? entry.precinct
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="text-sm font-medium">By Precinct</h4>
+        {counties.length > 1 && (
+          <Select
+            value={selectedCounty ?? ""}
+            onValueChange={(v) => setSelectedCounty(v || null)}
+          >
+            <SelectTrigger className="w-[180px] h-8 text-xs" data-testid="precinct-county-select">
+              <SelectValue placeholder="Select county" />
+            </SelectTrigger>
+            <SelectContent>
+              {counties.map((county) => (
+                <SelectItem key={county} value={county}>
+                  {county}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
+
+      {/* Loading indicator while fetching boundary codes */}
+      {selectedCounty && isLoadingCodes && (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
+      )}
+
+      {/* Chart + legend */}
+      {(counties.length === 1 || (selectedCounty && !isLoadingCodes)) &&
+        filteredPrecincts.length > 0 && (
+          <div className="flex items-center gap-4">
+            <div className="h-48 w-48 flex-shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={filteredPrecincts}
+                    dataKey="count"
+                    nameKey="precinct"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={70}
+                  >
+                    {filteredPrecincts.map((entry, index) => (
+                      <Cell
+                        key={entry.precinct}
+                        fill={getCountyColor(index)}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={((value: number, _name: string, props: { payload: PrecinctBreakdownItem }) => [
+                      formatNumber(value),
+                      displayName(props.payload),
+                    ]) as never}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="space-y-1.5 max-h-48 overflow-y-auto">
+              {filteredPrecincts.map((entry, index) => (
+                <div
+                  key={entry.precinct}
+                  className="flex items-center gap-2 text-sm"
+                >
+                  <span
+                    className="inline-block h-3 w-3 rounded-full flex-shrink-0"
+                    style={{
+                      backgroundColor: getCountyColor(index),
+                    }}
+                  />
+                  <span>
+                    {displayName(entry)} — {formatNumber(entry.count)} (
+                    {entry.percentage.toFixed(1)}%)
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      {/* No matching precincts for selected county */}
+      {selectedCounty && !isLoadingCodes && filteredPrecincts.length === 0 && (
+        <p className="text-sm text-muted-foreground py-4 text-center">
+          No precinct data for {selectedCounty}.
+        </p>
+      )}
+    </div>
   )
 }

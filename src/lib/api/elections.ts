@@ -117,7 +117,7 @@ interface RawParticipationStats {
   total_participants: number
   by_county: { county: string; count: number }[]
   by_ballot_style: { ballot_style: string; count: number }[]
-  by_precinct?: { precinct: string; count: number }[]
+  by_precinct?: { precinct: string; precinct_name?: string; count: number }[]
 }
 
 /** Get aggregate participation statistics for an election */
@@ -147,6 +147,7 @@ export async function getParticipationStats(
   // Map by_precinct → precinct_breakdown (when backend provides it)
   const precinctBreakdown = raw.by_precinct?.map((p) => ({
     precinct: p.precinct,
+    ...(p.precinct_name && { precinct_name: p.precinct_name }),
     count: p.count,
     percentage: total > 0 ? (p.count / total) * 100 : 0,
   }))
