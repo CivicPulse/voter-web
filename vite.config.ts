@@ -22,7 +22,7 @@ export default defineConfig({
     tanstackRouter({
       target: "react",
       autoCodeSplitting: true,
-      routeFileIgnorePattern: ".*/_components/",
+      routeFileIgnorePattern: "_components",
     }),
     react(),
     tailwindcss(),
