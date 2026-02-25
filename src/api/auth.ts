@@ -10,22 +10,16 @@ const authClient = ky.create({
   prefixUrl: API_BASE_URL,
 })
 
-/**
- * Login with username/password (OAuth2 password grant).
- * The endpoint expects application/x-www-form-urlencoded, not JSON.
- */
+/** Login with username/password. */
 export async function login(
   credentials: LoginCredentials,
 ): Promise<TokenResponse> {
-  const body = new URLSearchParams({
-    username: credentials.username,
-    password: credentials.password,
-  })
-
   return authClient
     .post("auth/login", {
-      body,
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      json: {
+        username: credentials.username,
+        password: credentials.password,
+      },
     })
     .json<TokenResponse>()
 }
