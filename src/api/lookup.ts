@@ -4,6 +4,7 @@ import type {
   BatchGeocodeRequest,
   CacheStats,
   GeocodeResponse,
+  GeocodingProvidersResponse,
   ManualLocationRequest,
   PointLookupParams,
   PointLookupResponse,
@@ -61,6 +62,12 @@ export async function getBatchGeocodeStatus(
   return api
     .get(`geocoding/status/${jobId}`)
     .json<BatchGeocodeJob>()
+}
+
+// --- Geocoding providers ---
+
+export async function getGeocodingProviders(): Promise<GeocodingProvidersResponse> {
+  return api.get("geocoding/providers").json<GeocodingProvidersResponse>()
 }
 
 // --- Cache stats ---

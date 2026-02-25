@@ -7,7 +7,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
-import { Users, Upload, Download, Shield, Vote, SearchCheck } from "lucide-react"
+import { Users, Upload, Download, Shield, Vote, SearchCheck, Globe } from "lucide-react"
 
 /**
  * Admin navigation menu with dropdown submenu
@@ -104,6 +104,22 @@ export function AdminNavMenu() {
                   </Link>
                 </NavigationMenuLink>
               </li>
+              <li>
+                <NavigationMenuLink asChild>
+                  <Link
+                    to="/admin/geocoding"
+                    className="block px-4 py-2 text-sm hover:bg-accent rounded-md transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      <span>Geocoding</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Batch geocoding and cache stats
+                    </p>
+                  </Link>
+                </NavigationMenuLink>
+              </li>
             </ul>
           </NavigationMenuContent>
         </NavigationMenuItem>
@@ -160,6 +176,14 @@ export function AdminNavLinks({ onLinkClick }: { onLinkClick?: () => void }) {
       >
         <SearchCheck className="h-4 w-4" />
         <span>Analysis</span>
+      </Link>
+      <Link
+        to="/admin/geocoding"
+        className="flex items-center gap-2 px-2 py-2 text-sm hover:bg-accent rounded-md transition-colors"
+        onClick={onLinkClick}
+      >
+        <Globe className="h-4 w-4" />
+        <span>Geocoding</span>
       </Link>
     </div>
   )

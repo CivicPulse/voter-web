@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { Users, Upload, Download, SearchCheck } from "lucide-react"
+import { Users, Upload, Download, SearchCheck, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export const Route = createFileRoute("/admin/")({
@@ -12,7 +12,7 @@ function AdminIndexPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
         <p className="text-muted-foreground">
-          Manage users, import data, generate exports, and run analysis
+          Manage users, import data, generate exports, run analysis, and geocode voters
         </p>
       </div>
 
@@ -78,6 +78,22 @@ function AdminIndexPage() {
           </p>
           <Button asChild className="w-full">
             <Link to="/admin/analysis">View Analysis</Link>
+          </Button>
+        </div>
+
+        {/* Geocoding Card */}
+        <div className="border rounded-lg p-6 hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-cyan-100 text-cyan-600">
+              <Globe className="h-6 w-6" />
+            </div>
+            <h2 className="text-xl font-semibold">Geocoding</h2>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Batch geocode voter addresses and view cache statistics
+          </p>
+          <Button asChild className="w-full">
+            <Link to="/admin/geocoding">View Geocoding</Link>
           </Button>
         </div>
       </div>

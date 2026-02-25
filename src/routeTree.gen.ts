@@ -29,6 +29,7 @@ import { Route as CountiesCountyIdRouteImport } from './routes/counties/$countyI
 import { Route as ElectionsElectionDateIndexRouteImport } from './routes/elections/$electionDate/index'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
 import { Route as AdminImportsIndexRouteImport } from './routes/admin/imports/index'
+import { Route as AdminGeocodingIndexRouteImport } from './routes/admin/geocoding/index'
 import { Route as AdminExportsIndexRouteImport } from './routes/admin/exports/index'
 import { Route as AdminElectionsIndexRouteImport } from './routes/admin/elections/index'
 import { Route as AdminAnalysisIndexRouteImport } from './routes/admin/analysis/index'
@@ -144,6 +145,11 @@ const AdminImportsIndexRoute = AdminImportsIndexRouteImport.update({
   path: '/imports/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminGeocodingIndexRoute = AdminGeocodingIndexRouteImport.update({
+  id: '/geocoding/',
+  path: '/geocoding/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminExportsIndexRoute = AdminExportsIndexRouteImport.update({
   id: '/exports/',
   path: '/exports/',
@@ -243,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/admin/analysis/': typeof AdminAnalysisIndexRoute
   '/admin/elections/': typeof AdminElectionsIndexRoute
   '/admin/exports/': typeof AdminExportsIndexRoute
+  '/admin/geocoding/': typeof AdminGeocodingIndexRoute
   '/admin/imports/': typeof AdminImportsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/elections/$electionDate/': typeof ElectionsElectionDateIndexRoute
@@ -274,6 +281,7 @@ export interface FileRoutesByTo {
   '/admin/analysis': typeof AdminAnalysisIndexRoute
   '/admin/elections': typeof AdminElectionsIndexRoute
   '/admin/exports': typeof AdminExportsIndexRoute
+  '/admin/geocoding': typeof AdminGeocodingIndexRoute
   '/admin/imports': typeof AdminImportsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
   '/elections/$electionDate': typeof ElectionsElectionDateIndexRoute
@@ -310,6 +318,7 @@ export interface FileRoutesById {
   '/admin/analysis/': typeof AdminAnalysisIndexRoute
   '/admin/elections/': typeof AdminElectionsIndexRoute
   '/admin/exports/': typeof AdminExportsIndexRoute
+  '/admin/geocoding/': typeof AdminGeocodingIndexRoute
   '/admin/imports/': typeof AdminImportsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/elections/$electionDate/': typeof ElectionsElectionDateIndexRoute
@@ -347,6 +356,7 @@ export interface FileRouteTypes {
     | '/admin/analysis/'
     | '/admin/elections/'
     | '/admin/exports/'
+    | '/admin/geocoding/'
     | '/admin/imports/'
     | '/admin/users/'
     | '/elections/$electionDate/'
@@ -378,6 +388,7 @@ export interface FileRouteTypes {
     | '/admin/analysis'
     | '/admin/elections'
     | '/admin/exports'
+    | '/admin/geocoding'
     | '/admin/imports'
     | '/admin/users'
     | '/elections/$electionDate'
@@ -413,6 +424,7 @@ export interface FileRouteTypes {
     | '/admin/analysis/'
     | '/admin/elections/'
     | '/admin/exports/'
+    | '/admin/geocoding/'
     | '/admin/imports/'
     | '/admin/users/'
     | '/elections/$electionDate/'
@@ -581,6 +593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImportsIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/geocoding/': {
+      id: '/admin/geocoding/'
+      path: '/geocoding'
+      fullPath: '/admin/geocoding/'
+      preLoaderRoute: typeof AdminGeocodingIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/exports/': {
       id: '/admin/exports/'
       path: '/exports'
@@ -685,6 +704,7 @@ interface AdminRouteChildren {
   AdminAnalysisIndexRoute: typeof AdminAnalysisIndexRoute
   AdminElectionsIndexRoute: typeof AdminElectionsIndexRoute
   AdminExportsIndexRoute: typeof AdminExportsIndexRoute
+  AdminGeocodingIndexRoute: typeof AdminGeocodingIndexRoute
   AdminImportsIndexRoute: typeof AdminImportsIndexRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
 }
@@ -699,6 +719,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAnalysisIndexRoute: AdminAnalysisIndexRoute,
   AdminElectionsIndexRoute: AdminElectionsIndexRoute,
   AdminExportsIndexRoute: AdminExportsIndexRoute,
+  AdminGeocodingIndexRoute: AdminGeocodingIndexRoute,
   AdminImportsIndexRoute: AdminImportsIndexRoute,
   AdminUsersIndexRoute: AdminUsersIndexRoute,
 }
