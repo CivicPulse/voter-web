@@ -19,6 +19,7 @@ export function mockVoterSummary(
     voter_id: "GA-12345678",
     registration_date: "2020-01-15",
     status: "Active",
+    has_district_mismatch: null,
     ...overrides,
   }
 }
@@ -53,6 +54,7 @@ export function mockVoterDetail(
     school_board_district: "6",
     city_council_district: null,
     municipal_school_board_district: null,
+    official_location: null,
     ...overrides,
   }
 }

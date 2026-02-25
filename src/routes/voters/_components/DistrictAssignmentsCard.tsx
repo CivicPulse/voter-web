@@ -53,12 +53,16 @@ interface DistrictAssignmentsCardProps {
   districts: RegisteredDistricts
   verification?: DistrictVerificationResult | null
   verificationLoading?: boolean
+  matchStatus?: string
+  checkedAt?: string
 }
 
 export function DistrictAssignmentsCard({
   districts,
   verification,
   verificationLoading,
+  matchStatus,
+  checkedAt,
 }: Readonly<DistrictAssignmentsCardProps>) {
   const assignments = DISTRICT_FIELDS.filter(
     ({ key }) => districts[key] !== null,
@@ -78,17 +82,39 @@ export function DistrictAssignmentsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MapPinned className="h-5 w-5" />
-          District Assignments
+        <div className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2">
+            <MapPinned className="h-5 w-5" />
+            District Assignments
+          </CardTitle>
+          <MatchStatusBadge status={matchStatus} />
           <VerificationStatusBadge
             verification={verification}
             loading={verificationLoading}
           />
-        </CardTitle>
+        </div>
+        {checkedAt && (
+          <p className="text-xs text-muted-foreground mt-1">
+            Checked{" "}
+            {new Date(checkedAt).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            })}
+          </p>
+        )}
         {verification?.lowConfidence && (
           <p className="text-xs text-muted-foreground mt-1">
             Geocode confidence is low — verification results may be inaccurate.
+          </p>
+        )}
+        {(matchStatus === "not-geocoded" || matchStatus === "unable-to-analyze") && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {matchStatus === "not-geocoded"
+              ? "This voter has not been geocoded yet. Geocode the voter to enable district verification."
+              : "Unable to analyze district assignments for this voter."}
           </p>
         )}
       </CardHeader>
@@ -170,6 +196,36 @@ function VerificationStatusBadge({
   }
 
   return null
+}
+
+function MatchStatusBadge({ status }: { status?: string }) {
+  if (!status) return null
+
+  if (status === "match") {
+    return (
+      <Badge variant="outline" className="text-green-600 border-green-300 gap-1">
+        <CheckCircle2 className="h-3 w-3" />
+        Match
+      </Badge>
+    )
+  }
+
+  if (status.startsWith("mismatch")) {
+    return (
+      <Badge variant="outline" className="text-amber-600 border-amber-300 gap-1">
+        <AlertTriangle className="h-3 w-3" />
+        Mismatch
+      </Badge>
+    )
+  }
+
+  // not-geocoded, unable-to-analyze
+  return (
+    <Badge variant="outline" className="text-muted-foreground gap-1">
+      <Info className="h-3 w-3" />
+      {status === "not-geocoded" ? "Not Geocoded" : "Unable to Analyze"}
+    </Badge>
+  )
 }
 
 function ComparisonIndicator({
