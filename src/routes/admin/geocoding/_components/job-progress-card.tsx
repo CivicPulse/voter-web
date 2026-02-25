@@ -33,9 +33,16 @@ export function JobProgressCard({ job }: JobProgressCardProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Batch Geocoding Job</CardTitle>
-          <Badge variant={statusVariant[job.status]} className="capitalize">
-            {job.status}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline">{job.provider}</Badge>
+            {job.county && <Badge variant="outline">{job.county}</Badge>}
+            {job.force_regeocode && (
+              <Badge variant="secondary">Re-geocode</Badge>
+            )}
+            <Badge variant={statusVariant[job.status]} className="capitalize">
+              {job.status}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

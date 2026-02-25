@@ -4,8 +4,10 @@ import type {
   BatchGeocodeRequest,
   CacheStats,
   GeocodeResponse,
+  GeocodingJobFilters,
   GeocodingProvidersResponse,
   ManualLocationRequest,
+  PaginatedGeocodingJobResponse,
   PointLookupParams,
   PointLookupResponse,
   VerifyResponse,
@@ -62,6 +64,24 @@ export async function getBatchGeocodeStatus(
   return api
     .get(`geocoding/status/${jobId}`)
     .json<BatchGeocodeJob>()
+}
+
+// --- Geocoding jobs list ---
+
+export async function getGeocodingJobs(
+  params?: GeocodingJobFilters,
+): Promise<PaginatedGeocodingJobResponse> {
+  const searchParams: Record<string, string> = {}
+  if (params?.job_status) searchParams.job_status = params.job_status
+  if (params?.provider) searchParams.provider = params.provider
+  if (params?.county) searchParams.county = params.county
+  if (params?.page !== undefined) searchParams.page = String(params.page)
+  if (params?.page_size !== undefined)
+    searchParams.page_size = String(params.page_size)
+
+  return api
+    .get("geocoding/jobs", { searchParams })
+    .json<PaginatedGeocodingJobResponse>()
 }
 
 // --- Geocoding providers ---

@@ -27,7 +27,7 @@ import type { GeocodingProvider } from "@/types/lookup"
 interface TriggerGeocodeDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onJobStarted: (jobId: string) => void
+  onJobStarted: () => void
   providers: GeocodingProvider[] | undefined
 }
 
@@ -40,6 +40,7 @@ export function TriggerGeocodeDialog({
   const [county, setCounty] = useState("")
   const [provider, setProvider] = useState("auto")
   const [forceRegeocode, setForceRegeocode] = useState(false)
+  const [fallback, setFallback] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const batchMutation = useBatchGeocode()
 
@@ -56,11 +57,12 @@ export function TriggerGeocodeDialog({
         county: county.trim() || undefined,
         provider: provider === "auto" ? undefined : provider,
         force_regeocode: forceRegeocode || undefined,
+        fallback: fallback || undefined,
       },
       {
-        onSuccess: (job) => {
+        onSuccess: () => {
           toast.success("Batch geocoding job started")
-          onJobStarted(job.id)
+          onJobStarted()
           handleOpenChange(false)
         },
         onError: () => {
@@ -75,6 +77,7 @@ export function TriggerGeocodeDialog({
       setCounty("")
       setProvider("auto")
       setForceRegeocode(false)
+      setFallback(false)
       setShowConfirmation(false)
       batchMutation.reset()
     }
@@ -138,6 +141,17 @@ export function TriggerGeocodeDialog({
             />
             <Label htmlFor="force-regeocode" className="text-sm font-normal">
               Force re-geocode (overwrite cached results)
+            </Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="fallback"
+              checked={fallback}
+              onCheckedChange={(checked) => setFallback(checked === true)}
+            />
+            <Label htmlFor="fallback" className="text-sm font-normal">
+              Use cascading fallback for non-EXACT results
             </Label>
           </div>
 

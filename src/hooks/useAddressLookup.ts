@@ -5,6 +5,7 @@ import {
   pointLookup,
   startBatchGeocode,
   getBatchGeocodeStatus,
+  getGeocodingJobs,
   getGeocodingProviders,
   getCacheStats,
   getVoterGeocodedLocations,
@@ -13,9 +14,12 @@ import {
 } from "@/api/lookup"
 import type {
   BatchGeocodeRequest,
+  GeocodingJobFilters,
   ManualLocationRequest,
   PointLookupParams,
 } from "@/types/lookup"
+import { isActiveGeocodingJob } from "@/types/lookup"
+import { adminQueryRetry } from "@/lib/hooks/admin-query-retry"
 
 // --- Address verification & geocoding ---
 
@@ -55,8 +59,26 @@ export function usePointLookup(params: PointLookupParams | null) {
 // --- Batch geocoding ---
 
 export function useBatchGeocode() {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (request: BatchGeocodeRequest) => startBatchGeocode(request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["geocoding", "jobs"] })
+    },
+  })
+}
+
+export function useGeocodingJobs(filters?: GeocodingJobFilters) {
+  return useQuery({
+    queryKey: ["geocoding", "jobs", filters],
+    queryFn: () => getGeocodingJobs(filters),
+    refetchInterval: (query) => {
+      const items = query.state.data?.items ?? []
+      const hasActiveJobs = items.some(isActiveGeocodingJob)
+      return hasActiveJobs ? 3000 : false
+    },
+    staleTime: 0,
+    retry: adminQueryRetry,
   })
 }
 
