@@ -113,12 +113,14 @@ function AcceptInvitePage() {
               const body = await err.response.json<{ detail?: string }>()
               const detail = body.detail ?? ""
 
+              const lowerDetail = detail.toLowerCase()
+
               if (status === 400) {
-                if (detail.toLowerCase().includes("expired")) {
+                if (lowerDetail.includes("expired")) {
                   setError(
                     "This invitation has expired. Please ask your administrator to send a new one."
                   )
-                } else if (detail.toLowerCase().includes("already accepted") || detail.toLowerCase().includes("already been accepted")) {
+                } else if (lowerDetail.includes("already") && lowerDetail.includes("accept")) {
                   setError("This invitation has already been accepted.")
                 } else {
                   setError(

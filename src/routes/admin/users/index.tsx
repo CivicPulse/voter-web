@@ -54,8 +54,8 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { editUserSchema, type EditUserFormValues } from "@/lib/schemas/user-form"
 import { useInvites } from "@/lib/hooks/use-invites"
-import { InviteUserDialog } from "./_components/invite-user-dialog"
-import { InviteTable } from "./_components/invite-table"
+import { InviteUserDialog } from "@/routes/admin/users/_components/invite-user-dialog"
+import { InviteTable } from "@/routes/admin/users/_components/invite-table"
 
 export const Route = createFileRoute("/admin/users/")({
   component: () => (
@@ -77,6 +77,7 @@ function UserManagementPage() {
   const {
     data: inviteData,
     isLoading: invitesLoading,
+    error: invitesError,
   } = useInvites()
   const [showInviteDialog, setShowInviteDialog] = useState(false)
 
@@ -319,9 +320,9 @@ function UserManagementPage() {
       {/* Pending Invites Section */}
       <div className="space-y-4">
         <div>
-          <h2 className="text-xl font-semibold">Pending Invites</h2>
+          <h2 className="text-xl font-semibold">User Invitations</h2>
           <p className="text-sm text-muted-foreground">
-            Manage outstanding user invitations
+            Manage user invitations
           </p>
         </div>
         {invitesLoading ? (
@@ -339,9 +340,15 @@ function UserManagementPage() {
               ))}
             </div>
           </div>
+        ) : invitesError ? (
+          <div className="border border-destructive rounded-lg p-6 text-center">
+            <p className="text-destructive">
+              Failed to load invitations. Please try again.
+            </p>
+          </div>
         ) : !inviteData?.items.length ? (
           <div className="border rounded-lg p-6 text-center text-muted-foreground">
-            No pending invites. Click "Invite User" to send an invitation.
+            No invites yet. Click &quot;Invite User&quot; to send an invitation.
           </div>
         ) : (
           <InviteTable invites={inviteData.items} />
