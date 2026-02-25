@@ -9,8 +9,8 @@ import {
   isActiveJob,
   AuthenticationError,
   PermissionError,
-  NetworkError,
 } from "@/types/admin"
+import { adminQueryRetry } from "@/lib/hooks/admin-query-retry"
 import type { CreateExportRequest } from "@/types/admin"
 import { toast } from "sonner"
 
@@ -31,33 +31,7 @@ export function useExportJobs() {
       return hasActiveJobs ? 3000 : false
     },
     staleTime: 0, // Always refetch when polling is active
-    retry: (failureCount, error) => {
-      // Don't retry auth/permission errors
-      if (
-        error instanceof AuthenticationError ||
-        error instanceof PermissionError
-      ) {
-        if (error instanceof AuthenticationError) {
-          toast.error("Session expired", { description: error.message })
-        } else {
-          toast.error("Access denied", { description: error.message })
-        }
-        return false
-      }
-
-      // Handle network errors during polling
-      if (error instanceof NetworkError) {
-        if (failureCount === 0) {
-          toast.warning("Connection issue", {
-            description:
-              "Having trouble connecting. Will keep trying in the background.",
-          })
-        }
-        return failureCount < 2
-      }
-
-      return failureCount < 2
-    },
+    retry: adminQueryRetry,
   })
 }
 

@@ -7,7 +7,8 @@ import {
 } from "@/lib/api/analysis"
 import { isActiveAnalysisRun } from "@/types/analysis"
 import type { TriggerAnalysisRequest, MatchStatus } from "@/types/analysis"
-import { AuthenticationError, PermissionError, NetworkError } from "@/types/admin"
+import { AuthenticationError, PermissionError } from "@/types/admin"
+import { adminQueryRetry } from "@/lib/hooks/admin-query-retry"
 import { toast } from "sonner"
 
 export function useAnalysisRuns() {
@@ -20,31 +21,7 @@ export function useAnalysisRuns() {
       return hasActiveRuns ? 3000 : false
     },
     staleTime: 0,
-    retry: (failureCount, error) => {
-      if (
-        error instanceof AuthenticationError ||
-        error instanceof PermissionError
-      ) {
-        if (error instanceof AuthenticationError) {
-          toast.error("Session expired", { description: error.message })
-        } else {
-          toast.error("Access denied", { description: error.message })
-        }
-        return false
-      }
-
-      if (error instanceof NetworkError) {
-        if (failureCount === 0) {
-          toast.warning("Connection issue", {
-            description:
-              "Having trouble connecting. Will keep trying in the background.",
-          })
-        }
-        return failureCount < 2
-      }
-
-      return failureCount < 2
-    },
+    retry: adminQueryRetry,
   })
 }
 
