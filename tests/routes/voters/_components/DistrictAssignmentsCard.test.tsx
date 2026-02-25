@@ -184,4 +184,81 @@ describe("DistrictAssignmentsCard", () => {
       expect(screen.getByText("1 mismatch")).toBeInTheDocument()
     })
   })
+
+  describe("match status badge", () => {
+    it("shows Match badge when matchStatus is match", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={{ ...nullDistricts, congressional_district: "5" }}
+          matchStatus="match"
+        />,
+      )
+      expect(screen.getByText("Match")).toBeInTheDocument()
+    })
+
+    it("shows Mismatch badge when matchStatus starts with mismatch", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={{ ...nullDistricts, congressional_district: "5" }}
+          matchStatus="mismatch-minor"
+        />,
+      )
+      expect(screen.getByText("Mismatch")).toBeInTheDocument()
+    })
+
+    it("shows Not Geocoded badge when matchStatus is not-geocoded", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={{ ...nullDistricts, congressional_district: "5" }}
+          matchStatus="not-geocoded"
+        />,
+      )
+      expect(screen.getByText("Not Geocoded")).toBeInTheDocument()
+    })
+
+    it("shows informational message for not-geocoded status", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={{ ...nullDistricts, congressional_district: "5" }}
+          matchStatus="not-geocoded"
+        />,
+      )
+      expect(
+        screen.getByText(
+          "This voter has not been geocoded yet. Geocode the voter to enable district verification.",
+        ),
+      ).toBeInTheDocument()
+    })
+
+    it("shows Unable to Analyze badge for unable-to-analyze status", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={{ ...nullDistricts, congressional_district: "5" }}
+          matchStatus="unable-to-analyze"
+        />,
+      )
+      expect(screen.getByText("Unable to Analyze")).toBeInTheDocument()
+    })
+  })
+
+  describe("checkedAt timestamp", () => {
+    it("shows checked date when checkedAt is provided", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={{ ...nullDistricts, congressional_district: "5" }}
+          checkedAt="2026-02-25T10:30:00Z"
+        />,
+      )
+      expect(screen.getByText(/Checked/)).toBeInTheDocument()
+    })
+
+    it("does not show checked date when checkedAt is not provided", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={{ ...nullDistricts, congressional_district: "5" }}
+        />,
+      )
+      expect(screen.queryByText(/Checked/)).not.toBeInTheDocument()
+    })
+  })
 })

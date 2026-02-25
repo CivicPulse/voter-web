@@ -5,6 +5,9 @@ import {
   getVoterFilters,
   triggerVoterGeocode,
   deleteGeocodedLocation,
+  getDistrictCheck,
+  setOfficialLocation,
+  clearOfficialLocationOverride,
 } from "@/api/voters"
 import {
   mockVoterSearchResponse,
@@ -16,12 +19,14 @@ import type { VoterSearchResponse } from "@/types/voter"
 const mockJson = vi.fn()
 const mockGet = vi.fn(() => ({ json: mockJson }))
 const mockPost = vi.fn(() => Promise.resolve())
+const mockPut = vi.fn(() => ({ json: mockJson }))
 const mockDelete = vi.fn(() => Promise.resolve())
 
 vi.mock("@/api/client", () => ({
   api: {
     get: (...args: unknown[]) => mockGet(...args),
     post: (...args: unknown[]) => mockPost(...args),
+    put: (...args: unknown[]) => mockPut(...args),
     delete: (...args: unknown[]) => mockDelete(...args),
   },
 }))
@@ -40,6 +45,7 @@ function toRawSearchResponse(response: VoterSearchResponse) {
       county: v.county,
       status: v.status,
       registration_date: v.registration_date,
+      has_district_mismatch: v.has_district_mismatch,
     })),
     pages: response.total_pages,
     total: response.total,
@@ -204,6 +210,7 @@ describe("getVoterDetail", () => {
       school_board_district: "6",
       city_council_district: null,
       municipal_school_board_district: null,
+      official_location: null,
     })
   })
 })
@@ -296,6 +303,94 @@ describe("deleteGeocodedLocation", () => {
 
     expect(mockDelete).toHaveBeenCalledWith(
       "voters/v-001/geocoded-locations/loc-001",
+    )
+  })
+})
+
+describe("searchVoters with has_district_mismatch", () => {
+  it("passes has_district_mismatch=true as string", async () => {
+    const expected = mockVoterSearchResponse()
+    mockJson.mockResolvedValue(toRawSearchResponse(expected))
+
+    await searchVoters({ has_district_mismatch: "true" })
+
+    expect(mockGet).toHaveBeenCalledWith("voters", {
+      searchParams: { has_district_mismatch: "true" },
+    })
+  })
+
+  it("passes has_district_mismatch=false as string", async () => {
+    const expected = mockVoterSearchResponse()
+    mockJson.mockResolvedValue(toRawSearchResponse(expected))
+
+    await searchVoters({ has_district_mismatch: "false" })
+
+    expect(mockGet).toHaveBeenCalledWith("voters", {
+      searchParams: { has_district_mismatch: "false" },
+    })
+  })
+
+  it("omits has_district_mismatch when undefined", async () => {
+    const expected = mockVoterSearchResponse()
+    mockJson.mockResolvedValue(toRawSearchResponse(expected))
+
+    await searchVoters({})
+
+    expect(mockGet).toHaveBeenCalledWith("voters", {
+      searchParams: {},
+    })
+  })
+})
+
+describe("getDistrictCheck", () => {
+  it("calls GET /voters/{voterId}/district-check", async () => {
+    const mockResponse = {
+      voter_id: "v-001",
+      match_status: "match",
+      geocoded_point: { latitude: 32.84, longitude: -83.63 },
+      registered_boundaries: {},
+      determined_boundaries: {},
+      comparisons: [],
+      mismatch_count: 0,
+      checked_at: "2026-02-25T10:00:00Z",
+    }
+    mockJson.mockResolvedValue(mockResponse)
+
+    const result = await getDistrictCheck("v-001")
+
+    expect(mockGet).toHaveBeenCalledWith("voters/v-001/district-check")
+    expect(result).toEqual(mockResponse)
+  })
+})
+
+describe("setOfficialLocation", () => {
+  it("calls PUT /voters/{voterId}/official-location with request body", async () => {
+    const mockResponse = {
+      latitude: 32.84,
+      longitude: -83.63,
+      source: "admin_override",
+      is_override: true,
+    }
+    mockJson.mockResolvedValue(mockResponse)
+
+    const result = await setOfficialLocation("v-001", {
+      latitude: 32.84,
+      longitude: -83.63,
+    })
+
+    expect(mockPut).toHaveBeenCalledWith("voters/v-001/official-location", {
+      json: { latitude: 32.84, longitude: -83.63 },
+    })
+    expect(result).toEqual(mockResponse)
+  })
+})
+
+describe("clearOfficialLocationOverride", () => {
+  it("calls DELETE /voters/{voterId}/official-location/override", async () => {
+    await clearOfficialLocationOverride("v-001")
+
+    expect(mockDelete).toHaveBeenCalledWith(
+      "voters/v-001/official-location/override",
     )
   })
 })

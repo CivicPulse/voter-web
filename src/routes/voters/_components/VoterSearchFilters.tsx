@@ -148,6 +148,27 @@ export function VoterSearchFilters({ params }: Readonly<VoterSearchFiltersProps>
         </Select>
 
         <Select
+          value={params.has_district_mismatch ?? "all"}
+          onValueChange={(v) =>
+            updateFilter({
+              has_district_mismatch:
+                v === "all"
+                  ? undefined
+                  : (v as "true" | "false"),
+            })
+          }
+        >
+          <SelectTrigger className="w-[160px]" aria-label="Filter by district check">
+            <SelectValue placeholder="District Check" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Districts</SelectItem>
+            <SelectItem value="true">Mismatch Only</SelectItem>
+            <SelectItem value="false">No Mismatch</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
           value={params.congressional_district ?? "all"}
           onValueChange={(v) =>
             updateFilter({

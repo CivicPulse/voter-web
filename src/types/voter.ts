@@ -6,6 +6,7 @@ export interface VoterSummary {
   voter_id: string
   registration_date: string | null
   status: string
+  has_district_mismatch: boolean | null
 }
 
 export interface RegisteredDistricts {
@@ -23,6 +24,36 @@ export interface RegisteredDistricts {
   municipal_school_board_district: string | null
 }
 
+export interface OfficialLocation {
+  latitude: number
+  longitude: number
+  source: string
+  is_override: boolean
+}
+
+export interface DistrictCheckComparison {
+  boundary_type: string
+  registered_value: string | null
+  determined_value: string | null
+  status: "match" | "mismatch" | "registered-only" | "determined-only"
+}
+
+export interface DistrictCheckResponse {
+  voter_id: string
+  match_status: string
+  geocoded_point: { latitude: number; longitude: number } | null
+  registered_boundaries: Record<string, string | null>
+  determined_boundaries: Record<string, string | null>
+  comparisons: DistrictCheckComparison[]
+  mismatch_count: number
+  checked_at: string
+}
+
+export interface OfficialLocationRequest {
+  latitude: number
+  longitude: number
+}
+
 export interface VoterDetail extends RegisteredDistricts {
   id: string
   first_name: string
@@ -38,6 +69,7 @@ export interface VoterDetail extends RegisteredDistricts {
   city: string
   state: string
   zip_code: string
+  official_location: OfficialLocation | null
 }
 
 export interface VoterSearchResponse {
@@ -79,6 +111,7 @@ export interface VoterSearchParams {
   county_precinct?: string
   county_commission_district?: string
   school_board_district?: string
+  has_district_mismatch?: "true" | "false"
   sort_by?: "name" | "county" | "registration_date" | "voter_id"
   sort_order?: "asc" | "desc"
   page?: number

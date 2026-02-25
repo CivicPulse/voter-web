@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router"
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Users } from "lucide-react"
+import { AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, CheckCircle2, ChevronLeft, ChevronRight, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Table,
@@ -137,6 +137,7 @@ export function VoterTable({ data, params }: Readonly<VoterTableProps>) {
               </button>
             </TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Districts</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -173,6 +174,9 @@ export function VoterTable({ data, params }: Readonly<VoterTableProps>) {
                   {voter.status}
                 </Badge>
               </TableCell>
+              <TableCell>
+                <DistrictMismatchIndicator value={voter.has_district_mismatch} />
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -205,4 +209,23 @@ export function VoterTable({ data, params }: Readonly<VoterTableProps>) {
       )}
     </div>
   )
+}
+
+function DistrictMismatchIndicator({
+  value,
+}: {
+  value: boolean | null
+}) {
+  if (value === true) {
+    return (
+      <span className="flex items-center gap-1 text-amber-600 text-sm">
+        <AlertTriangle className="h-4 w-4" />
+        Mismatch
+      </span>
+    )
+  }
+  if (value === false) {
+    return <CheckCircle2 className="h-4 w-4 text-green-600" />
+  }
+  return <span className="text-muted-foreground">—</span>
 }

@@ -19,6 +19,10 @@ const voterSearchSchema = z.object({
   county_precinct: z.string().optional().catch(undefined),
   county_commission_district: z.string().optional().catch(undefined),
   school_board_district: z.string().optional().catch(undefined),
+  has_district_mismatch: z
+    .enum(["true", "false"])
+    .optional()
+    .catch(undefined),
   sort_by: z
     .enum(["name", "county", "registration_date", "voter_id"])
     .optional()

@@ -141,4 +141,16 @@ describe("VoterSearchFilters", () => {
 
     expect(screen.queryByText("BIBB districts:")).not.toBeInTheDocument()
   })
+
+  it("renders district check filter dropdown", () => {
+    render(<VoterSearchFilters params={{}} />)
+
+    expect(screen.getByLabelText("Filter by district check")).toBeInTheDocument()
+  })
+
+  it("shows default district check filter value", () => {
+    render(<VoterSearchFilters params={{}} />)
+
+    expect(screen.getByText("All Districts")).toBeInTheDocument()
+  })
 })

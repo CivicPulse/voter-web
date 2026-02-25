@@ -33,7 +33,7 @@ const LOW_CONFIDENCE_THRESHOLD = 0.7
  * Maps point-lookup boundary_type values to RegisteredDistricts keys.
  * boundary_types that have no corresponding voter registration field are omitted.
  */
-const BOUNDARY_TYPE_TO_REGISTERED_KEY: Record<string, keyof RegisteredDistricts> = {
+export const BOUNDARY_TYPE_TO_REGISTERED_KEY: Record<string, keyof RegisteredDistricts> = {
   congressional: "congressional_district",
   congressional_district: "congressional_district",
   state_senate: "state_senate_district",
@@ -46,7 +46,7 @@ const BOUNDARY_TYPE_TO_REGISTERED_KEY: Record<string, keyof RegisteredDistricts>
   precinct: "county_precinct",
 }
 
-const REGISTERED_KEY_LABELS: Record<keyof RegisteredDistricts, string> = {
+export const REGISTERED_KEY_LABELS: Record<keyof RegisteredDistricts, string> = {
   congressional_district: "Congressional",
   state_senate_district: "State Senate",
   state_house_district: "State House",
@@ -87,6 +87,7 @@ function extractGeographicValue(district: LookupDistrict): string | null {
 
 /**
  * Compare a voter's registered districts against geographic point-lookup results.
+ * @deprecated Replaced by server-side district-check endpoint
  */
 export function compareDistricts(
   registered: RegisteredDistricts,

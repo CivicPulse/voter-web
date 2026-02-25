@@ -6,6 +6,9 @@ import type {
   VoterFilterOptions,
   VoterSearchParams,
   RegisteredDistricts,
+  DistrictCheckResponse,
+  OfficialLocationRequest,
+  OfficialLocation,
 } from "@/types/voter"
 
 /** Raw summary item returned by GET /voters (search results) */
@@ -17,6 +20,7 @@ interface RawVoterSummary {
   county: string
   status: string
   registration_date?: string | null
+  has_district_mismatch?: boolean | null
 }
 
 /** Raw paginated response shape returned by the backend */
@@ -62,6 +66,12 @@ interface RawVoterDetail {
   county: string
   residence_address: AddressResponse
   registered_districts?: RegisteredDistricts | null
+  official_location?: {
+    latitude: number
+    longitude: number
+    source: string
+    is_override: boolean
+  } | null
 }
 
 export async function searchVoters(
@@ -84,6 +94,8 @@ export async function searchVoters(
       params.county_commission_district
   if (params.school_board_district)
     searchParams.school_board_district = params.school_board_district
+  if (params.has_district_mismatch)
+    searchParams.has_district_mismatch = params.has_district_mismatch
   if (params.sort_by) searchParams.sort_by = params.sort_by
   if (params.sort_order) searchParams.sort_order = params.sort_order
   if (params.page) searchParams.page = String(params.page)
@@ -104,6 +116,7 @@ export async function searchVoters(
         county: item.county,
         status: item.status,
         registration_date: item.registration_date ?? null,
+        has_district_mismatch: item.has_district_mismatch ?? null,
       }),
     ),
     total: pg?.total ?? raw.total ?? 0,
@@ -148,6 +161,14 @@ export async function getVoterDetail(
     city_council_district: dist?.city_council_district ?? null,
     municipal_school_board_district:
       dist?.municipal_school_board_district ?? null,
+    official_location: raw.official_location
+      ? {
+          latitude: raw.official_location.latitude,
+          longitude: raw.official_location.longitude,
+          source: raw.official_location.source,
+          is_override: raw.official_location.is_override,
+        }
+      : null,
   }
 }
 
@@ -220,4 +241,25 @@ export async function deleteGeocodedLocation(
   locationId: string,
 ): Promise<void> {
   await api.delete(`voters/${voterId}/geocoded-locations/${locationId}`)
+}
+
+export async function getDistrictCheck(
+  voterId: string,
+): Promise<DistrictCheckResponse> {
+  return api.get(`voters/${voterId}/district-check`).json<DistrictCheckResponse>()
+}
+
+export async function setOfficialLocation(
+  voterId: string,
+  request: OfficialLocationRequest,
+): Promise<OfficialLocation> {
+  return api
+    .put(`voters/${voterId}/official-location`, { json: request })
+    .json<OfficialLocation>()
+}
+
+export async function clearOfficialLocationOverride(
+  voterId: string,
+): Promise<void> {
+  await api.delete(`voters/${voterId}/official-location/override`)
 }
