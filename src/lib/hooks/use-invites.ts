@@ -7,12 +7,11 @@ import {
   acceptInvite,
 } from "@/lib/api/admin"
 import type { InviteCreateRequest, InviteAcceptRequest } from "@/types/admin"
-import {
-  AuthenticationError,
-  PermissionError,
-  NetworkError,
-} from "@/types/admin"
 import { toast } from "sonner"
+import {
+  handleAdminMutationError,
+  createAdminQueryRetry,
+} from "@/lib/hooks/admin-error-handlers"
 
 /**
  * Hook to fetch and cache the list of all invites
@@ -23,30 +22,7 @@ export function useInvites() {
     queryKey: ["admin", "invites"],
     queryFn: getInvites,
     staleTime: 30 * 1000, // Cache for 30 seconds
-    retry: (failureCount, error) => {
-      // Don't retry auth/permission errors
-      if (
-        error instanceof AuthenticationError ||
-        error instanceof PermissionError
-      ) {
-        if (error instanceof AuthenticationError) {
-          toast.error("Session expired", { description: error.message })
-        } else {
-          toast.error("Access denied", { description: error.message })
-        }
-        return false
-      }
-
-      // Handle network errors
-      if (error instanceof NetworkError) {
-        toast.warning("Connection issue", {
-          description: "Having trouble loading invites. Please try again.",
-        })
-        return failureCount < 1
-      }
-
-      return failureCount < 1
-    },
+    retry: createAdminQueryRetry("invites"),
   })
 }
 
@@ -67,18 +43,7 @@ export function useCreateInvite() {
         description: "The invitation has been sent successfully.",
       })
     },
-    onError: (error: Error) => {
-      if (error instanceof AuthenticationError) {
-        toast.error("Session expired", { description: error.message })
-      } else if (error instanceof PermissionError) {
-        toast.error("Access denied", { description: error.message })
-      } else {
-        toast.error("Failed to send invite", {
-          description:
-            error.message || "An error occurred while sending the invite.",
-        })
-      }
-    },
+    onError: handleAdminMutationError("send invite"),
   })
 }
 
@@ -99,18 +64,7 @@ export function useCancelInvite() {
         description: "The invitation has been cancelled.",
       })
     },
-    onError: (error: Error) => {
-      if (error instanceof AuthenticationError) {
-        toast.error("Session expired", { description: error.message })
-      } else if (error instanceof PermissionError) {
-        toast.error("Access denied", { description: error.message })
-      } else {
-        toast.error("Failed to cancel invite", {
-          description:
-            error.message || "An error occurred while cancelling the invite.",
-        })
-      }
-    },
+    onError: handleAdminMutationError("cancel invite"),
   })
 }
 
@@ -131,18 +85,7 @@ export function useResendInvite() {
         description: "The invitation has been resent successfully.",
       })
     },
-    onError: (error: Error) => {
-      if (error instanceof AuthenticationError) {
-        toast.error("Session expired", { description: error.message })
-      } else if (error instanceof PermissionError) {
-        toast.error("Access denied", { description: error.message })
-      } else {
-        toast.error("Failed to resend invite", {
-          description:
-            error.message || "An error occurred while resending the invite.",
-        })
-      }
-    },
+    onError: handleAdminMutationError("resend invite"),
   })
 }
 
