@@ -3,6 +3,7 @@ import { screen } from "@testing-library/react"
 import { render } from "@/test/render"
 import { DistrictAssignmentsCard } from "@/routes/voters/_components/DistrictAssignmentsCard"
 import { mockNullDistricts } from "@/test/mocks/voters"
+import type { DistrictVerificationResult } from "@/lib/district-comparison"
 
 const nullDistricts = mockNullDistricts()
 
@@ -123,5 +124,64 @@ describe("DistrictAssignmentsCard", () => {
     expect(screen.getByText("Municipal Precinct")).toBeInTheDocument()
     expect(screen.getByText("003")).toBeInTheDocument()
     expect(screen.getByText("MUNICIPAL 3")).toBeInTheDocument()
+  })
+
+  describe("verification badge", () => {
+    it('shows "All verified" when all checkable districts match', () => {
+      const verification: DistrictVerificationResult = {
+        comparisons: [
+          { registeredKey: "congressional_district", label: "Congressional", registeredValue: "5", geographicValue: "5", status: "match" },
+          { registeredKey: "state_senate_district", label: "State Senate", registeredValue: "18", geographicValue: "18", status: "match" },
+        ],
+        matchCount: 2,
+        mismatchCount: 0,
+        lowConfidence: false,
+      }
+      render(
+        <DistrictAssignmentsCard
+          districts={{ ...nullDistricts, congressional_district: "5", state_senate_district: "18" }}
+          verification={verification}
+        />,
+      )
+      expect(screen.getByText("All verified")).toBeInTheDocument()
+    })
+
+    it('shows "X/Y verified" when some districts lack geographic data', () => {
+      const verification: DistrictVerificationResult = {
+        comparisons: [
+          { registeredKey: "congressional_district", label: "Congressional", registeredValue: "5", geographicValue: "5", status: "match" },
+          { registeredKey: "state_senate_district", label: "State Senate", registeredValue: "18", geographicValue: null, status: "no_geographic_data" },
+          { registeredKey: "state_house_district", label: "State House", registeredValue: "145", geographicValue: null, status: "no_geographic_data" },
+        ],
+        matchCount: 1,
+        mismatchCount: 0,
+        lowConfidence: false,
+      }
+      render(
+        <DistrictAssignmentsCard
+          districts={{ ...nullDistricts, congressional_district: "5", state_senate_district: "18", state_house_district: "145" }}
+          verification={verification}
+        />,
+      )
+      expect(screen.getByText("1/3 verified")).toBeInTheDocument()
+    })
+
+    it("shows mismatch count when mismatches exist", () => {
+      const verification: DistrictVerificationResult = {
+        comparisons: [
+          { registeredKey: "congressional_district", label: "Congressional", registeredValue: "5", geographicValue: "8", status: "mismatch" },
+        ],
+        matchCount: 0,
+        mismatchCount: 1,
+        lowConfidence: false,
+      }
+      render(
+        <DistrictAssignmentsCard
+          districts={{ ...nullDistricts, congressional_district: "5" }}
+          verification={verification}
+        />,
+      )
+      expect(screen.getByText("1 mismatch")).toBeInTheDocument()
+    })
   })
 })

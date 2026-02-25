@@ -147,10 +147,16 @@ function VerificationStatusBadge({
   }
 
   if (verification.matchCount > 0) {
+    const totalCheckable = verification.comparisons.filter(
+      (c) => c.status !== "no_registered_data",
+    ).length
+    const allVerified = verification.matchCount === totalCheckable
     return (
       <Badge variant="outline" className="text-green-600 border-green-300 gap-1">
         <CheckCircle2 className="h-3 w-3" />
-        All verified
+        {allVerified
+          ? "All verified"
+          : `${verification.matchCount}/${totalCheckable} verified`}
       </Badge>
     )
   }
