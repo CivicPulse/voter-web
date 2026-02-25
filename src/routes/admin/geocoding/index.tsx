@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ChevronLeft, ChevronRight, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -30,15 +30,38 @@ function GeocodingPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [providerFilter, setProviderFilter] = useState("all")
   const [countyFilter, setCountyFilter] = useState("")
+  const [debouncedCounty, setDebouncedCounty] = useState("")
   const [page, setPage] = useState(1)
+  const countyTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+
+  useEffect(() => {
+    countyTimerRef.current = setTimeout(
+      () => setDebouncedCounty(countyFilter),
+      300,
+    )
+    return () => clearTimeout(countyTimerRef.current)
+  }, [countyFilter])
 
   const filters = {
     job_status: statusFilter !== "all" ? statusFilter : undefined,
     provider: providerFilter !== "all" ? providerFilter : undefined,
-    county: countyFilter.trim() || undefined,
+    county: debouncedCounty.trim() || undefined,
     page,
     page_size: 20,
   }
+
+  // Separate unfiltered query to reliably detect active jobs regardless of
+  // table filters or pagination. Drives the progress card and button state.
+  const { data: activeJobsData } = useGeocodingJobs({
+    job_status: "running",
+    page: 1,
+    page_size: 1,
+  })
+  const { data: pendingJobsData } = useGeocodingJobs({
+    job_status: "pending",
+    page: 1,
+    page_size: 1,
+  })
 
   const {
     data: jobsData,
@@ -58,7 +81,9 @@ function GeocodingPage() {
 
   const jobs = jobsData?.items ?? []
   const pagination = jobsData?.pagination
-  const activeJob = jobs.find(isActiveGeocodingJob)
+  const activeJob =
+    (activeJobsData?.items ?? []).find(isActiveGeocodingJob) ??
+    (pendingJobsData?.items ?? []).find(isActiveGeocodingJob)
   const hasActiveJobs = activeJob !== undefined
 
   const handleStatusChange = (value: string) => {
@@ -73,6 +98,14 @@ function GeocodingPage() {
 
   const handleCountyChange = (value: string) => {
     setCountyFilter(value)
+    setPage(1)
+  }
+
+  const handleJobStarted = () => {
+    setStatusFilter("all")
+    setProviderFilter("all")
+    setCountyFilter("")
+    setDebouncedCounty("")
     setPage(1)
   }
 
@@ -192,7 +225,7 @@ function GeocodingPage() {
       <TriggerGeocodeDialog
         open={showTriggerDialog}
         onOpenChange={setShowTriggerDialog}
-        onJobStarted={() => {}}
+        onJobStarted={handleJobStarted}
         providers={providersData?.providers}
       />
     </div>

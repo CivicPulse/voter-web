@@ -27,7 +27,9 @@ export function GeocodingJobFilters({
   onProviderChange,
   onCountyChange,
 }: GeocodingJobFiltersProps) {
-  const uniqueProviders = providers?.map((p) => p.name) ?? []
+  const uniqueProviders = Array.from(
+    new Set(providers?.map((p) => p.name) ?? []),
+  ).sort()
 
   return (
     <div className="flex items-center gap-3">
