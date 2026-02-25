@@ -2,7 +2,6 @@ import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getDistrictCheck } from "@/api/voters"
 import type { DistrictCheckResponse, DistrictCheckComparison } from "@/types/voter"
-import type { RegisteredDistricts } from "@/types/voter"
 import type {
   DistrictVerificationResult,
   DistrictComparisonResult,
@@ -28,6 +27,8 @@ function mapComparisonStatus(
       return "no_geographic_data"
     case "determined-only":
       return "no_registered_data"
+    default:
+      throw new Error(`Unknown comparison status: ${apiStatus}`)
   }
 }
 
@@ -38,11 +39,18 @@ function mapComparisonStatus(
 export function adaptDistrictCheck(
   response: DistrictCheckResponse,
 ): DistrictVerificationResult {
-  const comparisons: DistrictComparisonResult[] = response.comparisons.map(
-    (c) => {
-      const registeredKey =
-        BOUNDARY_TYPE_TO_REGISTERED_KEY[c.boundary_type] ??
-        ("congressional_district" as keyof RegisteredDistricts)
+  const comparisons: DistrictComparisonResult[] = response.comparisons
+    .filter((c) => {
+      if (!(c.boundary_type in BOUNDARY_TYPE_TO_REGISTERED_KEY)) {
+        console.warn(
+          `Unknown boundary_type "${c.boundary_type}" in district check — skipping`,
+        )
+        return false
+      }
+      return true
+    })
+    .map((c) => {
+      const registeredKey = BOUNDARY_TYPE_TO_REGISTERED_KEY[c.boundary_type]
       const label = REGISTERED_KEY_LABELS[registeredKey] ?? c.boundary_type
 
       return {
@@ -52,8 +60,7 @@ export function adaptDistrictCheck(
         geographicValue: c.determined_value,
         status: mapComparisonStatus(c.status),
       }
-    },
-  )
+    })
 
   const mismatchCount = comparisons.filter((c) => c.status === "mismatch").length
   const matchCount = comparisons.filter((c) => c.status === "match").length

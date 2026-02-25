@@ -319,6 +319,17 @@ describe("searchVoters with has_district_mismatch", () => {
     })
   })
 
+  it("passes has_district_mismatch=false as string", async () => {
+    const expected = mockVoterSearchResponse()
+    mockJson.mockResolvedValue(toRawSearchResponse(expected))
+
+    await searchVoters({ has_district_mismatch: "false" })
+
+    expect(mockGet).toHaveBeenCalledWith("voters", {
+      searchParams: { has_district_mismatch: "false" },
+    })
+  })
+
   it("omits has_district_mismatch when undefined", async () => {
     const expected = mockVoterSearchResponse()
     mockJson.mockResolvedValue(toRawSearchResponse(expected))

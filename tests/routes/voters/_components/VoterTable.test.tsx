@@ -183,6 +183,12 @@ describe("VoterTable", () => {
       render(<VoterTable data={data} params={{}} />)
 
       expect(screen.queryByText("Mismatch")).not.toBeInTheDocument()
+      // Verify the CheckCircle2 icon is rendered (lucide-react renders SVGs)
+      const cells = screen.getAllByRole("cell")
+      const districtCell = cells[cells.length - 1]
+      const svg = districtCell.querySelector("svg")
+      expect(svg).toBeInTheDocument()
+      expect(svg).toHaveClass("text-green-600")
     })
 
     it("shows dash for voters not yet analyzed", () => {

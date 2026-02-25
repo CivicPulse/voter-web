@@ -151,6 +151,6 @@ describe("VoterSearchFilters", () => {
   it("shows default district check filter value", () => {
     render(<VoterSearchFilters params={{}} />)
 
-    expect(screen.getByText("All District")).toBeInTheDocument()
+    expect(screen.getByText("All Districts")).toBeInTheDocument()
   })
 })

@@ -162,7 +162,7 @@ export function VoterSearchFilters({ params }: Readonly<VoterSearchFiltersProps>
             <SelectValue placeholder="District Check" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All District</SelectItem>
+            <SelectItem value="all">All Districts</SelectItem>
             <SelectItem value="true">Mismatch Only</SelectItem>
             <SelectItem value="false">No Mismatch</SelectItem>
           </SelectContent>
