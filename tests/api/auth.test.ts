@@ -30,6 +30,9 @@ beforeEach(() => {
 })
 
 describe("login", () => {
+  const testUsername = crypto.randomUUID()
+  const testPassword = crypto.randomUUID()
+
   const mockTokens: TokenResponse = {
     access_token: "access-123",
     refresh_token: "refresh-456",
@@ -40,10 +43,10 @@ describe("login", () => {
   it("sends credentials as JSON body via POST", async () => {
     mockJson.mockResolvedValue(mockTokens)
 
-    const result = await login({ username: "admin", password: "secret" })
+    const result = await login({ username: testUsername, password: testPassword })
 
     expect(mockPost).toHaveBeenCalledWith("auth/login", {
-      json: { username: "admin", password: "secret" },
+      json: { username: testUsername, password: testPassword },
     })
     expect(result).toEqual(mockTokens)
   })
@@ -51,7 +54,7 @@ describe("login", () => {
   it("does not send form-urlencoded content type", async () => {
     mockJson.mockResolvedValue(mockTokens)
 
-    await login({ username: "admin", password: "secret" })
+    await login({ username: testUsername, password: testPassword })
 
     const callArgs = mockPost.mock.calls[0]
     const options = callArgs[1] as Record<string, unknown>
