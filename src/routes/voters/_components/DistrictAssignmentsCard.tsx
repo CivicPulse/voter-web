@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import {
   MapPinned,
   CheckCircle2,
@@ -18,7 +19,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import type { RegisteredDistricts } from "@/types/voter"
-import type { DistrictVerificationResult } from "@/lib/district-comparison"
+import type {
+  DistrictComparisonResult,
+  DistrictVerificationResult,
+} from "@/lib/district-comparison"
 
 const DISTRICT_FIELDS: {
   key: keyof RegisteredDistricts
@@ -66,8 +70,9 @@ export function DistrictAssignmentsCard({
   }))
 
   // Build lookup from registeredKey → comparison result
-  const comparisonMap = new Map(
-    verification?.comparisons.map((c) => [c.registeredKey, c]) ?? [],
+  const comparisonMap = useMemo(
+    () => new Map(verification?.comparisons.map((c) => [c.registeredKey, c]) ?? []),
+    [verification],
   )
 
   return (
@@ -156,7 +161,7 @@ function VerificationStatusBadge({
 function ComparisonIndicator({
   comparison,
 }: {
-  comparison?: ReturnType<typeof Map.prototype.get>
+  comparison?: DistrictComparisonResult
 }) {
   if (!comparison) return null
 
@@ -165,7 +170,13 @@ function ComparisonIndicator({
       return (
         <Tooltip>
           <TooltipTrigger asChild>
-            <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+            <button
+              type="button"
+              className="inline-flex items-center"
+              aria-label="Matches geographic district"
+            >
+              <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" aria-hidden />
+            </button>
           </TooltipTrigger>
           <TooltipContent>
             Matches geographic district
@@ -178,7 +189,13 @@ function ComparisonIndicator({
         <span className="flex items-center gap-1.5">
           <Tooltip>
             <TooltipTrigger asChild>
-              <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+              <button
+                type="button"
+                className="inline-flex items-center"
+                aria-label="Registered district mismatch"
+              >
+                <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" aria-hidden />
+              </button>
             </TooltipTrigger>
             <TooltipContent>
               Registered district does not match the geographic district at this
@@ -195,7 +212,13 @@ function ComparisonIndicator({
       return (
         <Tooltip>
           <TooltipTrigger asChild>
-            <Info className="h-4 w-4 text-muted-foreground shrink-0" />
+            <button
+              type="button"
+              className="inline-flex items-center"
+              aria-label="No geographic data available"
+            >
+              <Info className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden />
+            </button>
           </TooltipTrigger>
           <TooltipContent>
             No geographic boundary data available for verification

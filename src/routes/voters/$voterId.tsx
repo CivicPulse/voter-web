@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useVoterDetail } from "@/hooks/useVoters"
-import type { RegisteredDistricts } from "@/types/voter"
 import { useVoterGeocodedLocations } from "@/hooks/useAddressLookup"
 import { VoterRegistrationCard } from "@/routes/voters/_components/VoterRegistrationCard"
 import { GeocodedLocationsCard } from "@/routes/voters/_components/GeocodedLocationsCard"
@@ -20,7 +19,7 @@ function VoterDetailPage() {
   const { data: voter, isLoading, error } = useVoterDetail(voterId)
   const { data: locations } = useVoterGeocodedLocations(voterId)
   const { verification, isLoading: verificationLoading } = useDistrictVerification({
-    districts: voter ?? {} as RegisteredDistricts,
+    districts: voter,
     locations,
   })
 

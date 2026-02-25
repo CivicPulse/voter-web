@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from "vitest"
-import { renderHook, waitFor } from "@testing-library/react"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import type { ReactNode } from "react"
+import { waitFor } from "@testing-library/react"
+import { renderHook } from "@/test/render"
 import { useDistrictVerification } from "@/hooks/useDistrictVerification"
 import type { RegisteredDistricts } from "@/types/voter"
 import type { VoterGeocodedLocation, PointLookupResponse } from "@/types/lookup"
@@ -51,15 +50,6 @@ function makePrimaryLocation(
   }
 }
 
-function createWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
-  return ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  )
-}
-
 describe("useDistrictVerification", () => {
   it("returns null verification when no locations", () => {
     const { result } = renderHook(
@@ -68,7 +58,6 @@ describe("useDistrictVerification", () => {
           districts: makeRegistered({ congressional_district: "2" }),
           locations: undefined,
         }),
-      { wrapper: createWrapper() },
     )
 
     expect(result.current.verification).toBeNull()
@@ -84,7 +73,6 @@ describe("useDistrictVerification", () => {
           districts: makeRegistered({ congressional_district: "2" }),
           locations: [nonPrimary],
         }),
-      { wrapper: createWrapper() },
     )
 
     expect(result.current.verification).toBeNull()
@@ -114,7 +102,6 @@ describe("useDistrictVerification", () => {
           districts: makeRegistered({ congressional_district: "2" }),
           locations: [makePrimaryLocation()],
         }),
-      { wrapper: createWrapper() },
     )
 
     await waitFor(() => {
@@ -149,7 +136,6 @@ describe("useDistrictVerification", () => {
           districts: makeRegistered({ county_commission_district: "3" }),
           locations: [makePrimaryLocation()],
         }),
-      { wrapper: createWrapper() },
     )
 
     await waitFor(() => {

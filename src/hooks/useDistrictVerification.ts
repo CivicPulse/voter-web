@@ -6,7 +6,7 @@ import { compareDistricts } from "@/lib/district-comparison"
 import type { DistrictVerificationResult } from "@/lib/district-comparison"
 
 interface UseDistrictVerificationParams {
-  districts: RegisteredDistricts
+  districts: RegisteredDistricts | undefined
   locations: VoterGeocodedLocation[] | undefined
 }
 
@@ -35,7 +35,7 @@ export function useDistrictVerification({
     usePointLookup(lookupParams)
 
   const verification: DistrictVerificationResult | null = useMemo(() => {
-    if (!pointLookupData || !primaryLocation) return null
+    if (!districts || !pointLookupData || !primaryLocation) return null
     return compareDistricts(
       districts,
       pointLookupData,

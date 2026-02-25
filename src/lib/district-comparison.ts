@@ -116,7 +116,7 @@ export function compareDistricts(
     const geographicValue = geoMap.get(key) ?? null
     const label = REGISTERED_KEY_LABELS[key] ?? key
 
-    if (registeredValue === null) {
+    if (registeredValue == null) {
       // No registered value — skip unless we have geographic data
       if (geographicValue !== null) {
         comparisons.push({

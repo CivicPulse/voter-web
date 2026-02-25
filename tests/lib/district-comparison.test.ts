@@ -164,10 +164,10 @@ describe("compareDistricts", () => {
 
     const result = compareDistricts(registered, lookup, 0.90)
 
-    // No comparisons should reference county or psc types
-    const keys = result.comparisons.map((c) => c.registeredKey)
-    expect(keys).not.toContain("county")
-    expect(keys).not.toContain("psc")
+    // Only congressional should appear — county and psc are skipped
+    expect(result.comparisons).toHaveLength(1)
+    expect(result.comparisons[0]?.registeredKey).toBe("congressional_district")
+    expect(result.matchCount).toBe(1)
   })
 
   it("flags low confidence when score is below threshold", () => {
