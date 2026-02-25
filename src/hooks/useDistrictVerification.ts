@@ -10,6 +10,7 @@ interface UseDistrictVerificationParams {
   locations: VoterGeocodedLocation[] | undefined
 }
 
+/** @deprecated Use useDistrictCheck instead */
 export function useDistrictVerification({
   districts,
   locations,

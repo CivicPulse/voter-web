@@ -87,6 +87,7 @@ function extractGeographicValue(district: LookupDistrict): string | null {
 
 /**
  * Compare a voter's registered districts against geographic point-lookup results.
+ * @deprecated Replaced by server-side district-check endpoint
  */
 export function compareDistricts(
   registered: RegisteredDistricts,
