@@ -94,8 +94,8 @@ export async function searchVoters(
       params.county_commission_district
   if (params.school_board_district)
     searchParams.school_board_district = params.school_board_district
-  if (params.has_district_mismatch !== undefined)
-    searchParams.has_district_mismatch = String(params.has_district_mismatch)
+  if (params.has_district_mismatch)
+    searchParams.has_district_mismatch = params.has_district_mismatch
   if (params.sort_by) searchParams.sort_by = params.sort_by
   if (params.sort_order) searchParams.sort_order = params.sort_order
   if (params.page) searchParams.page = String(params.page)

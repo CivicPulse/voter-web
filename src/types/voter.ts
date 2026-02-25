@@ -111,7 +111,7 @@ export interface VoterSearchParams {
   county_precinct?: string
   county_commission_district?: string
   school_board_district?: string
-  has_district_mismatch?: boolean
+  has_district_mismatch?: "true" | "false"
   sort_by?: "name" | "county" | "registration_date" | "voter_id"
   sort_order?: "asc" | "desc"
   page?: number
