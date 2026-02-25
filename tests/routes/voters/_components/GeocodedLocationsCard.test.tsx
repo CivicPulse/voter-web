@@ -22,6 +22,14 @@ vi.mock("@/hooks/useVoters", () => ({
     mutate: mockGeocodeMutate,
     isPending: false,
   })),
+  useSetOfficialLocation: vi.fn(() => ({
+    mutate: vi.fn(),
+    isPending: false,
+  })),
+  useClearOfficialLocationOverride: vi.fn(() => ({
+    mutate: vi.fn(),
+    isPending: false,
+  })),
 }))
 
 vi.mock("@/hooks/useAddressLookup", () => ({

@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest"
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { VoterTable } from "@/routes/voters/_components/VoterTable"
-import { mockVoterSearchResponse } from "@/test/mocks/voters"
+import { mockVoterSearchResponse, mockVoterSummary } from "@/test/mocks/voters"
 
 const mockNavigate = vi.fn()
 
@@ -151,5 +151,53 @@ describe("VoterTable", () => {
 
     expect(screen.queryByText("Previous")).not.toBeInTheDocument()
     expect(screen.queryByText("Next")).not.toBeInTheDocument()
+  })
+
+  describe("district mismatch column", () => {
+    it("shows Districts column header", () => {
+      const data = mockVoterSearchResponse()
+      render(<VoterTable data={data} params={{}} />)
+
+      expect(screen.getByText("Districts")).toBeInTheDocument()
+    })
+
+    it("shows mismatch indicator for voters with district mismatch", () => {
+      const data = mockVoterSearchResponse({
+        voters: [
+          mockVoterSummary({ has_district_mismatch: true }),
+        ],
+        total: 1,
+      })
+      render(<VoterTable data={data} params={{}} />)
+
+      expect(screen.getByText("Mismatch")).toBeInTheDocument()
+    })
+
+    it("shows green check for voters with no mismatch", () => {
+      const data = mockVoterSearchResponse({
+        voters: [
+          mockVoterSummary({ has_district_mismatch: false }),
+        ],
+        total: 1,
+      })
+      render(<VoterTable data={data} params={{}} />)
+
+      expect(screen.queryByText("Mismatch")).not.toBeInTheDocument()
+    })
+
+    it("shows dash for voters not yet analyzed", () => {
+      const data = mockVoterSearchResponse({
+        voters: [
+          mockVoterSummary({ has_district_mismatch: null }),
+        ],
+        total: 1,
+      })
+      render(<VoterTable data={data} params={{}} />)
+
+      // The "—" dash is rendered for null values
+      const cells = screen.getAllByRole("cell")
+      const lastCell = cells[cells.length - 1]
+      expect(lastCell.textContent).toBe("—")
+    })
   })
 })
