@@ -104,7 +104,7 @@ export function TriggerAnalysisDialog({
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 No county specified. This will analyze <strong>ALL voters</strong>{" "}
-                across all counties, which may take a while. Click "Run Analysis"
+                across all counties, which may take a while. Click &quot;Run Analysis&quot;
                 again to confirm.
               </AlertDescription>
             </Alert>
