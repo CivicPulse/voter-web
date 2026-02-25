@@ -20,7 +20,7 @@ interface JobProgressCardProps {
 
 export function JobProgressCard({ job }: JobProgressCardProps) {
   const progressPercent =
-    job.total_records > 0
+    job.total_records != null && job.processed != null && job.total_records > 0
       ? Math.round((job.processed / job.total_records) * 100)
       : 0
 
@@ -44,24 +44,24 @@ export function JobProgressCard({ job }: JobProgressCardProps) {
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           <div className="text-muted-foreground">Total Records</div>
           <div className="font-medium">
-            {job.total_records.toLocaleString()}
+            {job.total_records?.toLocaleString() ?? "—"}
           </div>
 
           <div className="text-muted-foreground">Processed</div>
-          <div className="font-medium">{job.processed.toLocaleString()}</div>
+          <div className="font-medium">{job.processed?.toLocaleString() ?? "—"}</div>
 
           <div className="text-muted-foreground">Succeeded</div>
           <div className="font-medium text-green-600">
-            {job.succeeded.toLocaleString()}
+            {job.succeeded?.toLocaleString() ?? "—"}
           </div>
 
           <div className="text-muted-foreground">Failed</div>
           <div className="font-medium text-destructive">
-            {job.failed.toLocaleString()}
+            {job.failed?.toLocaleString() ?? "—"}
           </div>
 
           <div className="text-muted-foreground">Cache Hits</div>
-          <div className="font-medium">{job.cache_hits.toLocaleString()}</div>
+          <div className="font-medium">{job.cache_hits?.toLocaleString() ?? "—"}</div>
         </div>
 
         {isRunning && (
