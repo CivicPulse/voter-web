@@ -6,9 +6,11 @@ import {
   triggerVoterGeocode,
   deleteGeocodedLocation,
   getVoterHistory,
+  setOfficialLocation,
+  clearOfficialLocationOverride,
 } from "@/api/voters"
 import type { VoterFilterParams } from "@/api/voters"
-import type { VoterSearchParams } from "@/types/voter"
+import type { VoterSearchParams, OfficialLocationRequest } from "@/types/voter"
 
 export function useVoterSearch(params: VoterSearchParams) {
   return useQuery({
@@ -73,5 +75,32 @@ export function useVoterHistory(voterRegistrationNumber: string | null) {
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
     retry: 1,
+  })
+}
+
+export function useSetOfficialLocation(voterId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (request: OfficialLocationRequest) =>
+      setOfficialLocation(voterId, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["voters", voterId] })
+      queryClient.invalidateQueries({
+        queryKey: ["voters", voterId, "district-check"],
+      })
+    },
+  })
+}
+
+export function useClearOfficialLocationOverride(voterId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => clearOfficialLocationOverride(voterId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["voters", voterId] })
+      queryClient.invalidateQueries({
+        queryKey: ["voters", voterId, "district-check"],
+      })
+    },
   })
 }
