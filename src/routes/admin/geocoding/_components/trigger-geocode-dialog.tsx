@@ -64,7 +64,7 @@ export function TriggerGeocodeDialog({
           handleOpenChange(false)
         },
         onError: () => {
-          toast.error("Failed to start batch geocoding")
+          // Error is shown via the inline <Alert> when batchMutation.isError is true
         },
       },
     )
@@ -76,6 +76,7 @@ export function TriggerGeocodeDialog({
       setProvider("auto")
       setForceRegeocode(false)
       setShowConfirmation(false)
+      batchMutation.reset()
     }
     onOpenChange(nextOpen)
   }

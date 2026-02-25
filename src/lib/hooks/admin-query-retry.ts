@@ -17,6 +17,7 @@ export function adminQueryRetry(failureCount: number, error: Error): boolean {
   if (error instanceof NetworkError) {
     if (failureCount === 0) {
       toast.warning("Connection issue", {
+        id: "admin-network-connection-issue",
         description:
           "Having trouble connecting. Will keep trying in the background.",
       })

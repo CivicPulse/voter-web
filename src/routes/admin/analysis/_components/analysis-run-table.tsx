@@ -66,7 +66,7 @@ export function AnalysisRunTable({ runs }: AnalysisRunTableProps) {
                 </Badge>
               </TableCell>
               <TableCell className="text-sm">
-                {run.notes?.match(/county:\s*(\S+)/i)?.[1] ?? "All"}
+                {run.notes?.match(/county:\s*([^\n,;]+)/i)?.[1]?.trim() ?? "All"}
               </TableCell>
               <TableCell className="text-right text-sm text-muted-foreground">
                 {formatCount(run.total_voters_analyzed)}

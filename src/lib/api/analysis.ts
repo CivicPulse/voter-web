@@ -7,6 +7,7 @@ import type {
   MatchStatus,
 } from "@/types/analysis"
 
+/** List analysis runs with optional status/pagination filters */
 export async function getAnalysisRuns(params?: {
   status?: string
   page?: number
@@ -22,16 +23,19 @@ export async function getAnalysisRuns(params?: {
     .json<AnalysisRunListResponse>()
 }
 
+/** Get a single analysis run by ID */
 export async function getAnalysisRun(runId: string): Promise<AnalysisRun> {
   return api.get(`analysis/runs/${runId}`).json<AnalysisRun>()
 }
 
+/** Trigger a new district mismatch analysis run */
 export async function triggerAnalysisRun(
   request: TriggerAnalysisRequest
 ): Promise<AnalysisRun> {
   return api.post("analysis/runs", { json: request }).json<AnalysisRun>()
 }
 
+/** Get paginated results for an analysis run with optional filters */
 export async function getAnalysisResults(
   runId: string,
   params?: {

@@ -56,6 +56,7 @@ export function TriggerAnalysisDialog({
       setCounty("")
       setNotes("")
       setShowConfirmation(false)
+      triggerMutation.reset()
     }
     onOpenChange(nextOpen)
   }
