@@ -104,14 +104,14 @@ export function BulkGeocodeButton() {
                   <>
                     <div className="text-muted-foreground">Failed</div>
                     <div className="font-medium text-destructive">
-                      {jobStatus.failed?.toLocaleString()}
+                      {jobStatus.failed?.toLocaleString() ?? "—"}
                     </div>
                   </>
                 )}
                 {(jobStatus.cache_hits ?? 0) > 0 && (
                   <>
                     <div className="text-muted-foreground">Cache Hits</div>
-                    <div className="font-medium">{jobStatus.cache_hits?.toLocaleString()}</div>
+                    <div className="font-medium">{jobStatus.cache_hits?.toLocaleString() ?? "—"}</div>
                   </>
                 )}
               </div>
