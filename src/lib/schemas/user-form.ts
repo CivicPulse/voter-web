@@ -58,3 +58,57 @@ export const editUserSchema = z.object({
  * TypeScript type inferred from the edit user Zod schema
  */
 export type EditUserFormValues = z.infer<typeof editUserSchema>
+
+/**
+ * Zod schema for invite user form
+ *
+ * Validates:
+ * - Email: valid email format
+ * - Role: one of admin, analyst, viewer
+ */
+export const inviteUserSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  role: z.enum(["admin", "analyst", "viewer"], {
+    message: "Please select a valid role",
+  }),
+})
+
+/**
+ * TypeScript type inferred from the invite user Zod schema
+ */
+export type InviteUserFormValues = z.infer<typeof inviteUserSchema>
+
+/**
+ * Zod schema for invite acceptance form
+ *
+ * Validates:
+ * - Username: 3-50 chars, alphanumeric + underscore
+ * - Password: min 8 chars, requires letter + number
+ * - Confirm password: must match password
+ */
+export const acceptInviteSchema = z
+  .object({
+    username: z
+      .string()
+      .min(3, "Username must be at least 3 characters")
+      .max(50, "Username must not exceed 50 characters")
+      .regex(
+        /^[a-zA-Z0-9_]+$/,
+        "Username can only contain letters, numbers, and underscores"
+      ),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Za-z]/, "Password must contain at least one letter")
+      .regex(/[0-9]/, "Password must contain at least one number"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  })
+
+/**
+ * TypeScript type inferred from the accept invite Zod schema
+ */
+export type AcceptInviteFormValues = z.infer<typeof acceptInviteSchema>

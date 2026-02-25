@@ -45,7 +45,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Users, Plus, MoreHorizontal } from "lucide-react"
+import { Users, Plus, MoreHorizontal, Mail } from "lucide-react"
 import type { AdminUser } from "@/types/admin"
 import { AdminErrorBoundary } from "@/components/admin-error-boundary"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -53,6 +53,9 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { editUserSchema, type EditUserFormValues } from "@/lib/schemas/user-form"
+import { useInvites } from "@/lib/hooks/use-invites"
+import { InviteUserDialog } from "./_components/invite-user-dialog"
+import { InviteTable } from "./_components/invite-table"
 
 export const Route = createFileRoute("/admin/users/")({
   component: () => (
@@ -70,6 +73,12 @@ function UserManagementPage() {
 
   const updateUserMutation = useUpdateUser()
   const deleteUserMutation = useDeleteUser()
+
+  const {
+    data: inviteData,
+    isLoading: invitesLoading,
+  } = useInvites()
+  const [showInviteDialog, setShowInviteDialog] = useState(false)
 
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
   const [deletingUser, setDeletingUser] = useState<AdminUser | null>(null)
@@ -186,12 +195,18 @@ function UserManagementPage() {
             Manage user accounts and permissions
           </p>
         </div>
-        <Button asChild>
-          <Link to="/admin/users/create">
-            <Plus className="h-4 w-4 mr-2" />
-            Create User
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowInviteDialog(true)}>
+            <Mail className="h-4 w-4 mr-2" />
+            Invite User
+          </Button>
+          <Button asChild>
+            <Link to="/admin/users/create">
+              <Plus className="h-4 w-4 mr-2" />
+              Create User
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {users.length === 0 ? (
@@ -300,6 +315,44 @@ function UserManagementPage() {
           </Table>
         </div>
       )}
+
+      {/* Pending Invites Section */}
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold">Pending Invites</h2>
+          <p className="text-sm text-muted-foreground">
+            Manage outstanding user invitations
+          </p>
+        </div>
+        {invitesLoading ? (
+          <div className="border rounded-lg p-6">
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <Skeleton className="h-6 w-48" />
+                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-6 w-28" />
+                  <Skeleton className="h-6 w-28" />
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-6 w-8" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : !inviteData?.items.length ? (
+          <div className="border rounded-lg p-6 text-center text-muted-foreground">
+            No pending invites. Click "Invite User" to send an invitation.
+          </div>
+        ) : (
+          <InviteTable invites={inviteData.items} />
+        )}
+      </div>
+
+      {/* Invite User Dialog */}
+      <InviteUserDialog
+        open={showInviteDialog}
+        onOpenChange={setShowInviteDialog}
+      />
 
       {/* Edit User Dialog */}
       <Dialog

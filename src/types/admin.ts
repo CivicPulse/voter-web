@@ -143,6 +143,77 @@ export interface UserListResponse {
 }
 
 // ============================================================================
+// Invite Management Types
+// ============================================================================
+
+/**
+ * Invite record for user invitation management.
+ */
+export interface Invite {
+  /** Unique invite identifier (UUID) */
+  id: string
+  /** Email address the invite was sent to */
+  email: string
+  /** Role assigned to the invited user */
+  role: UserRole
+  /** UUID of the admin who created the invite */
+  invited_by_id: string
+  /** ISO 8601 timestamp when the invite expires */
+  expires_at: string
+  /** ISO 8601 timestamp when the invite was accepted, null if pending */
+  accepted_at: string | null
+  /** ISO 8601 timestamp when the invite was created */
+  created_at: string
+}
+
+/**
+ * Request payload for creating a new invite.
+ */
+export interface InviteCreateRequest {
+  /** Email address to send the invite to */
+  email: string
+  /** Role to assign to the invited user */
+  role: UserRole
+}
+
+/**
+ * Response from invite list endpoint.
+ */
+export interface InviteListResponse {
+  /** Array of invites */
+  items: Invite[]
+  /** Total count of invites */
+  total: number
+  /** Current page number */
+  page: number
+  /** Number of items per page */
+  page_size: number
+}
+
+/**
+ * Request payload for accepting an invite.
+ * Used on the public acceptance page (no auth required).
+ */
+export interface InviteAcceptRequest {
+  /** Invite token from the URL */
+  token: string
+  /** Desired username for the new account */
+  username: string
+  /** Password for the new account */
+  password: string
+}
+
+/**
+ * Response from invite acceptance endpoint.
+ */
+export interface InviteAcceptResponse {
+  /** Success message */
+  message: string
+  /** The created user account */
+  user: AdminUser
+}
+
+// ============================================================================
 // Import Job Types - Discriminated Union by Status
 // ============================================================================
 
