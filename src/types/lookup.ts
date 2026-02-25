@@ -77,15 +77,33 @@ export interface BatchGeocodeJob {
 
 // --- Endpoint 6: Cache Stats ---
 
-export interface CacheStats {
-  [provider: string]: {
-    count: number
-    earliest: string
-    latest: string
-  }
+export interface CacheStatsProvider {
+  provider: string
+  cached_count: number
+  oldest_entry: string
+  newest_entry: string
 }
 
-// --- Endpoints 7–9: Voter Geocoded Locations ---
+export interface CacheStats {
+  providers: CacheStatsProvider[]
+}
+
+// --- Endpoint 7: Geocoding Providers ---
+
+export interface GeocodingProvider {
+  name: string
+  service_type: "individual" | "batch"
+  requires_api_key: boolean
+  is_configured: boolean
+  rate_limit_delay: number
+}
+
+export interface GeocodingProvidersResponse {
+  providers: GeocodingProvider[]
+  fallback_order: string[]
+}
+
+// --- Endpoints 8–10: Voter Geocoded Locations ---
 
 export interface VoterGeocodedLocation {
   id: string

@@ -7,7 +7,7 @@ import { Upload, Loader2 } from "lucide-react"
 import { ImportJobTable } from "./_components/import-job-table"
 import { ImportUploadDialog } from "./_components/import-upload-dialog"
 import { AdminErrorBoundary } from "@/components/admin-error-boundary"
-import { Skeleton } from "@/components/ui/skeleton"
+import { AdminTableSkeleton } from "@/components/admin-table-skeleton"
 
 export const Route = createFileRoute("/admin/imports/")({
   component: () => (
@@ -22,32 +22,7 @@ function ImportsPage() {
   const [showUploadDialog, setShowUploadDialog] = useState(false)
 
   if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <Skeleton className="h-9 w-48 mb-2" />
-            <Skeleton className="h-5 w-96" />
-          </div>
-          <Skeleton className="h-10 w-40" />
-        </div>
-        <div className="border rounded-lg p-6">
-          <div className="space-y-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4">
-                <Skeleton className="h-6 w-20" />
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-6 w-24" />
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-6 w-48" />
-                <Skeleton className="h-6 w-24" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
+    return <AdminTableSkeleton />
   }
 
   if (error) {

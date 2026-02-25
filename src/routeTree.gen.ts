@@ -29,8 +29,10 @@ import { Route as CountiesCountyIdRouteImport } from './routes/counties/$countyI
 import { Route as ElectionsElectionDateIndexRouteImport } from './routes/elections/$electionDate/index'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
 import { Route as AdminImportsIndexRouteImport } from './routes/admin/imports/index'
+import { Route as AdminGeocodingIndexRouteImport } from './routes/admin/geocoding/index'
 import { Route as AdminExportsIndexRouteImport } from './routes/admin/exports/index'
 import { Route as AdminElectionsIndexRouteImport } from './routes/admin/elections/index'
+import { Route as AdminAnalysisIndexRouteImport } from './routes/admin/analysis/index'
 import { Route as ElectionsElectionDateElectionIdRouteImport } from './routes/elections/$electionDate/$electionId'
 import { Route as DistrictsTypeNameRouteImport } from './routes/districts/$type/$name'
 import { Route as CountiesStateCountyRouteImport } from './routes/counties/$state/$county'
@@ -38,6 +40,7 @@ import { Route as AdminUsersCreateRouteImport } from './routes/admin/users/creat
 import { Route as AdminElectionsImportFeedRouteImport } from './routes/admin/elections/import-feed'
 import { Route as AdminElectionsCreateRouteImport } from './routes/admin/elections/create'
 import { Route as AdminElectionsElectionIdRouteImport } from './routes/admin/elections/$electionId'
+import { Route as AdminAnalysisRunIdRouteImport } from './routes/admin/analysis/$runId'
 import { Route as DistrictsStateTypeNameRouteImport } from './routes/districts/$state/$type/$name'
 import { Route as DistrictsStateCountyTypeNameRouteImport } from './routes/districts/$state/$county/$type/$name'
 
@@ -142,6 +145,11 @@ const AdminImportsIndexRoute = AdminImportsIndexRouteImport.update({
   path: '/imports/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminGeocodingIndexRoute = AdminGeocodingIndexRouteImport.update({
+  id: '/geocoding/',
+  path: '/geocoding/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminExportsIndexRoute = AdminExportsIndexRouteImport.update({
   id: '/exports/',
   path: '/exports/',
@@ -150,6 +158,11 @@ const AdminExportsIndexRoute = AdminExportsIndexRouteImport.update({
 const AdminElectionsIndexRoute = AdminElectionsIndexRouteImport.update({
   id: '/elections/',
   path: '/elections/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAnalysisIndexRoute = AdminAnalysisIndexRouteImport.update({
+  id: '/analysis/',
+  path: '/analysis/',
   getParentRoute: () => AdminRoute,
 } as any)
 const ElectionsElectionDateElectionIdRoute =
@@ -190,6 +203,11 @@ const AdminElectionsElectionIdRoute =
     path: '/elections/$electionId',
     getParentRoute: () => AdminRoute,
   } as any)
+const AdminAnalysisRunIdRoute = AdminAnalysisRunIdRouteImport.update({
+  id: '/analysis/$runId',
+  path: '/analysis/$runId',
+  getParentRoute: () => AdminRoute,
+} as any)
 const DistrictsStateTypeNameRoute = DistrictsStateTypeNameRouteImport.update({
   id: '/districts/$state/$type/$name',
   path: '/districts/$state/$type/$name',
@@ -220,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/elections/': typeof ElectionsIndexRoute
   '/lookup/': typeof LookupIndexRoute
   '/voters/': typeof VotersIndexRoute
+  '/admin/analysis/$runId': typeof AdminAnalysisRunIdRoute
   '/admin/elections/$electionId': typeof AdminElectionsElectionIdRoute
   '/admin/elections/create': typeof AdminElectionsCreateRoute
   '/admin/elections/import-feed': typeof AdminElectionsImportFeedRoute
@@ -227,8 +246,10 @@ export interface FileRoutesByFullPath {
   '/counties/$state/$county': typeof CountiesStateCountyRoute
   '/districts/$type/$name': typeof DistrictsTypeNameRoute
   '/elections/$electionDate/$electionId': typeof ElectionsElectionDateElectionIdRoute
+  '/admin/analysis/': typeof AdminAnalysisIndexRoute
   '/admin/elections/': typeof AdminElectionsIndexRoute
   '/admin/exports/': typeof AdminExportsIndexRoute
+  '/admin/geocoding/': typeof AdminGeocodingIndexRoute
   '/admin/imports/': typeof AdminImportsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/elections/$electionDate/': typeof ElectionsElectionDateIndexRoute
@@ -249,6 +270,7 @@ export interface FileRoutesByTo {
   '/elections': typeof ElectionsIndexRoute
   '/lookup': typeof LookupIndexRoute
   '/voters': typeof VotersIndexRoute
+  '/admin/analysis/$runId': typeof AdminAnalysisRunIdRoute
   '/admin/elections/$electionId': typeof AdminElectionsElectionIdRoute
   '/admin/elections/create': typeof AdminElectionsCreateRoute
   '/admin/elections/import-feed': typeof AdminElectionsImportFeedRoute
@@ -256,8 +278,10 @@ export interface FileRoutesByTo {
   '/counties/$state/$county': typeof CountiesStateCountyRoute
   '/districts/$type/$name': typeof DistrictsTypeNameRoute
   '/elections/$electionDate/$electionId': typeof ElectionsElectionDateElectionIdRoute
+  '/admin/analysis': typeof AdminAnalysisIndexRoute
   '/admin/elections': typeof AdminElectionsIndexRoute
   '/admin/exports': typeof AdminExportsIndexRoute
+  '/admin/geocoding': typeof AdminGeocodingIndexRoute
   '/admin/imports': typeof AdminImportsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
   '/elections/$electionDate': typeof ElectionsElectionDateIndexRoute
@@ -283,6 +307,7 @@ export interface FileRoutesById {
   '/elections/': typeof ElectionsIndexRoute
   '/lookup/': typeof LookupIndexRoute
   '/voters/': typeof VotersIndexRoute
+  '/admin/analysis/$runId': typeof AdminAnalysisRunIdRoute
   '/admin/elections/$electionId': typeof AdminElectionsElectionIdRoute
   '/admin/elections/create': typeof AdminElectionsCreateRoute
   '/admin/elections/import-feed': typeof AdminElectionsImportFeedRoute
@@ -290,8 +315,10 @@ export interface FileRoutesById {
   '/counties/$state/$county': typeof CountiesStateCountyRoute
   '/districts/$type/$name': typeof DistrictsTypeNameRoute
   '/elections/$electionDate/$electionId': typeof ElectionsElectionDateElectionIdRoute
+  '/admin/analysis/': typeof AdminAnalysisIndexRoute
   '/admin/elections/': typeof AdminElectionsIndexRoute
   '/admin/exports/': typeof AdminExportsIndexRoute
+  '/admin/geocoding/': typeof AdminGeocodingIndexRoute
   '/admin/imports/': typeof AdminImportsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/elections/$electionDate/': typeof ElectionsElectionDateIndexRoute
@@ -318,6 +345,7 @@ export interface FileRouteTypes {
     | '/elections/'
     | '/lookup/'
     | '/voters/'
+    | '/admin/analysis/$runId'
     | '/admin/elections/$electionId'
     | '/admin/elections/create'
     | '/admin/elections/import-feed'
@@ -325,8 +353,10 @@ export interface FileRouteTypes {
     | '/counties/$state/$county'
     | '/districts/$type/$name'
     | '/elections/$electionDate/$electionId'
+    | '/admin/analysis/'
     | '/admin/elections/'
     | '/admin/exports/'
+    | '/admin/geocoding/'
     | '/admin/imports/'
     | '/admin/users/'
     | '/elections/$electionDate/'
@@ -347,6 +377,7 @@ export interface FileRouteTypes {
     | '/elections'
     | '/lookup'
     | '/voters'
+    | '/admin/analysis/$runId'
     | '/admin/elections/$electionId'
     | '/admin/elections/create'
     | '/admin/elections/import-feed'
@@ -354,8 +385,10 @@ export interface FileRouteTypes {
     | '/counties/$state/$county'
     | '/districts/$type/$name'
     | '/elections/$electionDate/$electionId'
+    | '/admin/analysis'
     | '/admin/elections'
     | '/admin/exports'
+    | '/admin/geocoding'
     | '/admin/imports'
     | '/admin/users'
     | '/elections/$electionDate'
@@ -380,6 +413,7 @@ export interface FileRouteTypes {
     | '/elections/'
     | '/lookup/'
     | '/voters/'
+    | '/admin/analysis/$runId'
     | '/admin/elections/$electionId'
     | '/admin/elections/create'
     | '/admin/elections/import-feed'
@@ -387,8 +421,10 @@ export interface FileRouteTypes {
     | '/counties/$state/$county'
     | '/districts/$type/$name'
     | '/elections/$electionDate/$electionId'
+    | '/admin/analysis/'
     | '/admin/elections/'
     | '/admin/exports/'
+    | '/admin/geocoding/'
     | '/admin/imports/'
     | '/admin/users/'
     | '/elections/$electionDate/'
@@ -557,6 +593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImportsIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/geocoding/': {
+      id: '/admin/geocoding/'
+      path: '/geocoding'
+      fullPath: '/admin/geocoding/'
+      preLoaderRoute: typeof AdminGeocodingIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/exports/': {
       id: '/admin/exports/'
       path: '/exports'
@@ -569,6 +612,13 @@ declare module '@tanstack/react-router' {
       path: '/elections'
       fullPath: '/admin/elections/'
       preLoaderRoute: typeof AdminElectionsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/analysis/': {
+      id: '/admin/analysis/'
+      path: '/analysis'
+      fullPath: '/admin/analysis/'
+      preLoaderRoute: typeof AdminAnalysisIndexRouteImport
       parentRoute: typeof AdminRoute
     }
     '/elections/$electionDate/$electionId': {
@@ -620,6 +670,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminElectionsElectionIdRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/analysis/$runId': {
+      id: '/admin/analysis/$runId'
+      path: '/analysis/$runId'
+      fullPath: '/admin/analysis/$runId'
+      preLoaderRoute: typeof AdminAnalysisRunIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/districts/$state/$type/$name': {
       id: '/districts/$state/$type/$name'
       path: '/districts/$state/$type/$name'
@@ -639,24 +696,30 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminAnalysisRunIdRoute: typeof AdminAnalysisRunIdRoute
   AdminElectionsElectionIdRoute: typeof AdminElectionsElectionIdRoute
   AdminElectionsCreateRoute: typeof AdminElectionsCreateRoute
   AdminElectionsImportFeedRoute: typeof AdminElectionsImportFeedRoute
   AdminUsersCreateRoute: typeof AdminUsersCreateRoute
+  AdminAnalysisIndexRoute: typeof AdminAnalysisIndexRoute
   AdminElectionsIndexRoute: typeof AdminElectionsIndexRoute
   AdminExportsIndexRoute: typeof AdminExportsIndexRoute
+  AdminGeocodingIndexRoute: typeof AdminGeocodingIndexRoute
   AdminImportsIndexRoute: typeof AdminImportsIndexRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
+  AdminAnalysisRunIdRoute: AdminAnalysisRunIdRoute,
   AdminElectionsElectionIdRoute: AdminElectionsElectionIdRoute,
   AdminElectionsCreateRoute: AdminElectionsCreateRoute,
   AdminElectionsImportFeedRoute: AdminElectionsImportFeedRoute,
   AdminUsersCreateRoute: AdminUsersCreateRoute,
+  AdminAnalysisIndexRoute: AdminAnalysisIndexRoute,
   AdminElectionsIndexRoute: AdminElectionsIndexRoute,
   AdminExportsIndexRoute: AdminExportsIndexRoute,
+  AdminGeocodingIndexRoute: AdminGeocodingIndexRoute,
   AdminImportsIndexRoute: AdminImportsIndexRoute,
   AdminUsersIndexRoute: AdminUsersIndexRoute,
 }

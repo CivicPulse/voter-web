@@ -5,6 +5,7 @@ import {
   pointLookup,
   startBatchGeocode,
   getBatchGeocodeStatus,
+  getGeocodingProviders,
   getCacheStats,
   getVoterGeocodedLocations,
   addManualLocation,
@@ -71,6 +72,17 @@ export function useBatchGeocodeStatus(jobId: string | null) {
     },
     staleTime: 0,
     retry: 2,
+  })
+}
+
+// --- Geocoding providers ---
+
+export function useGeocodingProviders() {
+  return useQuery({
+    queryKey: ["geocoding", "providers"],
+    queryFn: getGeocodingProviders,
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60,
   })
 }
 
