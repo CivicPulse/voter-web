@@ -8,6 +8,7 @@ import { GeocodedLocationsCard } from "@/routes/voters/_components/GeocodedLocat
 import { GeocodedLocationMap } from "@/routes/voters/_components/GeocodedLocationMap"
 import { DistrictAssignmentsCard } from "@/routes/voters/_components/DistrictAssignmentsCard"
 import { VoterHistoryCard } from "@/routes/voters/_components/VoterHistoryCard"
+import { useDistrictVerification } from "@/hooks/useDistrictVerification"
 
 export const Route = createFileRoute("/voters/$voterId")({
   component: VoterDetailPage,
@@ -17,6 +18,10 @@ function VoterDetailPage() {
   const { voterId } = Route.useParams()
   const { data: voter, isLoading, error } = useVoterDetail(voterId)
   const { data: locations } = useVoterGeocodedLocations(voterId)
+  const { verification, isLoading: verificationLoading } = useDistrictVerification({
+    districts: voter,
+    locations,
+  })
 
   if (isLoading) {
     return (
@@ -68,7 +73,11 @@ function VoterDetailPage() {
         )}
       </div>
 
-      <DistrictAssignmentsCard districts={voter} />
+      <DistrictAssignmentsCard
+        districts={voter}
+        verification={verification}
+        verificationLoading={verificationLoading}
+      />
 
       <VoterHistoryCard voterRegistrationNumber={voter.voter_id} />
     </div>
