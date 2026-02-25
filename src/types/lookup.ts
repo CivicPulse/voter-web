@@ -65,11 +65,11 @@ export interface BatchGeocodeRequest {
 export interface BatchGeocodeJob {
   id: string
   status: "pending" | "running" | "completed" | "failed"
-  total_records: number
-  processed: number
-  succeeded: number
-  failed: number
-  cache_hits: number
+  total_records: number | null
+  processed: number | null
+  succeeded: number | null
+  failed: number | null
+  cache_hits: number | null
   started_at: string | null
   completed_at: string | null
   created_at: string

@@ -35,7 +35,7 @@ export function BulkGeocodeButton() {
   const isCompleted = jobStatus?.status === "completed"
   const isFailed = jobStatus?.status === "failed"
   const progressPercent =
-    jobStatus && jobStatus.total_records > 0
+    jobStatus && jobStatus.total_records != null && jobStatus.processed != null && jobStatus.total_records > 0
       ? Math.round((jobStatus.processed / jobStatus.total_records) * 100)
       : 0
 
@@ -93,25 +93,25 @@ export function BulkGeocodeButton() {
                 <div className="text-muted-foreground">Status</div>
                 <div className="font-medium capitalize">{jobStatus.status}</div>
                 <div className="text-muted-foreground">Total</div>
-                <div className="font-medium">{jobStatus.total_records}</div>
+                <div className="font-medium">{jobStatus.total_records?.toLocaleString() ?? "—"}</div>
                 <div className="text-muted-foreground">Processed</div>
-                <div className="font-medium">{jobStatus.processed}</div>
+                <div className="font-medium">{jobStatus.processed?.toLocaleString() ?? "—"}</div>
                 <div className="text-muted-foreground">Succeeded</div>
                 <div className="font-medium text-green-600">
-                  {jobStatus.succeeded}
+                  {jobStatus.succeeded?.toLocaleString() ?? "—"}
                 </div>
-                {jobStatus.failed > 0 && (
+                {(jobStatus.failed ?? 0) > 0 && (
                   <>
                     <div className="text-muted-foreground">Failed</div>
                     <div className="font-medium text-destructive">
-                      {jobStatus.failed}
+                      {jobStatus.failed?.toLocaleString() ?? "—"}
                     </div>
                   </>
                 )}
-                {jobStatus.cache_hits > 0 && (
+                {(jobStatus.cache_hits ?? 0) > 0 && (
                   <>
                     <div className="text-muted-foreground">Cache Hits</div>
-                    <div className="font-medium">{jobStatus.cache_hits}</div>
+                    <div className="font-medium">{jobStatus.cache_hits?.toLocaleString() ?? "—"}</div>
                   </>
                 )}
               </div>
