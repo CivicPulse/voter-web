@@ -133,7 +133,15 @@ function VerificationStatusBadge({
   loading?: boolean
 }) {
   if (loading) {
-    return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+    return (
+      <span role="status" aria-live="polite" className="inline-flex items-center">
+        <Loader2
+          className="h-4 w-4 animate-spin text-muted-foreground"
+          aria-hidden
+        />
+        <span className="sr-only">Verifying district assignments</span>
+      </span>
+    )
   }
   if (!verification) return null
 
