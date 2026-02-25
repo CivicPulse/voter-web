@@ -1,8 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
-// Mock ky before importing auth module
-const mockJson = vi.fn()
-const mockPost = vi.fn(() => ({ json: mockJson }))
+// Declare mocks via vi.hoisted so they are available when vi.mock factories execute
+const { mockJson, mockPost, mockApiJson, mockApiGet } = vi.hoisted(() => {
+  const mockJson = vi.fn()
+  const mockPost = vi.fn(() => ({ json: mockJson }))
+  const mockApiJson = vi.fn()
+  const mockApiGet = vi.fn(() => ({ json: mockApiJson }))
+  return { mockJson, mockPost, mockApiJson, mockApiGet }
+})
 
 vi.mock("ky", () => ({
   default: {
@@ -11,10 +16,6 @@ vi.mock("ky", () => ({
     }),
   },
 }))
-
-// Also mock the api client (used by getMe)
-const mockApiJson = vi.fn()
-const mockApiGet = vi.fn(() => ({ json: mockApiJson }))
 
 vi.mock("@/api/client", () => ({
   api: {
