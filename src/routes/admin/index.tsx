@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { Users, Upload, Download } from "lucide-react"
+import { Users, Upload, Download, SearchCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export const Route = createFileRoute("/admin/")({
@@ -12,11 +12,11 @@ function AdminIndexPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
         <p className="text-muted-foreground">
-          Manage users, import data, and generate exports
+          Manage users, import data, generate exports, and run analysis
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* User Management Card */}
         <div className="border rounded-lg p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center gap-3 mb-4">
@@ -62,6 +62,22 @@ function AdminIndexPage() {
           </p>
           <Button asChild className="w-full">
             <Link to="/admin/exports">View Exports</Link>
+          </Button>
+        </div>
+
+        {/* Analysis Card */}
+        <div className="border rounded-lg p-6 hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-amber-100 text-amber-600">
+              <SearchCheck className="h-6 w-6" />
+            </div>
+            <h2 className="text-xl font-semibold">Analysis</h2>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Run district mismatch analysis on voter registrations
+          </p>
+          <Button asChild className="w-full">
+            <Link to="/admin/analysis">View Analysis</Link>
           </Button>
         </div>
       </div>
