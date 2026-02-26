@@ -6,6 +6,7 @@ import {
   useCreateElection,
   useUpdateElection,
   useRefreshElection,
+  useDeleteElection,
 } from "@/lib/hooks/use-admin-elections"
 import { createTestQueryClient } from "@/test/render"
 import { QueryClientProvider } from "@tanstack/react-query"
@@ -27,6 +28,7 @@ vi.mock("@/lib/api/elections", () => ({
   createElection: vi.fn(),
   updateElection: vi.fn(),
   refreshElection: vi.fn(),
+  deleteElection: vi.fn(),
 }))
 
 vi.mock("sonner", () => ({
@@ -43,6 +45,7 @@ import {
   createElection,
   updateElection,
   refreshElection,
+  deleteElection,
 } from "@/lib/api/elections"
 import { toast } from "sonner"
 
@@ -51,6 +54,7 @@ const mockedGetElectionDetail = vi.mocked(getElectionDetail)
 const mockedCreateElection = vi.mocked(createElection)
 const mockedUpdateElection = vi.mocked(updateElection)
 const mockedRefreshElection = vi.mocked(refreshElection)
+const mockedDeleteElection = vi.mocked(deleteElection)
 
 function createWrapper() {
   const queryClient = createTestQueryClient()
@@ -502,5 +506,93 @@ describe("useRefreshElection", () => {
       "Failed to refresh election",
       expect.any(Object),
     )
+  })
+})
+
+describe("useDeleteElection", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it("deletes an election and shows success toast", async () => {
+    mockedDeleteElection.mockResolvedValueOnce(undefined)
+
+    const { result } = renderHook(() => useDeleteElection(), {
+      wrapper: createWrapper(),
+    })
+
+    result.current.mutate("election-123")
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+
+    expect(mockedDeleteElection).toHaveBeenCalledWith("election-123")
+    expect(toast.success).toHaveBeenCalledWith("Election deleted", expect.any(Object))
+  })
+
+  it("invalidates admin and public elections queries on success", async () => {
+    mockedDeleteElection.mockResolvedValueOnce(undefined)
+
+    const queryClient = createTestQueryClient()
+    const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries")
+
+    function Wrapper({ children }: { children: ReactNode }) {
+      return (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      )
+    }
+
+    const { result } = renderHook(() => useDeleteElection(), { wrapper: Wrapper })
+    result.current.mutate("election-123")
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["admin", "elections"] })
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["elections"] })
+  })
+
+  it("shows session expired toast on AuthenticationError", async () => {
+    mockedDeleteElection.mockRejectedValueOnce(new AuthenticationError())
+
+    const { result } = renderHook(() => useDeleteElection(), {
+      wrapper: createWrapper(),
+    })
+
+    result.current.mutate("election-123")
+
+    await waitFor(() => expect(result.current.isError).toBe(true))
+
+    expect(toast.error).toHaveBeenCalledWith("Session expired", expect.any(Object))
+  })
+
+  it("shows access denied toast on PermissionError", async () => {
+    mockedDeleteElection.mockRejectedValueOnce(new PermissionError())
+
+    const { result } = renderHook(() => useDeleteElection(), {
+      wrapper: createWrapper(),
+    })
+
+    result.current.mutate("election-123")
+
+    await waitFor(() => expect(result.current.isError).toBe(true))
+
+    expect(toast.error).toHaveBeenCalledWith("Access denied", expect.any(Object))
+  })
+
+  it("does not show toast on 409 HTTPError (inline dialog handles it)", async () => {
+    const { HTTPError } = await import("ky")
+    const mockResponse = { status: 409, json: async () => ({ detail: "Has results" }) } as Response
+    const httpError = new HTTPError(mockResponse, new Request("https://example.com"), {} as never)
+    mockedDeleteElection.mockRejectedValueOnce(httpError)
+
+    const { result } = renderHook(() => useDeleteElection(), {
+      wrapper: createWrapper(),
+    })
+
+    result.current.mutate("election-123")
+
+    await waitFor(() => expect(result.current.isError).toBe(true))
+
+    expect(toast.error).not.toHaveBeenCalled()
+    expect(toast.success).not.toHaveBeenCalled()
   })
 })

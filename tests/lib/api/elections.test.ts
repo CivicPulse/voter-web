@@ -9,6 +9,7 @@ import {
   createElection,
   updateElection,
   refreshElection,
+  deleteElection,
 } from "@/lib/api/elections"
 
 // Mock the ky-based api client
@@ -16,12 +17,14 @@ const mockJson = vi.fn()
 const mockGet = vi.fn(() => ({ json: mockJson }))
 const mockPost = vi.fn(() => ({ json: mockJson }))
 const mockPatch = vi.fn(() => ({ json: mockJson }))
+const mockDelete = vi.fn()
 
 vi.mock("@/api/client", () => ({
   api: {
     get: (...args: unknown[]) => mockGet(...args),
     post: (...args: unknown[]) => mockPost(...args),
     patch: (...args: unknown[]) => mockPatch(...args),
+    delete: (...args: unknown[]) => mockDelete(...args),
   },
 }))
 
@@ -429,6 +432,22 @@ describe("elections API client", () => {
     it("calls POST /elections/{id}/refresh", async () => {
       await refreshElection("abc-123")
       expect(mockPost).toHaveBeenCalledWith("elections/abc-123/refresh")
+    })
+  })
+
+  describe("deleteElection", () => {
+    it("calls DELETE /elections/{id} and resolves void", async () => {
+      mockDelete.mockReturnValueOnce(Promise.resolve())
+
+      await deleteElection("election-abc")
+
+      expect(mockDelete).toHaveBeenCalledWith("elections/election-abc")
+    })
+
+    it("propagates HTTPError from ky", async () => {
+      mockDelete.mockRejectedValueOnce(new Error("HTTP 409"))
+
+      await expect(deleteElection("election-abc")).rejects.toThrow("HTTP 409")
     })
   })
 })

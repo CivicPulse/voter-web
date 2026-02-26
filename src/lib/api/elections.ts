@@ -294,3 +294,8 @@ export async function importFeed(
     .post("elections/import-feed", { json: data })
     .json<FeedImportResponse>()
 }
+
+/** Delete an election (admin only) */
+export async function deleteElection(electionId: string): Promise<void> {
+  await api.delete(`elections/${electionId}`)
+}

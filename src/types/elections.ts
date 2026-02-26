@@ -55,6 +55,10 @@ export interface Election {
   absentee_request_deadline?: string | null
   qualifying_start?: string | null
   qualifying_end?: string | null
+  /** Source of this election record — set server-side at creation time */
+  source?: "sos_feed" | "manual" | null
+  /** UUID of the geographic boundary linked to this election (manual elections only) */
+  boundary_id?: string | null
 }
 
 /**
@@ -133,9 +137,10 @@ export interface CreateElectionRequest {
   election_date: string
   election_type: ElectionType
   district: string
-  data_source_url: string
+  data_source_url?: string
   refresh_interval_seconds?: number
   ballot_item_id?: string | null
+  boundary_id?: string
 }
 
 /** Request body for PATCH /elections/{id} (update) — all fields optional */
@@ -171,8 +176,9 @@ export interface ElectionFormValues {
   election_date: string
   election_type: ElectionType
   district: string
-  data_source_url: string
+  data_source_url?: string
   refresh_interval_seconds: number
+  boundary_id?: string
 }
 
 // ============================================================================

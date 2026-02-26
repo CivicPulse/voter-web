@@ -15,11 +15,12 @@ export const createElectionSchema = z.object({
     .string()
     .min(1, "District is required")
     .max(200, "District must not exceed 200 characters"),
-  data_source_url: z.string().url("Must be a valid URL"),
+  data_source_url: z.union([z.string().url(), z.literal("")]).optional(),
   refresh_interval_seconds: z
     .number()
     .int("Must be a whole number")
     .min(60, "Minimum refresh interval is 60 seconds"),
+  boundary_id: z.string().uuid().optional(),
 })
 
 export type ElectionFormValues = z.infer<typeof createElectionSchema>

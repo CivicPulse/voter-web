@@ -5,9 +5,12 @@ import {
   useUpdateElection,
   useRefreshElection,
 } from "@/lib/hooks/use-admin-elections"
+import { useUserRole } from "@/lib/hooks/use-user-role"
 import type { ElectionFormValues } from "@/lib/schemas/election-form"
 import { AdminErrorBoundary } from "@/components/admin-error-boundary"
 import { ElectionForm } from "./_components/election-form"
+import { DeleteElectionDialog } from "./_components/delete-election-dialog"
+import { SourceBadge } from "./_components/source-badge"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -27,6 +30,7 @@ import {
   Loader2,
   AlertTriangle,
   Info,
+  Trash2,
 } from "lucide-react"
 
 export const Route = createFileRoute("/admin/elections/$electionId")({
@@ -47,8 +51,12 @@ function AdminElectionDetailPage() {
   const updateMutation = useUpdateElection()
   const refreshMutation = useRefreshElection()
 
+  const { data: userProfile } = useUserRole()
+  const isAdmin = userProfile?.role === "admin"
+
   const [showFinalizeDialog, setShowFinalizeDialog] = useState(false)
   const [showReactivateDialog, setShowReactivateDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   if (isLoading) {
     return (
@@ -160,6 +168,7 @@ function AdminElectionDetailPage() {
           <Badge variant={isFinalized ? "secondary" : "default"}>
             {election.status}
           </Badge>
+          <SourceBadge source={election.source} />
         </div>
         <p className="text-muted-foreground">
           {election.district} · {election.election_date}
@@ -243,6 +252,26 @@ function AdminElectionDetailPage() {
         </div>
       )}
 
+      {/* Delete zone — admin only */}
+      {isAdmin && (
+        <div className="flex items-center gap-3 border border-red-300 rounded-lg p-4 bg-red-50 dark:bg-red-950/20">
+          <div className="flex-1">
+            <p className="font-medium">Delete Election</p>
+            <p className="text-sm text-muted-foreground">
+              Permanently remove this election and all associated data.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            className="border-red-300 text-red-600 hover:bg-red-100"
+            onClick={() => setShowDeleteDialog(true)}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete
+          </Button>
+        </div>
+      )}
+
       {/* Edit form */}
       <ElectionForm
         defaultValues={{
@@ -257,7 +286,19 @@ function AdminElectionDetailPage() {
         isPending={updateMutation.isPending}
         submitLabel="Save Changes"
         enableAutoFill={false}
+        enableBoundarySelector={false}
       />
+
+      {/* Delete election dialog */}
+      {election && (
+        <DeleteElectionDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          electionName={election.name}
+          electionId={electionId}
+          onDeleted={() => navigate({ to: "/admin/elections" })}
+        />
+      )}
 
       {/* Finalization confirmation dialog */}
       <Dialog open={showFinalizeDialog} onOpenChange={setShowFinalizeDialog}>
