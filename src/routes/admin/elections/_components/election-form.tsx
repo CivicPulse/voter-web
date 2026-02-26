@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
   createElectionSchema,
@@ -61,6 +61,9 @@ export function ElectionForm({
 
   const { isFetching, fetchError, isAutoFilled, selectKey, multiRaceCount } =
     useSosFeedAutoFill({ form, enabled: enableAutoFill })
+
+  const watchedBoundaryId = useWatch({ control: form.control, name: "boundary_id" })
+  const watchedDistrict = useWatch({ control: form.control, name: "district" })
 
   return (
     <Form {...form}>
@@ -195,8 +198,8 @@ export function ElectionForm({
           <div className="space-y-1.5">
             <Label className="text-sm font-medium">District / Boundary</Label>
             <BoundarySelector
-              value={form.watch("boundary_id") ?? null}
-              district={form.watch("district")}
+              value={watchedBoundaryId ?? null}
+              district={watchedDistrict ?? ""}
               onChange={(boundaryId, districtName) => {
                 form.setValue("boundary_id", boundaryId ?? undefined)
                 form.setValue("district", districtName)

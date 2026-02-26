@@ -61,6 +61,25 @@ export interface BoundaryDetailResponse {
   voter_stats: VoterStats | null
 }
 
+export interface BoundaryListItem {
+  id: string
+  name: string
+  boundary_type: string
+  boundary_identifier: string
+  county: string | null
+  source: string
+}
+
+export interface BoundaryListResponse {
+  items: BoundaryListItem[]
+  pagination: {
+    total: number
+    page: number
+    page_size: number
+    total_pages: number
+  }
+}
+
 export interface BoundaryTypesResponse {
   types: string[]
 }

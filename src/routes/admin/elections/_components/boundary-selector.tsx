@@ -70,12 +70,12 @@ export function BoundarySelector({ value, district, onChange }: BoundarySelector
     <div className="space-y-3">
       <div className="space-y-1.5">
         <Label>Boundary Type</Label>
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
+        <Select value={typeFilter || "_none"} onValueChange={(v) => setTypeFilter(v === "_none" ? "" : v)}>
           <SelectTrigger>
             <SelectValue placeholder="Select boundary type..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Types</SelectItem>
+            <SelectItem value="_none">No filter</SelectItem>
             {types.map((t) => (
               <SelectItem key={t} value={t}>
                 {t}

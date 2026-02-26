@@ -5,6 +5,7 @@ import {
   createElection,
   updateElection,
   refreshElection,
+  deleteElection,
 } from "@/lib/api/elections"
 import type {
   CreateElectionRequest,
@@ -143,6 +144,35 @@ export function useUpdateElection() {
             error.message || "An error occurred while updating the election.",
         })
       }
+    },
+  })
+}
+
+/**
+ * Hook to delete an election.
+ * On 409 conflict: re-throws error for caller to handle inline.
+ * On 401/403: shows toast and re-throws.
+ * On success: invalidates queries and shows success toast.
+ */
+export function useDeleteElection() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (electionId: string) => deleteElection(electionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "elections"] })
+      queryClient.invalidateQueries({ queryKey: ["elections"] })
+      toast.success("Election deleted", {
+        description: "The election has been permanently deleted.",
+      })
+    },
+    onError: (error: Error) => {
+      if (error instanceof AuthenticationError) {
+        toast.error("Session expired", { description: error.message })
+      } else if (error instanceof PermissionError) {
+        toast.error("Access denied", { description: error.message })
+      }
+      // 409 and other errors: re-throw silently for inline dialog display
     },
   })
 }

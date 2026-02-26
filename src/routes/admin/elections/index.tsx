@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useAdminElections } from "@/lib/hooks/use-admin-elections"
+import { useUserRole } from "@/lib/hooks/use-user-role"
 import { AdminErrorBoundary } from "@/components/admin-error-boundary"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Button } from "@/components/ui/button"
@@ -17,6 +18,8 @@ export const Route = createFileRoute("/admin/elections/")({
 
 function AdminElectionsPage() {
   const { data, isLoading, error } = useAdminElections()
+  const { data: userProfile } = useUserRole()
+  const isAdmin = userProfile?.role === "admin"
 
   if (isLoading) {
     return (
@@ -103,7 +106,7 @@ function AdminElectionsPage() {
           }}
         />
       ) : (
-        <ElectionTable elections={elections} />
+        <ElectionTable elections={elections} isAdmin={isAdmin} />
       )}
     </div>
   )

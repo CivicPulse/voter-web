@@ -20,7 +20,6 @@ vi.mock("sonner", () => ({
 }))
 
 import { getBoundaries, getBoundaryTypes } from "@/lib/api/boundaries"
-import { toast } from "sonner"
 
 const mockedGetBoundaries = vi.mocked(getBoundaries)
 const mockedGetBoundaryTypes = vi.mocked(getBoundaryTypes)
