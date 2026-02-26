@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import { describe, it, expect, vi } from "vitest"
 import { screen } from "@testing-library/react"
 import { render } from "@/test/render"
@@ -8,7 +9,25 @@ vi.mock("@tanstack/react-router", async () => {
   const actual = await vi.importActual("@tanstack/react-router")
   return {
     ...actual,
-    Link: ({ children, ...props }: Record<string, unknown>) => <a {...props}>{children}</a>,
+    Link: ({
+      children,
+      to,
+      params,
+      ...props
+    }: {
+      children: ReactNode
+      to: string
+      params?: Record<string, string>
+      [key: string]: unknown
+    }) => {
+      const href = params
+        ? Object.entries(params).reduce(
+            (acc, [key, value]) => acc.replace(`$${key}`, value),
+            to,
+          )
+        : to
+      return <a href={href} {...props}>{children}</a>
+    },
   }
 })
 
@@ -104,11 +123,10 @@ describe("CandidateCard", () => {
       id: "cand-uuid-001",
       full_name: "Andrea C. Cooke",
     })
-    const { container } = render(<CandidateCard candidate={candidate} />)
+    render(<CandidateCard candidate={candidate} />)
 
-    const link = container.querySelector("a")
+    const link = screen.getByRole("link", { name: "Andrea C. Cooke" })
     expect(link).toBeInTheDocument()
-    expect(link).toHaveTextContent("Andrea C. Cooke")
-    expect(link).toHaveAttribute("to", "/candidates/$candidateId")
+    expect(link).toHaveAttribute("href", "/candidates/cand-uuid-001")
   })
 })

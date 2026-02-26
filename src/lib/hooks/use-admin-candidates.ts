@@ -28,7 +28,7 @@ function handleError(error: Error, title: string, fallback: string) {
 /**
  * Hook to create a candidate for an election.
  * Invalidates the election's candidates list on success.
- * 409 conflicts are re-thrown without a toast so the form can handle them.
+ * 409 conflicts skip the error toast so the form can handle them directly.
  */
 export function useCreateCandidate() {
   const queryClient = useQueryClient()
@@ -59,7 +59,7 @@ export function useCreateCandidate() {
 /**
  * Hook to update an existing candidate.
  * Invalidates both the election's candidates list and the individual candidate cache.
- * 409 conflicts are re-thrown without a toast so the form can handle them.
+ * 409 conflicts skip the error toast so the form can handle them directly.
  */
 export function useUpdateCandidate() {
   const queryClient = useQueryClient()
