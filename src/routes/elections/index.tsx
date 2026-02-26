@@ -50,8 +50,8 @@ function ElectionListItem({
 
   return (
     <Link
-      to="/elections/$electionId"
-      params={{ electionId: election.id }}
+      to="/elections/$electionDate"
+      params={{ electionDate: election.id }}
       className={`block border rounded-lg p-4 hover:bg-accent/50 transition-colors ${
         highlighted ? "border-primary/40 bg-primary/5" : ""
       }`}

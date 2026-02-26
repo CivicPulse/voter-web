@@ -189,8 +189,8 @@ function CandidateDetailPage() {
 
       {/* Back navigation */}
       <Link
-        to="/elections/$electionId"
-        params={{ electionId: candidate.election_id }}
+        to="/elections/$electionDate"
+        params={{ electionDate: candidate.election_id }}
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         &larr; Back to election

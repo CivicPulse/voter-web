@@ -18,8 +18,8 @@ function RedirectToElectionDetail() {
 
   return (
     <Navigate
-      to="/elections/$electionId"
-      params={{ electionId }}
+      to="/elections/$electionDate"
+      params={{ electionDate: electionId }}
       search={tab ? { tab } : {}}
       replace
     />

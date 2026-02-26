@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react"
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
-import { z } from "zod"
+import { Link } from "@tanstack/react-router"
 import { ChevronRight, Loader2, Map, Grid3X3, Volume2 } from "lucide-react"
 import { useRaceResults } from "@/lib/hooks/use-race-results"
 import { useResultsNotification } from "@/lib/hooks/use-results-notification"
@@ -39,29 +38,17 @@ import { buildCandidateColorMap } from "@/lib/candidate-colors"
 
 type MapView = "county" | "precinct"
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+interface ElectionDetailPageProps {
+  electionId: string
+  tab?: "info" | "results" | "participation"
+  onTabChange: (tab: "info" | "results" | "participation") => void
+}
 
-const searchSchema = z.object({
-  tab: z.enum(["info", "results", "participation"]).optional(),
-})
-
-export const Route = createFileRoute("/elections/$electionId")({
-  params: {
-    parse: (params) => {
-      if (!UUID_RE.test(params.electionId)) throw new Error("Not a UUID")
-      return params
-    },
-    stringify: (params) => params,
-  },
-  component: ElectionDetailPage,
-  validateSearch: searchSchema,
-})
-
-function ElectionDetailPage() {
-  const { electionId } = Route.useParams()
-  const { tab } = Route.useSearch()
-  const navigate = useNavigate({ from: Route.fullPath })
-
+export function ElectionDetailPage({
+  electionId,
+  tab,
+  onTabChange,
+}: ElectionDetailPageProps) {
   const {
     data: raceData,
     isLoading: raceLoading,
@@ -204,10 +191,7 @@ function ElectionDetailPage() {
       <Tabs
         value={activeTab}
         onValueChange={(value) => {
-          navigate({
-            search: { tab: value as "info" | "results" | "participation" },
-            replace: true,
-          })
+          onTabChange(value as "info" | "results" | "participation")
         }}
       >
         <TabsList>

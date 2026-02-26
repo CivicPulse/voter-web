@@ -14,12 +14,11 @@
 import { test, expect, setupElectionApiMocks } from "./fixtures/election-api"
 import {
   ELECTION_ID,
-  ELECTION_DATE,
   electionResultsWithNullCounts,
   precinctGeoJSONElectionNightComplete,
 } from "./fixtures/mock-data"
 
-const RACE_URL = `/elections/${ELECTION_DATE}/${ELECTION_ID}`
+const RACE_URL = `/elections/${ELECTION_ID}?tab=results`
 
 // ==========================================================================
 // Bug Fix #1: NaN% reporting badge
