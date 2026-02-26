@@ -115,7 +115,7 @@ describe("CandidateDetailPage", () => {
     setupSuccess({ filing_status: "withdrawn" })
     renderPage()
 
-    expect(screen.getByText("withdrawn")).toBeInTheDocument()
+    expect(screen.getByText("Withdrawn")).toBeInTheDocument()
   })
 
   it("does not render filing status badge when qualified", () => {

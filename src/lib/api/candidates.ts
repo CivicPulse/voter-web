@@ -1,4 +1,6 @@
 import { api, publicApi } from "@/api/client"
+import { AuthenticationError, PermissionError } from "@/types/admin"
+import { HTTPError } from "ky"
 import type {
   PaginatedCandidateListResponse,
   CandidateDetail,
@@ -8,6 +10,22 @@ import type {
   CreateCandidateLinkRequest,
   CandidateLink,
 } from "@/types/candidates"
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+async function withTypedAuthErrors<T>(request: Promise<T>): Promise<T> {
+  try {
+    return await request
+  } catch (error) {
+    if (error instanceof HTTPError) {
+      if (error.response.status === 401) throw new AuthenticationError()
+      if (error.response.status === 403) throw new PermissionError()
+    }
+    throw error
+  }
+}
 
 // ============================================================================
 // Public Endpoints (No Authentication Required)
@@ -23,18 +41,20 @@ export async function getCandidates(
   if (params?.page) searchParams.page = String(params.page)
   if (params?.page_size) searchParams.page_size = String(params.page_size)
 
-  return publicApi
-    .get(`elections/${electionId}/candidates`, { searchParams })
-    .json<PaginatedCandidateListResponse>()
+  return withTypedAuthErrors(
+    publicApi
+      .get(`elections/${electionId}/candidates`, { searchParams })
+      .json<PaginatedCandidateListResponse>(),
+  )
 }
 
 /** Get full candidate detail */
 export async function getCandidateDetail(
   candidateId: string,
 ): Promise<CandidateDetail> {
-  return publicApi
-    .get(`candidates/${candidateId}`)
-    .json<CandidateDetail>()
+  return withTypedAuthErrors(
+    publicApi.get(`candidates/${candidateId}`).json<CandidateDetail>(),
+  )
 }
 
 // ============================================================================

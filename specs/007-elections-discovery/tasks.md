@@ -96,7 +96,7 @@
 - [ ] T029 [US1] Write unit tests for elections list page in tests/routes/elections/elections-list.test.tsx — test list rendering, search filtering, filter controls, pagination, empty state, geographic context banner with "Show all" clear, per-election highlighting when district matches context (case-insensitive substring), navigation to detail
 - [ ] T030 [P] [US1] Write unit tests for redirect routes in tests/routes/elections/election-redirects.test.tsx — test $electionId params.parse accepts valid UUIDs and rejects date strings, $electionDate UUID detection and redirect, $electionDate/index redirect to /elections/, $electionDate/$electionId redirect with ?tab= preservation
 
-**Checkpoint**: User Story 1 is complete. The elections list is flat, searchable, and filterable. Legacy URLs redirect. The detail page works with Results and Participation tabs preserved.
+**Checkpoint**: User Story 1 is in progress. The elections list is flat, searchable, and filterable. Legacy URLs redirect. The detail page works with Results and Participation tabs preserved. Pending: T029, T030 (unit tests).
 
 ---
 
@@ -150,7 +150,7 @@
 
 - [ ] T049 [US3] Write unit tests for tab defaulting in tests/routes/elections/election-detail-tabs.test.tsx — test no results → info default, active results → results default, finalized results → results default, ?tab=info override, ?tab=participation override, manual tab switch, results arriving while on info tab does not force switch
 
-**Checkpoint**: All three voter-facing user stories are independently functional. Tab defaulting works correctly across all election lifecycle stages.
+**Checkpoint**: User Story 3 is in progress. Tab defaulting is implemented. Pending: T049 (unit tests).
 
 ---
 
@@ -177,7 +177,7 @@
 - [ ] T056 [US4] Write unit tests for AdminCandidateDialog in tests/components/elections/AdminCandidateDialog.test.tsx — test create mode empty form with inline links submitted in POST body, edit mode pre-populated with existing links, Zod validation (full_name required, max 200, photo_url URL), 409 inline error, dialog closes on success, edit mode link diff (adding a new link calls useCreateCandidateLink, removing an existing link calls useDeleteCandidateLink)
 - [ ] T057 [US4] Update unit tests for CandidateList in tests/components/elections/CandidateList.test.tsx — add admin control tests: "Add Candidate" button visible only for admin role, "Edit"/"Delete" buttons on cards for admin only, AlertDialog confirmation on delete, all controls hidden for non-admin users
 
-**Checkpoint**: Admin users can fully manage candidates via Dialog forms. Links manageable within Dialog. Non-admins see read-only view.
+**Checkpoint**: User Story 4 is in progress. Admin candidate management is implemented. Pending: T054-T057 (unit tests).
 
 ---
 
@@ -241,7 +241,7 @@
 ### Parallel Opportunities
 
 **Phase 2 (Foundational)**:
-```
+```text
 Parallel: T003, T004, T005, T006 (type definitions)
 Parallel: T007, T008 (API clients)
 Parallel: T010, T011, T012 (utilities)
@@ -250,7 +250,7 @@ Parallel: T015, T016, T017, T018, T019 (tests)
 ```
 
 **Phase 3 (US1)**:
-```
+```text
 Sequential: T020 → T021 → T022 → T023 → T024
 Parallel: T025, T026 (redirect routes)
 Parallel: T027, T028 (hook tests)
@@ -258,7 +258,7 @@ After routes: T029, T030 (route tests)
 ```
 
 **Phase 4 (US2)**:
-```
+```text
 Parallel: T031, T032, T033, T034, T035 (leaf components)
 Sequential: T036 (CandidateList, depends on T031)
 Sequential: T037 (ElectionInfoTab, depends on T032-T036)
@@ -268,7 +268,7 @@ Sequential: T046, T047 (container + route tests)
 ```
 
 **Phase 6 (US4)**:
-```
+```text
 Parallel: T050, T051 (hooks + link form)
 Sequential: T052 (dialog, depends on T051)
 Sequential: T053 (CandidateList update, depends on T052)
@@ -277,7 +277,7 @@ Sequential: T056, T057 (dialog + list tests)
 ```
 
 **Phase 7 (Polish)**:
-```
+```text
 Parallel: T058, T059 (fixture updates)
 Parallel: T060, T061, T062 (E2E tests)
 Parallel: T063, T064, T065 (visual verification)

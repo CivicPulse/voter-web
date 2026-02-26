@@ -42,16 +42,21 @@ import {
 } from "@/components/elections/AdminCandidateLinkForm"
 import type { CandidateDetail } from "@/types/candidates"
 
+const httpUrl = z
+  .string()
+  .url("Invalid URL")
+  .refine(
+    (v) => /^https?:\/\//i.test(v),
+    "URL must start with http:// or https://",
+  )
+
 const candidateSchema = z.object({
   full_name: z.string().min(1, "Name is required").max(200, "Name too long"),
   party: z.string(),
   bio: z.string(),
   photo_url: z
     .string()
-    .refine(
-      (v) => !v || z.string().url().safeParse(v).success,
-      "Invalid URL",
-    ),
+    .refine((v) => !v || httpUrl.safeParse(v).success, "Invalid URL"),
   ballot_order: z.string(),
   filing_status: z.enum(["qualified", "withdrawn", "disqualified", "write_in"]),
   is_incumbent: z.boolean(),
@@ -68,7 +73,7 @@ const candidateSchema = z.object({
         "linkedin",
         "other",
       ]),
-      url: z.string().url("Invalid URL"),
+      url: httpUrl,
       label: z.string().min(1, "Label required"),
     }),
   ),
@@ -192,13 +197,14 @@ export function AdminCandidateDialog({
           },
         })
 
-        // Diff links: determine additions and removals
+        // Diff links: determine additions, removals, and updates
         const existingLinkIds = new Set(
           candidate.links.map((link) => link.id),
         )
         const formLinkIds = new Set(
           values.links.filter((link) => link.id).map((link) => link.id!),
         )
+        const existingById = new Map(candidate.links.map((l) => [l.id, l]))
 
         // Delete removed links
         const removedLinkIds = [...existingLinkIds].filter(
@@ -211,6 +217,34 @@ export function AdminCandidateDialog({
               linkId,
             }),
           ),
+        )
+
+        // Update changed existing links via delete + create (no PATCH endpoint)
+        const changedLinks = values.links.filter((link) => {
+          if (!link.id) return false
+          const prev = existingById.get(link.id)
+          if (!prev) return false
+          return (
+            prev.link_type !== link.link_type ||
+            prev.url !== link.url ||
+            prev.label !== link.label
+          )
+        })
+        await Promise.all(
+          changedLinks.map(async (link) => {
+            await deleteLink.mutateAsync({
+              candidateId: candidate.id,
+              linkId: link.id!,
+            })
+            await createLink.mutateAsync({
+              candidateId: candidate.id,
+              data: {
+                link_type: link.link_type,
+                url: link.url,
+                label: link.label,
+              },
+            })
+          }),
         )
 
         // Create new links (those without an id)

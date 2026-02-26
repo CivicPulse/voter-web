@@ -49,6 +49,7 @@ export function CandidateList({ electionId }: CandidateListProps) {
 
   // Determine candidates to display
   const apiCandidates = candidatesData?.items ?? []
+  const hasApiCandidates = apiCandidates.length > 0
   let displayCandidates: CandidateSummary[]
 
   if (apiCandidates.length > 0) {
@@ -124,7 +125,7 @@ export function CandidateList({ electionId }: CandidateListProps) {
               <div className="flex-1">
                 <CandidateCard candidate={candidate} />
               </div>
-              {isAdmin && (
+              {isAdmin && hasApiCandidates && (
                 <div className="flex flex-col gap-1 shrink-0">
                   <Button
                     variant="ghost"

@@ -98,6 +98,12 @@ function ElectionsListPage() {
   }, [electionFilters])
   const { data, isLoading, error } = useElections(apiFilters, page)
 
+  // Wrap filter updates to reset pagination when filters change
+  const updateFilters = (updates: Partial<typeof electionFilters>) => {
+    setElectionFilters(updates)
+    setPage(1)
+  }
+
   // Client-side search filtering with deferred value
   const searchText = electionFilters.search ?? ""
   const deferredSearch = useDeferredValue(searchText)
@@ -176,7 +182,7 @@ function ElectionsListPage() {
         <Input
           placeholder="Search elections..."
           value={searchText}
-          onChange={(e) => setElectionFilters({ search: e.target.value })}
+          onChange={(e) => updateFilters({ search: e.target.value })}
           className="pl-9"
         />
       </div>
@@ -186,7 +192,7 @@ function ElectionsListPage() {
         <Select
           value={electionFilters.status}
           onValueChange={(v) =>
-            setElectionFilters({
+            updateFilters({
               status: v as typeof electionFilters.status,
             })
           }
@@ -204,7 +210,7 @@ function ElectionsListPage() {
         <Select
           value={electionFilters.election_type}
           onValueChange={(v) =>
-            setElectionFilters({
+            updateFilters({
               election_type: v as typeof electionFilters.election_type,
             })
           }
@@ -225,7 +231,7 @@ function ElectionsListPage() {
           variant="outline"
           pressed={electionFilters.registration_open ?? false}
           onPressedChange={(pressed) =>
-            setElectionFilters({ registration_open: pressed || undefined })
+            updateFilters({ registration_open: pressed || undefined })
           }
           className="data-[state=on]:bg-primary/10 data-[state=on]:text-primary"
         >
@@ -236,7 +242,7 @@ function ElectionsListPage() {
           variant="outline"
           pressed={electionFilters.early_voting_active ?? false}
           onPressedChange={(pressed) =>
-            setElectionFilters({ early_voting_active: pressed || undefined })
+            updateFilters({ early_voting_active: pressed || undefined })
           }
           className="data-[state=on]:bg-primary/10 data-[state=on]:text-primary"
         >
@@ -267,7 +273,7 @@ function ElectionsListPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => resetElectionFilters()}
+              onClick={() => { resetElectionFilters(); setPage(1) }}
             >
               <X className="h-4 w-4 mr-1" />
               Clear filters

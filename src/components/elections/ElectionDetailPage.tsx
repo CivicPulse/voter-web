@@ -56,10 +56,12 @@ export function ElectionDetailPage({
     dataUpdatedAt,
   } = useRaceResults(electionId)
 
-  // Determine default tab based on initial data load
+  // Compute the default tab once on mount; does not re-evaluate when results arrive
   const hasResults = (raceData?.results.candidates.length ?? 0) > 0
-  const computedDefault = raceLoading ? "info" : hasResults ? "results" : "info"
-  const activeTab = tab ?? computedDefault
+  const [initialDefaultTab] = useState<"info" | "results" | "participation">(
+    () => (raceLoading ? "info" : hasResults ? "results" : "info"),
+  )
+  const activeTab = tab ?? initialDefaultTab
 
   const [soundEnabled, setSoundEnabled] = useState(true)
 
@@ -105,7 +107,7 @@ export function ElectionDetailPage({
     [raceData],
   )
 
-  const isLoading = raceLoading || geoLoading
+  const isLoading = raceLoading
 
   if (isLoading) {
     return (
@@ -311,7 +313,13 @@ export function ElectionDetailPage({
             />
           )}
 
-          {mapView === "county" && hasCountyGeoJSON && (
+          {mapView === "county" && geoLoading && (
+            <div className="h-[350px] sm:h-[500px] md:h-[600px] rounded-lg border flex items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          )}
+
+          {mapView === "county" && !geoLoading && hasCountyGeoJSON && (
             <div className="h-[350px] sm:h-[500px] md:h-[600px] rounded-lg overflow-hidden">
               <ElectionResultsMap
                 geoJSON={geoJSON}
@@ -323,7 +331,7 @@ export function ElectionDetailPage({
             </div>
           )}
 
-          {mapView === "county" && !hasCountyGeoJSON && (
+          {mapView === "county" && !geoLoading && !hasCountyGeoJSON && (
             <div className="h-[400px] flex items-center justify-center border rounded-lg bg-muted/30">
               <p className="text-muted-foreground">
                 No geographic data available for this race.

@@ -109,6 +109,14 @@ export interface UpdateCandidateRequest {
 // Utility Functions
 // ============================================================================
 
+/** Human-readable labels for FilingStatus values */
+export const FILING_STATUS_LABELS: Record<FilingStatus, string> = {
+  qualified: "Qualified",
+  withdrawn: "Withdrawn",
+  disqualified: "Disqualified",
+  write_in: "Write-In",
+}
+
 /** Extract initials from a full name for Avatar fallback */
 export function getCandidateInitials(fullName: string): string {
   const parts = fullName.trim().split(/\s+/)
@@ -121,7 +129,9 @@ export function getCandidateInitials(fullName: string): string {
 export function sortCandidates(candidates: CandidateSummary[]): CandidateSummary[] {
   return [...candidates].sort((a, b) => {
     if (a.ballot_order !== null && b.ballot_order !== null) {
-      return a.ballot_order - b.ballot_order
+      const orderDiff = a.ballot_order - b.ballot_order
+      if (orderDiff !== 0) return orderDiff
+      return a.full_name.localeCompare(b.full_name)
     }
     if (a.ballot_order !== null) return -1
     if (b.ballot_order !== null) return 1

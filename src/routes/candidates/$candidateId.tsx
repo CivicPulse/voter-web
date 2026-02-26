@@ -6,7 +6,7 @@ import {
   Loader2,
 } from "lucide-react"
 import { useCandidateDetail } from "@/lib/hooks/use-candidates"
-import { getCandidateInitials } from "@/types/candidates"
+import { getCandidateInitials, FILING_STATUS_LABELS } from "@/types/candidates"
 import type { CandidateLinkType } from "@/types/candidates"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -94,7 +94,7 @@ function CandidateDetailPage() {
 
       {/* Header: Avatar + Name + Badges */}
       <div className="flex items-start gap-4 mb-6">
-        <Avatar className="h-16 w-16 text-lg" size="lg">
+        <Avatar className="h-16 w-16 text-lg">
           {candidate.photo_url ? (
             <AvatarImage src={candidate.photo_url} alt={candidate.full_name} />
           ) : null}
@@ -111,7 +111,9 @@ function CandidateDetailPage() {
               <Badge variant="outline">Incumbent</Badge>
             )}
             {candidate.filing_status !== "qualified" && (
-              <Badge variant="destructive">{candidate.filing_status}</Badge>
+              <Badge variant="destructive">
+                {FILING_STATUS_LABELS[candidate.filing_status] ?? candidate.filing_status}
+              </Badge>
             )}
           </div>
         </div>

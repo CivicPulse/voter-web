@@ -39,7 +39,7 @@ export function useCreateCandidate() {
     },
     onError: (error: Error) => {
       if (error instanceof HTTPError && error.response.status === 409) {
-        throw error
+        return
       }
       if (error instanceof AuthenticationError) {
         toast.error("Session expired", { description: error.message })
@@ -83,7 +83,7 @@ export function useUpdateCandidate() {
     },
     onError: (error: Error) => {
       if (error instanceof HTTPError && error.response.status === 409) {
-        throw error
+        return
       }
       if (error instanceof AuthenticationError) {
         toast.error("Session expired", { description: error.message })
