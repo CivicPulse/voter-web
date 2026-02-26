@@ -23,9 +23,11 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 })
 
-// Mock pointer capture for vaul drawer in jsdom
+// Mock pointer capture for vaul drawer and Radix UI in jsdom
 Element.prototype.setPointerCapture = vi.fn()
 Element.prototype.releasePointerCapture = vi.fn()
+Element.prototype.hasPointerCapture = vi.fn().mockReturnValue(false)
+Element.prototype.scrollIntoView = vi.fn()
 
 // Mock getComputedStyle for vaul drawer transform handling
 const originalGetComputedStyle = globalThis.getComputedStyle

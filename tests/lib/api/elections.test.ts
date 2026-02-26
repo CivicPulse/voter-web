@@ -5,6 +5,7 @@ import {
   getElectionResults,
   getElectionGeoJSON,
   getPrecinctGeoJSON,
+  getElectionParticipants,
   createElection,
   updateElection,
   refreshElection,
@@ -172,6 +173,231 @@ describe("elections API client", () => {
         "elections/abc-123/results/geojson/precincts",
         { searchParams: { county: "Bibb" } },
       )
+    })
+  })
+
+  describe("getElectionParticipants", () => {
+    const mockRawParticipantResponse = {
+      items: [
+        {
+          id: "part-001",
+          voter_id: "voter-uuid-001",
+          voter_registration_number: "12345678",
+          first_name: "Jane",
+          last_name: "Doe",
+          county: "Bibb",
+          election_date: "2026-02-17",
+          election_type: "special",
+          normalized_election_type: "special",
+          party: null,
+          ballot_style: null,
+          early_voting: false,
+          absentee: false,
+          provisional: false,
+          supplemental: false,
+        },
+      ],
+      pagination: {
+        total: 1,
+        page: 1,
+        page_size: 25,
+        total_pages: 1,
+      },
+    }
+
+    beforeEach(() => {
+      mockJson.mockResolvedValue(mockRawParticipantResponse)
+    })
+
+    it("calls GET elections/{id}/participation with empty searchParams when no params given", async () => {
+      await getElectionParticipants("election-001")
+      expect(mockGet).toHaveBeenCalledWith(
+        "elections/election-001/participation",
+        { searchParams: {} },
+      )
+    })
+
+    it("passes page and page_size params", async () => {
+      await getElectionParticipants("election-001", { page: 3, page_size: 50 })
+      expect(mockGet).toHaveBeenCalledWith(
+        "elections/election-001/participation",
+        { searchParams: { page: "3", page_size: "50" } },
+      )
+    })
+
+    it("passes q (search query) param", async () => {
+      await getElectionParticipants("election-001", { q: "Jane Doe" })
+      expect(mockGet).toHaveBeenCalledWith(
+        "elections/election-001/participation",
+        { searchParams: { q: "Jane Doe" } },
+      )
+    })
+
+    it("passes county param", async () => {
+      await getElectionParticipants("election-001", { county: "Bibb" })
+      expect(mockGet).toHaveBeenCalledWith(
+        "elections/election-001/participation",
+        { searchParams: { county: "Bibb" } },
+      )
+    })
+
+    it("passes voter_status param", async () => {
+      await getElectionParticipants("election-001", {
+        voter_status: "ACTIVE",
+      })
+      expect(mockGet).toHaveBeenCalledWith(
+        "elections/election-001/participation",
+        { searchParams: { voter_status: "ACTIVE" } },
+      )
+    })
+
+    it("passes has_district_mismatch=true as string 'true'", async () => {
+      await getElectionParticipants("election-001", {
+        has_district_mismatch: true,
+      })
+      expect(mockGet).toHaveBeenCalledWith(
+        "elections/election-001/participation",
+        { searchParams: { has_district_mismatch: "true" } },
+      )
+    })
+
+    it("passes has_district_mismatch=false as string 'false'", async () => {
+      await getElectionParticipants("election-001", {
+        has_district_mismatch: false,
+      })
+      expect(mockGet).toHaveBeenCalledWith(
+        "elections/election-001/participation",
+        { searchParams: { has_district_mismatch: "false" } },
+      )
+    })
+
+    it("passes all filter params together", async () => {
+      await getElectionParticipants("election-001", {
+        page: 2,
+        page_size: 25,
+        q: "Smith",
+        county: "Houston",
+        voter_status: "ACTIVE",
+        has_district_mismatch: true,
+        county_precinct: "012A",
+        ballot_style: "REGULAR",
+        congressional_district: "008",
+        state_senate_district: "018",
+        state_house_district: "145",
+      })
+      expect(mockGet).toHaveBeenCalledWith(
+        "elections/election-001/participation",
+        {
+          searchParams: {
+            page: "2",
+            page_size: "25",
+            q: "Smith",
+            county: "Houston",
+            voter_status: "ACTIVE",
+            has_district_mismatch: "true",
+            county_precinct: "012A",
+            ballot_style: "REGULAR",
+            congressional_district: "008",
+            state_senate_district: "018",
+            state_house_district: "145",
+          },
+        },
+      )
+    })
+
+    it("transforms raw participant data into ElectionParticipant format", async () => {
+      mockJson.mockResolvedValueOnce({
+        items: [
+          {
+            id: "part-001",
+            voter_id: "voter-uuid-001",
+            voter_registration_number: "12345678",
+            first_name: "Jane",
+            last_name: "Doe",
+            county: "Bibb",
+            election_date: "2026-02-17",
+            election_type: "special",
+            normalized_election_type: "special",
+            party: null,
+            ballot_style: null,
+            early_voting: true,
+            absentee: false,
+            provisional: false,
+            supplemental: false,
+          },
+          {
+            id: "part-002",
+            voter_id: null,
+            voter_registration_number: "87654321",
+            first_name: null,
+            last_name: null,
+            county: "Houston",
+            election_date: "2026-02-17",
+            election_type: "special",
+            normalized_election_type: "special",
+            party: null,
+            ballot_style: null,
+            early_voting: false,
+            absentee: true,
+            provisional: false,
+            supplemental: false,
+          },
+          {
+            id: "part-003",
+            voter_id: "voter-uuid-003",
+            voter_registration_number: "11223344",
+            first_name: "Bob",
+            last_name: "Jones",
+            county: "Peach",
+            election_date: "2026-02-17",
+            election_type: "special",
+            normalized_election_type: "special",
+            party: null,
+            ballot_style: null,
+            early_voting: false,
+            absentee: false,
+            provisional: false,
+            supplemental: false,
+          },
+        ],
+        pagination: { total: 3, page: 1, page_size: 25, total_pages: 1 },
+      })
+
+      const result = await getElectionParticipants("election-001")
+
+      expect(result.items).toHaveLength(3)
+      // Early voting
+      expect(result.items[0]).toEqual({
+        id: "part-001",
+        voter_id: "voter-uuid-001",
+        voter_registration_number: "12345678",
+        first_name: "Jane",
+        last_name: "Doe",
+        county: "Bibb",
+        voting_method: "Early Voting",
+      })
+      // Absentee by mail — null names become empty strings
+      expect(result.items[1]).toEqual({
+        id: "part-002",
+        voter_id: null,
+        voter_registration_number: "87654321",
+        first_name: "",
+        last_name: "",
+        county: "Houston",
+        voting_method: "Absentee by Mail",
+      })
+      // In person (no flags set)
+      expect(result.items[2].voting_method).toBe("In Person")
+    })
+
+    it("returns pagination from raw response", async () => {
+      const result = await getElectionParticipants("election-001")
+      expect(result.pagination).toEqual({
+        total: 1,
+        page: 1,
+        page_size: 25,
+        total_pages: 1,
+      })
     })
   })
 

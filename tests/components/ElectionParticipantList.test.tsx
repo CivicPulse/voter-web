@@ -6,9 +6,12 @@ import {
   mockElectionParticipantsResponse,
   mockElectionParticipant,
 } from "@/test/mocks/elections"
-import type { ElectionParticipantsResponse } from "@/types/elections"
+import type { ElectionParticipantsResponse, ParticipantUrlParams } from "@/types/elections"
 
 const mockRefetch = vi.fn()
+const mockOnUpdate = vi.fn()
+const defaultParams: ParticipantUrlParams = {}
+
 let mockHookReturn: {
   data: ElectionParticipantsResponse | undefined
   isLoading: boolean
@@ -18,6 +21,10 @@ let mockHookReturn: {
 
 vi.mock("@/lib/hooks/use-election-participants", () => ({
   useElectionParticipants: () => mockHookReturn,
+}))
+
+vi.mock("@/components/elections/ParticipantFilters", () => ({
+  ParticipantFilters: () => <div data-testid="participant-filters" />,
 }))
 
 vi.mock("@tanstack/react-router", () => ({
@@ -51,7 +58,7 @@ beforeEach(() => {
 describe("ElectionParticipantList", () => {
   it("renders Voter List heading and search input", () => {
     mockHookReturn.data = mockElectionParticipantsResponse()
-    render(<ElectionParticipantList electionId="election-001" />)
+    render(<ElectionParticipantList electionId="election-001" params={defaultParams} onUpdate={mockOnUpdate} />)
 
     expect(screen.getByText("Voter List")).toBeInTheDocument()
     expect(
@@ -62,7 +69,7 @@ describe("ElectionParticipantList", () => {
   it("shows loading skeleton while fetching", () => {
     mockHookReturn.isLoading = true
     const { container } = render(
-      <ElectionParticipantList electionId="election-001" />,
+      <ElectionParticipantList electionId="election-001" params={defaultParams} onUpdate={mockOnUpdate} />,
     )
     const skeletons = container.querySelectorAll('[data-slot="skeleton"]')
     expect(skeletons.length).toBeGreaterThan(0)
@@ -70,7 +77,7 @@ describe("ElectionParticipantList", () => {
 
   it("shows error state with retry button", async () => {
     mockHookReturn.isError = true
-    render(<ElectionParticipantList electionId="election-001" />)
+    render(<ElectionParticipantList electionId="election-001" params={defaultParams} onUpdate={mockOnUpdate} />)
 
     expect(
       screen.getByText("Failed to load participant list."),
@@ -83,7 +90,7 @@ describe("ElectionParticipantList", () => {
 
   it("renders table with correct columns", () => {
     mockHookReturn.data = mockElectionParticipantsResponse()
-    render(<ElectionParticipantList electionId="election-001" />)
+    render(<ElectionParticipantList electionId="election-001" params={defaultParams} onUpdate={mockOnUpdate} />)
 
     expect(screen.getByText("Name")).toBeInTheDocument()
     expect(screen.getByText("Registration #")).toBeInTheDocument()
@@ -93,7 +100,7 @@ describe("ElectionParticipantList", () => {
 
   it("renders participant rows with correct data", () => {
     mockHookReturn.data = mockElectionParticipantsResponse()
-    render(<ElectionParticipantList electionId="election-001" />)
+    render(<ElectionParticipantList electionId="election-001" params={defaultParams} onUpdate={mockOnUpdate} />)
 
     expect(screen.getByText("Jane Doe")).toBeInTheDocument()
     expect(screen.getByText("12345678")).toBeInTheDocument()
@@ -109,7 +116,7 @@ describe("ElectionParticipantList", () => {
       items: [mockElectionParticipant()],
       pagination: { total: 1, page: 1, page_size: 25, total_pages: 1 },
     })
-    render(<ElectionParticipantList electionId="election-001" />)
+    render(<ElectionParticipantList electionId="election-001" params={defaultParams} onUpdate={mockOnUpdate} />)
 
     const link = screen.getByTestId("voter-link")
     expect(link).toHaveAttribute("href", "/voters/$voterId")
@@ -123,7 +130,7 @@ describe("ElectionParticipantList", () => {
       items: [mockElectionParticipant({ voter_id: null })],
       pagination: { total: 1, page: 1, page_size: 25, total_pages: 1 },
     })
-    render(<ElectionParticipantList electionId="election-001" />)
+    render(<ElectionParticipantList electionId="election-001" params={defaultParams} onUpdate={mockOnUpdate} />)
 
     expect(screen.getByText("12345678")).toBeInTheDocument()
     expect(screen.queryByTestId("voter-link")).not.toBeInTheDocument()
@@ -131,7 +138,7 @@ describe("ElectionParticipantList", () => {
 
   it("renders pagination controls", () => {
     mockHookReturn.data = mockElectionParticipantsResponse()
-    render(<ElectionParticipantList electionId="election-001" />)
+    render(<ElectionParticipantList electionId="election-001" params={defaultParams} onUpdate={mockOnUpdate} />)
 
     expect(screen.getByText(/Page 1 of 3,?140/)).toBeInTheDocument()
     expect(screen.getByRole("button", { name: /previous/i })).toBeDisabled()
@@ -143,7 +150,7 @@ describe("ElectionParticipantList", () => {
       items: [],
       pagination: { total: 0, page: 1, page_size: 25, total_pages: 0 },
     })
-    render(<ElectionParticipantList electionId="election-001" />)
+    render(<ElectionParticipantList electionId="election-001" params={defaultParams} onUpdate={mockOnUpdate} />)
 
     expect(
       screen.getByText("No participants found for this election."),
@@ -152,7 +159,7 @@ describe("ElectionParticipantList", () => {
 
   it("has search input that accepts text", async () => {
     mockHookReturn.data = mockElectionParticipantsResponse()
-    render(<ElectionParticipantList electionId="election-001" />)
+    render(<ElectionParticipantList electionId="election-001" params={defaultParams} onUpdate={mockOnUpdate} />)
 
     const searchInput = screen.getByPlaceholderText(
       "Search by name or registration #",
@@ -163,7 +170,7 @@ describe("ElectionParticipantList", () => {
 
   it("has data-testid for integration testing", () => {
     mockHookReturn.data = mockElectionParticipantsResponse()
-    render(<ElectionParticipantList electionId="election-001" />)
+    render(<ElectionParticipantList electionId="election-001" params={defaultParams} onUpdate={mockOnUpdate} />)
 
     expect(screen.getByTestId("election-participant-list")).toBeInTheDocument()
   })

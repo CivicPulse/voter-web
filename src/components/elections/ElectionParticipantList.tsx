@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useElectionParticipants } from "@/lib/hooks/use-election-participants"
+import { ParticipantFilters } from "@/components/elections/ParticipantFilters"
 import type { ParticipantUrlParams } from "@/types/elections"
 
 const PAGE_SIZE = 25
@@ -95,6 +96,12 @@ export function ElectionParticipantList({
           />
         </div>
       </div>
+
+      <ParticipantFilters
+        electionId={electionId}
+        params={params}
+        onUpdate={onUpdate}
+      />
 
       {isLoading && <LoadingSkeleton />}
 
