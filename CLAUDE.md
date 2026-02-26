@@ -330,6 +330,7 @@ Do **not** mark a UI task as complete without performing this verification. If t
 - TypeScript 5.9+ (strict mode) + React 19.2+, TanStack Router (file-based routing, Vite plugin), TanStack Query (data fetching/caching), shadcn/ui (new-york style, neutral base), ky (HTTP client), Zustand (client state), Zod (validation), React Hook Form (admin forms), Lucide React (icons), Sonner (toasts) (007-elections-discovery)
 - TypeScript 5.9+ (strict mode) + React 19.2+, TanStack Router (file-based routing, `validateSearch`), TanStack Query (data fetching), shadcn/ui (Select, Input), ky (HTTP client), Zod (schema validation) (008-participant-list-filters)
 - N/A (frontend SPA) (008-participant-list-filters)
+- TypeScript 5.9+ (strict mode) + React 19.2+, TanStack Router (file-based routing), TanStack Query (data fetching/mutation), shadcn/ui (Dialog, Badge, Select, Command/Popover), React Hook Form + Zod, Sonner (toasts), Lucide React (Trash2, X icons), ky (HTTP client) (010-election-admin-mgmt)
 
 ## Recent Changes
 - 001-admin-api-access: Added TypeScript 5.8+ (strict mode), React 19.2+
