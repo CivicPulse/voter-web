@@ -53,6 +53,7 @@ export function ElectionForm({
       election_date: "",
       election_type: undefined,
       district: "",
+      boundary_id: undefined,
       data_source_url: "",
       refresh_interval_seconds: 120,
       ...defaultValues,
