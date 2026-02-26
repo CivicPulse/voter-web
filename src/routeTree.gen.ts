@@ -23,6 +23,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as VotersVoterIdRouteImport } from './routes/voters/$voterId'
 import { Route as LookupResultsRouteImport } from './routes/lookup/results'
 import { Route as InviteAcceptRouteImport } from './routes/invite/accept'
+import { Route as ElectionsElectionIdRouteImport } from './routes/elections/$electionId'
 import { Route as ElectionsElectionDateRouteImport } from './routes/elections/$electionDate'
 import { Route as DistrictsDistrictIdRouteImport } from './routes/districts/$districtId'
 import { Route as CountiesCountyIdRouteImport } from './routes/counties/$countyId'
@@ -113,6 +114,11 @@ const InviteAcceptRoute = InviteAcceptRouteImport.update({
   id: '/invite/accept',
   path: '/invite/accept',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ElectionsElectionIdRoute = ElectionsElectionIdRouteImport.update({
+  id: '/$electionId',
+  path: '/$electionId',
+  getParentRoute: () => ElectionsRoute,
 } as any)
 const ElectionsElectionDateRoute = ElectionsElectionDateRouteImport.update({
   id: '/$electionDate',
@@ -231,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
   '/elections/$electionDate': typeof ElectionsElectionDateRouteWithChildren
+  '/elections/$electionId': typeof ElectionsElectionIdRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/lookup/results': typeof LookupResultsRoute
   '/voters/$voterId': typeof VotersVoterIdRoute
@@ -263,6 +270,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
+  '/elections/$electionId': typeof ElectionsElectionIdRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/lookup/results': typeof LookupResultsRoute
   '/voters/$voterId': typeof VotersVoterIdRoute
@@ -300,6 +308,7 @@ export interface FileRoutesById {
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
   '/elections/$electionDate': typeof ElectionsElectionDateRouteWithChildren
+  '/elections/$electionId': typeof ElectionsElectionIdRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/lookup/results': typeof LookupResultsRoute
   '/voters/$voterId': typeof VotersVoterIdRoute
@@ -338,6 +347,7 @@ export interface FileRouteTypes {
     | '/counties/$countyId'
     | '/districts/$districtId'
     | '/elections/$electionDate'
+    | '/elections/$electionId'
     | '/invite/accept'
     | '/lookup/results'
     | '/voters/$voterId'
@@ -370,6 +380,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/counties/$countyId'
     | '/districts/$districtId'
+    | '/elections/$electionId'
     | '/invite/accept'
     | '/lookup/results'
     | '/voters/$voterId'
@@ -406,6 +417,7 @@ export interface FileRouteTypes {
     | '/counties/$countyId'
     | '/districts/$districtId'
     | '/elections/$electionDate'
+    | '/elections/$electionId'
     | '/invite/accept'
     | '/lookup/results'
     | '/voters/$voterId'
@@ -550,6 +562,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/invite/accept'
       preLoaderRoute: typeof InviteAcceptRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/elections/$electionId': {
+      id: '/elections/$electionId'
+      path: '/$electionId'
+      fullPath: '/elections/$electionId'
+      preLoaderRoute: typeof ElectionsElectionIdRouteImport
+      parentRoute: typeof ElectionsRoute
     }
     '/elections/$electionDate': {
       id: '/elections/$electionDate'
@@ -743,11 +762,13 @@ const ElectionsElectionDateRouteWithChildren =
 
 interface ElectionsRouteChildren {
   ElectionsElectionDateRoute: typeof ElectionsElectionDateRouteWithChildren
+  ElectionsElectionIdRoute: typeof ElectionsElectionIdRoute
   ElectionsIndexRoute: typeof ElectionsIndexRoute
 }
 
 const ElectionsRouteChildren: ElectionsRouteChildren = {
   ElectionsElectionDateRoute: ElectionsElectionDateRouteWithChildren,
+  ElectionsElectionIdRoute: ElectionsElectionIdRoute,
   ElectionsIndexRoute: ElectionsIndexRoute,
 }
 
