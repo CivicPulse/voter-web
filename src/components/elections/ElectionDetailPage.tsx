@@ -35,6 +35,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { buildCandidateColorMap } from "@/lib/candidate-colors"
+import { useCandidates } from "@/lib/hooks/use-candidates"
+import { CandidateList } from "@/components/elections/CandidateList"
 import { useAuthStore } from "@/stores/authStore"
 
 type MapView = "county" | "precinct"
@@ -58,6 +60,9 @@ export function ElectionDetailPage({
     error: raceError,
     dataUpdatedAt,
   } = useRaceResults(electionId)
+
+  const { data: candidatesData } = useCandidates(electionId, { page_size: 1 })
+  const hasApiCandidates = (candidatesData?.items ?? []).length > 0
 
   const hasResults = (raceData?.results.candidates.length ?? 0) > 0
   const [initialDefault, setInitialDefault] = useState<"info" | "results" | null>(null)
@@ -233,6 +238,13 @@ export function ElectionDetailPage({
         )}
 
         <TabsContent value="results">
+          {/* Candidate info (shown when API has candidate data) */}
+          {hasApiCandidates && (
+            <div className="mb-4">
+              <CandidateList electionId={electionId} />
+            </div>
+          )}
+
           {/* Inline results */}
           <div className="mb-4">
             <ElectionResultsSection
