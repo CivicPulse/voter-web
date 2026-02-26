@@ -84,6 +84,15 @@ export function mockElection(overrides?: Partial<Election>): Election {
     refresh_interval_seconds: 120,
     created_at: "2026-02-10T14:00:00Z",
     updated_at: "2026-02-17T19:40:48Z",
+    description: null,
+    purpose: null,
+    eligibility_description: null,
+    registration_deadline: null,
+    early_voting_start: null,
+    early_voting_end: null,
+    absentee_request_deadline: null,
+    qualifying_start: null,
+    qualifying_end: null,
     ...overrides,
   }
 }

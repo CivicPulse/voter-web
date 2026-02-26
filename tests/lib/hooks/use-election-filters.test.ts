@@ -10,6 +10,9 @@ describe("useElectionFilters", () => {
         election_type: "all",
         date_from: null,
         date_to: null,
+        registration_open: undefined,
+        early_voting_active: undefined,
+        search: undefined,
       },
       raceFilters: {
         search: "",
@@ -26,6 +29,9 @@ describe("useElectionFilters", () => {
         election_type: "all",
         date_from: null,
         date_to: null,
+        registration_open: undefined,
+        early_voting_active: undefined,
+        search: undefined,
       })
     })
 
@@ -55,6 +61,9 @@ describe("useElectionFilters", () => {
         election_type: "primary",
         date_from: "2026-01-01",
         date_to: "2026-12-31",
+        registration_open: true,
+        early_voting_active: true,
+        search: "test",
       })
       useElectionFilters.getState().resetElectionFilters()
       const state = useElectionFilters.getState()
@@ -63,7 +72,28 @@ describe("useElectionFilters", () => {
         election_type: "all",
         date_from: null,
         date_to: null,
+        registration_open: undefined,
+        early_voting_active: undefined,
+        search: undefined,
       })
+    })
+
+    it("updates registration_open filter", () => {
+      useElectionFilters.getState().setElectionFilters({ registration_open: true })
+      const state = useElectionFilters.getState()
+      expect(state.electionFilters.registration_open).toBe(true)
+    })
+
+    it("updates early_voting_active filter", () => {
+      useElectionFilters.getState().setElectionFilters({ early_voting_active: true })
+      const state = useElectionFilters.getState()
+      expect(state.electionFilters.early_voting_active).toBe(true)
+    })
+
+    it("updates search filter", () => {
+      useElectionFilters.getState().setElectionFilters({ search: "Senate" })
+      const state = useElectionFilters.getState()
+      expect(state.electionFilters.search).toBe("Senate")
     })
   })
 

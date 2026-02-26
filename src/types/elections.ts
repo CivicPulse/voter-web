@@ -44,6 +44,17 @@ export interface Election {
   created_at?: string
   /** Only present on detail endpoint */
   updated_at?: string
+
+  // Election metadata fields (all nullable)
+  description?: string | null
+  purpose?: string | null
+  eligibility_description?: string | null
+  registration_deadline?: string | null
+  early_voting_start?: string | null
+  early_voting_end?: string | null
+  absentee_request_deadline?: string | null
+  qualifying_start?: string | null
+  qualifying_end?: string | null
 }
 
 /**
@@ -134,6 +145,15 @@ export interface UpdateElectionRequest {
   status?: ElectionStatus
   refresh_interval_seconds?: number
   ballot_item_id?: string | null
+  description?: string | null
+  purpose?: string | null
+  eligibility_description?: string | null
+  registration_deadline?: string | null
+  early_voting_start?: string | null
+  early_voting_end?: string | null
+  absentee_request_deadline?: string | null
+  qualifying_start?: string | null
+  qualifying_end?: string | null
 }
 
 /** Response from POST /elections/{id}/refresh */
@@ -207,6 +227,9 @@ export interface ElectionFilters {
   election_type: ElectionType | "all"
   date_from: string | null
   date_to: string | null
+  registration_open?: boolean
+  early_voting_active?: boolean
+  search?: string
 }
 
 /** Race list filter state (within an election event) */
@@ -330,6 +353,13 @@ const REPORTED_STATUSES = new Set([
 /** Check whether a precinct reporting status indicates results are available */
 export function isReported(status: string): boolean {
   return REPORTED_STATUSES.has(status)
+}
+
+/** Synthesize a description for an election, preferring the API purpose field */
+export function synthesizeDescription(election: Election): string {
+  if (election.purpose) return election.purpose
+  const type = election.election_type.charAt(0).toUpperCase() + election.election_type.slice(1)
+  return `${type} — ${election.district}`
 }
 
 // ============================================================================

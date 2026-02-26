@@ -15,6 +15,9 @@ const DEFAULT_ELECTION_FILTERS: ElectionFilters = {
   election_type: "all",
   date_from: null,
   date_to: null,
+  registration_open: undefined,
+  early_voting_active: undefined,
+  search: undefined,
 }
 
 const DEFAULT_RACE_FILTERS: RaceFilters = {
