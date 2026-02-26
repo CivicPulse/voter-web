@@ -8,17 +8,15 @@ import { ElectionMetadata } from "@/components/elections/ElectionMetadata"
 interface ElectionInfoTabProps {
   election: Election
   electionId: string
-  isAdmin?: boolean
 }
 
 export function ElectionInfoTab({
   election,
   electionId,
-  isAdmin,
 }: ElectionInfoTabProps) {
   return (
     <div className="space-y-6 py-4">
-      <CandidateList electionId={electionId} isAdmin={isAdmin} />
+      <CandidateList electionId={electionId} />
       <ElectionEligibility election={election} />
       <ElectionGeographicArea election={election} />
       <ElectionKeyDates election={election} />
