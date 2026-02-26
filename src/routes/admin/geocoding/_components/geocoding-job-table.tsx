@@ -35,7 +35,7 @@ function getProgressDisplay(job: BatchGeocodeJob) {
   return `${job.processed.toLocaleString()} / ${job.total_records.toLocaleString()} (${pct}%)`
 }
 
-export function GeocodingJobTable({ jobs }: GeocodingJobTableProps) {
+export function GeocodingJobTable({ jobs }: Readonly<GeocodingJobTableProps>) {
   if (jobs.length === 0) {
     return (
       <div className="border rounded-lg p-8 text-center text-muted-foreground">

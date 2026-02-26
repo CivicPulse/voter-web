@@ -26,10 +26,10 @@ export function GeocodingJobFilters({
   onStatusChange,
   onProviderChange,
   onCountyChange,
-}: GeocodingJobFiltersProps) {
+}: Readonly<GeocodingJobFiltersProps>) {
   const uniqueProviders = Array.from(
     new Set(providers?.map((p) => p.name) ?? []),
-  ).sort()
+  ).sort((a, b) => a.localeCompare(b))
 
   return (
     <div className="flex items-center gap-3">

@@ -43,8 +43,8 @@ function GeocodingPage() {
   }, [countyFilter])
 
   const filters = {
-    job_status: statusFilter !== "all" ? statusFilter : undefined,
-    provider: providerFilter !== "all" ? providerFilter : undefined,
+    job_status: statusFilter === "all" ? undefined : statusFilter,
+    provider: providerFilter === "all" ? undefined : providerFilter,
     county: debouncedCounty.trim() || undefined,
     page,
     page_size: 20,
@@ -101,6 +101,51 @@ function GeocodingPage() {
     setPage(1)
   }
 
+  function renderJobHistory() {
+    if (jobsLoading) return <Skeleton className="h-48 rounded-lg" />
+    if (jobsError) {
+      return (
+        <div className="border border-destructive rounded-lg p-4">
+          <p className="text-sm text-destructive">
+            Failed to load jobs: {jobsError.message}
+          </p>
+        </div>
+      )
+    }
+    return (
+      <>
+        <GeocodingJobTable jobs={jobs} />
+        {pagination && pagination.total_pages > 1 && (
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Page {pagination.page} of {pagination.total_pages} ({pagination.total} total jobs)
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => p - 1)}
+                disabled={page <= 1}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page >= pagination.total_pages}
+              >
+                Next
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </>
+    )
+  }
+
   const handleJobStarted = () => {
     setStatusFilter("all")
     setProviderFilter("all")
@@ -143,46 +188,7 @@ function GeocodingPage() {
           onProviderChange={handleProviderChange}
           onCountyChange={handleCountyChange}
         />
-        {jobsLoading ? (
-          <Skeleton className="h-48 rounded-lg" />
-        ) : jobsError ? (
-          <div className="border border-destructive rounded-lg p-4">
-            <p className="text-sm text-destructive">
-              Failed to load jobs: {jobsError.message}
-            </p>
-          </div>
-        ) : (
-          <>
-            <GeocodingJobTable jobs={jobs} />
-            {pagination && pagination.total_pages > 1 && (
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Page {pagination.page} of {pagination.total_pages} ({pagination.total} total jobs)
-                </p>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((p) => p - 1)}
-                    disabled={page <= 1}
-                  >
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    Previous
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((p) => p + 1)}
-                    disabled={page >= pagination.total_pages}
-                  >
-                    Next
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </Button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
+        {renderJobHistory()}
       </div>
 
       {/* Cache Statistics */}
