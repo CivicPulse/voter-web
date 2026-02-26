@@ -3,9 +3,16 @@ import { ELECTION_ID } from "./fixtures/mock-data"
 
 test.describe("Election Information Tab", () => {
   // Info and Participation tabs are only visible to authenticated users.
-  // Set a mock access_token in localStorage before each test so the app
-  // treats the session as authenticated when the page loads.
+  // Mock auth/me so initialize() doesn't clear auth, then set access_token
+  // in localStorage before each test so the app treats the session as authenticated.
   test.beforeEach(async ({ page }) => {
+    await page.route("**/api/v1/auth/me", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ id: "test-user", role: "viewer" }),
+      }),
+    )
     await page.evaluate(() =>
       localStorage.setItem("access_token", "test-token"),
     )
