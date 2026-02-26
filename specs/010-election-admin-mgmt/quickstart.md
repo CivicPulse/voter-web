@@ -55,7 +55,7 @@ Admin panel requires a logged-in user with `admin` or `analyst` role. Navigate t
 | `src/routes/admin/elections/_components/election-table.tsx` | Add Source column; add delete button (admin only); accept `isAdmin` prop |
 | `src/routes/admin/elections/index.tsx` | Fetch `useUserRole()`, pass `isAdmin` to table |
 | `src/routes/admin/elections/$electionId.tsx` | Add delete button + dialog; add source badge in header |
-| `tests/lib/hooks/use-admin-elections.test.ts` | Add tests for `useDeleteElection` |
+| `tests/lib/hooks/use-admin-elections.test.tsx` | Add tests for `useDeleteElection` |
 | `tests/lib/api/elections.test.ts` | Add test for `deleteElection` |
 
 ---

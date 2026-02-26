@@ -39,19 +39,21 @@ export function DeleteElectionDialog({
         onOpenChange(false)
       },
       onError: async (error) => {
-        if (error instanceof HTTPError && error.response.status === 409) {
+        if (error instanceof HTTPError) {
+          const status = error.response.status
+          // 401/403 handled by hook (toast) — close dialog
+          if (status === 401 || status === 403) {
+            onOpenChange(false)
+            return
+          }
           try {
             const body = await error.response.json() as { detail?: string }
             setErrorMessage(body.detail ?? "This election cannot be deleted.")
           } catch {
             setErrorMessage("This election cannot be deleted.")
           }
-        } else if (!(error instanceof HTTPError) || error.response.status >= 500) {
+        } else {
           setErrorMessage(error.message || "An error occurred while deleting the election.")
-        }
-        // 401/403 handled by hook (toast) — close dialog
-        if (error instanceof HTTPError && (error.response.status === 401 || error.response.status === 403)) {
-          onOpenChange(false)
         }
       },
     })
@@ -62,8 +64,13 @@ export function DeleteElectionDialog({
     onOpenChange(false)
   }
 
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) setErrorMessage(null)
+    onOpenChange(nextOpen)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

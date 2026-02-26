@@ -5,6 +5,7 @@ import { createTestQueryClient } from "@/test/render"
 import { QueryClientProvider } from "@tanstack/react-query"
 import type { ReactNode } from "react"
 import { AuthenticationError } from "@/types/admin"
+import { toast } from "sonner"
 
 vi.mock("@/lib/api/boundaries", () => ({
   getBoundaries: vi.fn(),
@@ -101,6 +102,7 @@ describe("useBoundaries", () => {
     )
 
     expect(result.current.isError).toBe(true)
+    expect(toast.error).toHaveBeenCalledWith("Session expired", expect.objectContaining({ description: expect.any(String) }))
   }, 15000)
 })
 

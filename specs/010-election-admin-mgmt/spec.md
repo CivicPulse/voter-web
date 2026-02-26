@@ -93,7 +93,7 @@ Administrators viewing the **admin** election list or the **admin** election det
 **Election Source Indicator**
 
 - **FR-013**: The `/admin/elections` list page MUST display a visual badge or tag on each row indicating whether the election originated from the SOS feed or was manually created; this badge MUST NOT appear on public-facing election pages.
-- **FR-014**: The `/admin/elections/$id` detail page MUST display the same source indicator in the election's information section; it MUST NOT appear on public-facing election detail views.
+- **FR-014**: The `/admin/elections/$electionId` detail page MUST display the same source indicator in the election's information section; it MUST NOT appear on public-facing election detail views.
 - **FR-017**: The existing `/admin/elections` (election management list) and `/admin/elections/$electionId` (election management detail) routes MUST be extended with role-based access following the same admin-panel pattern. The delete button and source badge live exclusively on these admin routes and MUST NOT appear on public-facing election pages.
 - **FR-015**: The source indicator MUST be visually distinct between SOS-feed and manually-created elections (different colors, labels, or icons).
 - **FR-016**: If the source field is absent or unknown on an election record, the UI MUST handle it gracefully without crashing.
@@ -121,7 +121,7 @@ Administrators viewing the **admin** election list or the **admin** election det
 - Q: Should the source badge appear only inside the admin panel, or also on public-facing election pages? → A: Admin panel only — source badge is shown only within admin-panel views (admin election list and admin election detail).
 - Q: Should the deletion confirmation dialog proactively show associated data counts, or just a generic warning? → A: Generic warning only; if the backend rejects the deletion, display a clear error message within the dialog.
 - Q: Does the existing `/boundaries` API support text search by name/identifier? → A: No — `GET /api/v1/boundaries` supports `boundary_type`, `county`, `source` filters and pagination, but has no text search parameter. A `search` query param needs to be added to the backend (tracked in CivicPulse/voter-api#92). The `/api/v1/boundaries/types` endpoint already exists for populating the type filter.
-- Q: Should admin-only features (delete button, source badge) be on new dedicated admin routes or augment existing public election pages conditionally? → A: New dedicated admin routes — create `/admin/elections` (list) and `/admin/elections/$id` (detail); delete button and source badge live only on these admin routes.
+- Q: Should admin-only features (delete button, source badge) be on new dedicated admin routes or augment existing public election pages conditionally? → A: New dedicated admin routes — create `/admin/elections` (list) and `/admin/elections/$electionId` (detail); delete button and source badge live only on these admin routes.
 - Q: How should the district/boundary fields be presented on the Create Election form? → A: Single switching field — shows boundary selector by default; if cleared/deselected it becomes an editable plain text input for manual district name entry.
 - Q: Where should the boundary type filter control live relative to the boundary selector? → A: Inside the selector popover — a Select or segmented control above the search input that filters the list in-place; no external field alongside the trigger button.
 

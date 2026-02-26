@@ -319,7 +319,7 @@ After making **any** UI changes (components, layouts, styles, routes), you **mus
 Do **not** mark a UI task as complete without performing this verification. If the visual result does not match expectations, fix the issue and re-verify before proceeding.
 
 ## Active Technologies
-- TypeScript 5.8+ (strict mode), React 19.2+ (001-admin-api-access)
+- TypeScript 5.9+ (strict mode), React 19.2+ (001-admin-api-access)
 - TypeScript 5.9+, React 19.2+ + TanStack Router (file-based routing), TanStack Query (data fetching, caching, polling), React-Leaflet + Leaflet (maps), vaul (drawer), Recharts (charts if needed), Zustand (client state), ky (HTTP client), React Hook Form + Zod (admin forms), shadcn/ui (UI components), Lucide React (icons), Sonner (toasts) (002-election-results)
 - N/A (frontend SPA — all data from voter-api backend at `/api/v1`) (002-election-results)
 - TypeScript 5.9+, React 19.2+ + TanStack Router (file-based routing), TanStack Query (data fetching), React-Leaflet + Leaflet (map), shadcn/ui (UI components), Zustand (auth state), ky (HTTP client), React Hook Form + Zod (forms/validation), Sonner (toasts), Lucide React (icons) (003-voter-search-geocoding)
@@ -333,4 +333,4 @@ Do **not** mark a UI task as complete without performing this verification. If t
 - TypeScript 5.9+ (strict mode) + React 19.2+, TanStack Router (file-based routing), TanStack Query (data fetching/mutation), shadcn/ui (Dialog, Badge, Select, Command/Popover), React Hook Form + Zod, Sonner (toasts), Lucide React (Trash2, X icons), ky (HTTP client) (010-election-admin-mgmt)
 
 ## Recent Changes
-- 001-admin-api-access: Added TypeScript 5.8+ (strict mode), React 19.2+
+- 001-admin-api-access: Added TypeScript 5.9+ (strict mode), React 19.2+

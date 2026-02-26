@@ -97,6 +97,6 @@ export async function deleteElection(electionId: string): Promise<void> {
 
 The `useDeleteElection` mutation hook:
 - On 204 success → invalidate `["admin", "elections"]` and `["elections"]` queries → success toast
-- On 409 → extract `detail` message → pass to dialog for inline display (no toast)
-- On 401/403 → toast error (consistent with other admin hooks)
-- On network error → toast warning
+- On 409 (and other non-auth HTTP errors) → extract `detail` message → display inline in the dialog (no toast)
+- On 401/403 → toast error (consistent with other admin hooks) → close dialog
+- On non-HTTP error (network failures, etc.) → display error message inline in the dialog

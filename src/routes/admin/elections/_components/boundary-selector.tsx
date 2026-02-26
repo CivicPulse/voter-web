@@ -45,9 +45,14 @@ export function BoundarySelector({ value, district, onChange }: BoundarySelector
   })
   const boundaries = boundariesData?.items ?? []
 
-  const selectedBoundary = value
+  // Derive selected boundary from the current list. If not found (e.g., type
+  // filter changed after selection), fall back to displaying the district name
+  // from the parent prop so the selection remains visible.
+  const selectedBoundaryFromList = value
     ? boundaries.find((b) => b.id === value) ?? null
     : null
+  const selectedBoundary = selectedBoundaryFromList
+  const selectedDisplayName = selectedBoundaryFromList?.name ?? (value && district ? district : null)
 
   const handleSelect = useCallback(
     (boundary: BoundaryListItem) => {
@@ -85,10 +90,12 @@ export function BoundarySelector({ value, district, onChange }: BoundarySelector
         </Select>
       </div>
 
-      {value && selectedBoundary ? (
+      {value && selectedDisplayName ? (
         <div className="flex items-center gap-2 p-2 border rounded-md bg-muted/50">
-          <span className="flex-1 text-sm font-medium">{selectedBoundary.name}</span>
-          <span className="text-xs text-muted-foreground">{formatBoundaryLabel(selectedBoundary)}</span>
+          <span className="flex-1 text-sm font-medium">{selectedDisplayName}</span>
+          {selectedBoundary && (
+            <span className="text-xs text-muted-foreground">{formatBoundaryLabel(selectedBoundary)}</span>
+          )}
           <Button
             type="button"
             variant="ghost"
@@ -131,7 +138,7 @@ export function BoundarySelector({ value, district, onChange }: BoundarySelector
                     {boundaries.map((boundary) => (
                       <CommandItem
                         key={boundary.id}
-                        value={boundary.id}
+                        value={`${boundary.name} ${boundary.boundary_identifier} ${boundary.boundary_type}`}
                         onSelect={() => handleSelect(boundary)}
                       >
                         <Check
