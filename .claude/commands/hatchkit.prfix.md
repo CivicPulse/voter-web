@@ -10,6 +10,11 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
+## Prerequisites
+
+- The `gh` CLI must be installed and authenticated (`gh auth status`).
+- A pull request must exist for the current branch.
+
 ## Goal
 
 Fetch all **unresolved** review threads on the current PR, deduplicate related feedback, implement fixes, push, then reply and resolve each thread. This command MUST run only after a PR has been created and is active.
@@ -18,7 +23,6 @@ Fetch all **unresolved** review threads on the current PR, deduplicate related f
 
 - Keep changes focused on addressing feedback — no unrelated modifications.
 - The project constitution (`.specify/memory/constitution.md`) is non-negotiable; constitution conflicts are automatically CRITICAL.
-- **Do NOT use `get_pull_request_comments` or `get_pull_request_reviews` MCP tools** — they return all comments (resolved + unresolved) and can exceed context limits on large PRs. Use the GraphQL API via `gh api graphql` exclusively for thread retrieval.
 
 ## Execution Steps
 
@@ -27,41 +31,30 @@ Fetch all **unresolved** review threads on the current PR, deduplicate related f
 Auto-detect the PR number from the current branch:
 
 ```bash
-gh pr view --json number,url,headRefName --jq '{number, url, headRefName}'
+hatchkit pr info
 ```
 
 If no PR is found, stop and inform the user.
 
 ### 2. Fetch Unresolved Review Threads
 
-Use the GraphQL API to retrieve only **unresolved** threads. Filter client-side on `isResolved == false`:
+Retrieve only **unresolved** threads:
 
 ```bash
-gh api graphql -f query='
-  query($owner: String!, $repo: String!, $pr: Int!) {
-    repository(owner: $owner, name: $repo) {
-      pullRequest(number: $pr) {
-        reviewThreads(first: 100) {
-          nodes {
-            id
-            isResolved
-            path
-            line
-            comments(first: 10) {
-              nodes {
-                author { login }
-                body
-                createdAt
-              }
-            }
-          }
-        }
-      }
-    }
-  }' -f owner=OWNER -f repo=REPO -F pr=NUMBER
+hatchkit pr threads
 ```
 
-Replace `OWNER`, `REPO`, and `NUMBER` with actual values from Step 1. Filter the result to only threads where `isResolved == false`.
+To include resolved threads as well, use:
+
+```bash
+hatchkit pr threads --all
+```
+
+You can also specify the owner, repo, and PR number explicitly:
+
+```bash
+hatchkit pr threads --owner OWNER --repo REPO --pr NUMBER
+```
 
 If the PR has zero unresolved threads, stop and inform the user.
 
@@ -111,56 +104,32 @@ Push to the PR branch.
 
 ### 8. Reply and Resolve Threads
 
-**After pushing** (so reviewers see the fix commit), reply to each thread and resolve it. Use the GraphQL `resolveReviewThread` mutation:
+**After pushing** (so reviewers see the fix commit), reply to each thread and resolve it:
 
 ```bash
-gh api graphql -f query='
-  mutation($threadId: ID!) {
-    resolveReviewThread(input: { threadId: $threadId }) {
-      thread { isResolved }
-    }
-  }' -f threadId=THREAD_NODE_ID
+hatchkit pr reply THREAD_NODE_ID "Fixed in latest push — <brief explanation>"  --resolve
 ```
 
-For each thread:
-1. Add a reply comment explaining how the feedback was addressed (or why you disagree)
-2. Resolve the thread using the mutation above
-
-The `threadId` is the `id` field from the `reviewThreads.nodes` returned in Step 2.
-
-**Batch pattern** — when there are >10 threads, use a shell loop:
+For threads where you only need to reply without resolving:
 
 ```bash
-for tid in THREAD_ID_1 THREAD_ID_2 THREAD_ID_3; do
-  gh api graphql -f query='
-    mutation($threadId: ID!) {
-      resolveReviewThread(input: { threadId: $threadId }) {
-        thread { isResolved }
-      }
-    }' -f threadId="$tid"
-done
+hatchkit pr reply THREAD_NODE_ID "Acknowledged — this is by design because..."
 ```
 
-To add a reply comment before resolving:
+To resolve a thread without adding a reply:
 
 ```bash
-gh api graphql -f query='
-  mutation($threadId: ID!, $body: String!) {
-    addPullRequestReviewThreadReply(input: {
-      pullRequestReviewThreadId: $threadId
-      body: $body
-    }) {
-      comment { id }
-    }
-  }' -f threadId=THREAD_NODE_ID -f body="Fixed in latest push — ..."
+hatchkit pr resolve THREAD_NODE_ID
 ```
+
+The `THREAD_NODE_ID` is the `id` field from the thread objects returned in Step 2.
 
 ### 9. Verify CI
 
 After pushing, compare the check status to what it was **before** your changes. Pre-existing failures are not your responsibility — only ensure you haven't introduced new ones:
 
 ```bash
-gh pr checks
+hatchkit pr checks
 ```
 
 If a check that was previously passing now fails, investigate and fix.
@@ -171,15 +140,6 @@ Add a final PR comment summarizing:
 - How many threads were resolved
 - Key changes grouped by theme
 - Any threads where you disagreed and why
-
-## GraphQL Quick Reference
-
-| Operation | Mutation / Query | Key Input Field |
-|-----------|-----------------|-----------------|
-| List threads | `pullRequest.reviewThreads` | `first: 100` |
-| Resolve thread | `resolveReviewThread` | `threadId` (node ID from query) |
-| Reply to thread | `addPullRequestReviewThreadReply` | `pullRequestReviewThreadId` (same node ID) |
-| Add issue comment | `addComment` | `subjectId` (PR node ID) |
 
 ## Context
 

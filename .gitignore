@@ -52,3 +52,6 @@ imgs/
 *.sln
 *.sw?
 docs/research/
+
+# hatchkit
+.hatchkit/cache/
