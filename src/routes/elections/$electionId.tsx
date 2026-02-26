@@ -42,7 +42,7 @@ type MapView = "county" | "precinct"
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const searchSchema = z.object({
-  tab: z.enum(["info", "results", "participation"]).catch("results"),
+  tab: z.enum(["info", "results", "participation"]).optional(),
 })
 
 export const Route = createFileRoute("/elections/$electionId")({
@@ -68,6 +68,11 @@ function ElectionDetailPage() {
     error: raceError,
     dataUpdatedAt,
   } = useRaceResults(electionId)
+
+  // Determine default tab based on initial data load
+  const hasResults = (raceData?.results.candidates.length ?? 0) > 0
+  const computedDefault = raceLoading ? "info" : hasResults ? "results" : "info"
+  const activeTab = tab ?? computedDefault
 
   const [soundEnabled, setSoundEnabled] = useState(true)
 
@@ -197,7 +202,7 @@ function ElectionDetailPage() {
 
       {/* Tabbed content */}
       <Tabs
-        value={tab}
+        value={activeTab}
         onValueChange={(value) => {
           navigate({
             search: { tab: value as "info" | "results" | "participation" },
@@ -344,7 +349,7 @@ function ElectionDetailPage() {
         </TabsContent>
 
         <TabsContent value="participation">
-          {tab === "participation" && (
+          {activeTab === "participation" && (
             <ParticipationTab electionId={electionId} />
           )}
         </TabsContent>
