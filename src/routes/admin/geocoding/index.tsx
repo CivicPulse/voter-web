@@ -1,18 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { useState } from "react"
-import { Globe } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { ChevronLeft, ChevronRight, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AdminErrorBoundary } from "@/components/admin-error-boundary"
 import {
-  useBatchGeocodeStatus,
   useCacheStats,
+  useGeocodingJobs,
   useGeocodingProviders,
 } from "@/hooks/useAddressLookup"
+import { isActiveGeocodingJob } from "@/types/lookup"
 import { JobProgressCard } from "./_components/job-progress-card"
 import { TriggerGeocodeDialog } from "./_components/trigger-geocode-dialog"
 import { CacheStatsGrid } from "./_components/cache-stats-grid"
 import { ProviderList } from "./_components/provider-list"
+import { GeocodingJobTable } from "./_components/geocoding-job-table"
+import { GeocodingJobFilters } from "./_components/geocoding-job-filters"
 
 export const Route = createFileRoute("/admin/geocoding/")({
   component: () => (
@@ -23,10 +26,48 @@ export const Route = createFileRoute("/admin/geocoding/")({
 })
 
 function GeocodingPage() {
-  const [activeJobId, setActiveJobId] = useState<string | null>(null)
   const [showTriggerDialog, setShowTriggerDialog] = useState(false)
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [providerFilter, setProviderFilter] = useState("all")
+  const [countyFilter, setCountyFilter] = useState("")
+  const [debouncedCounty, setDebouncedCounty] = useState("")
+  const [page, setPage] = useState(1)
+  const countyTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
-  const { data: jobStatus } = useBatchGeocodeStatus(activeJobId)
+  useEffect(() => {
+    countyTimerRef.current = setTimeout(
+      () => setDebouncedCounty(countyFilter),
+      300,
+    )
+    return () => clearTimeout(countyTimerRef.current)
+  }, [countyFilter])
+
+  const filters = {
+    job_status: statusFilter === "all" ? undefined : statusFilter,
+    provider: providerFilter === "all" ? undefined : providerFilter,
+    county: debouncedCounty.trim() || undefined,
+    page,
+    page_size: 20,
+  }
+
+  // Separate unfiltered query to reliably detect active jobs regardless of
+  // table filters or pagination. Drives the progress card and button state.
+  const { data: activeJobsData } = useGeocodingJobs({
+    job_status: "running",
+    page: 1,
+    page_size: 1,
+  })
+  const { data: pendingJobsData } = useGeocodingJobs({
+    job_status: "pending",
+    page: 1,
+    page_size: 1,
+  })
+
+  const {
+    data: jobsData,
+    isLoading: jobsLoading,
+    error: jobsError,
+  } = useGeocodingJobs(filters)
   const {
     data: cacheStats,
     isLoading: cacheLoading,
@@ -38,8 +79,80 @@ function GeocodingPage() {
     error: providersError,
   } = useGeocodingProviders()
 
-  const isJobActive =
-    jobStatus?.status === "pending" || jobStatus?.status === "running"
+  const jobs = jobsData?.items ?? []
+  const pagination = jobsData?.pagination
+  const activeJob =
+    (activeJobsData?.items ?? []).find(isActiveGeocodingJob) ??
+    (pendingJobsData?.items ?? []).find(isActiveGeocodingJob)
+  const hasActiveJobs = activeJob !== undefined
+
+  const handleStatusChange = (value: string) => {
+    setStatusFilter(value)
+    setPage(1)
+  }
+
+  const handleProviderChange = (value: string) => {
+    setProviderFilter(value)
+    setPage(1)
+  }
+
+  const handleCountyChange = (value: string) => {
+    setCountyFilter(value)
+    setPage(1)
+  }
+
+  function renderJobHistory() {
+    if (jobsLoading) return <Skeleton className="h-48 rounded-lg" />
+    if (jobsError) {
+      return (
+        <div className="border border-destructive rounded-lg p-4">
+          <p className="text-sm text-destructive">
+            Failed to load jobs: {jobsError.message}
+          </p>
+        </div>
+      )
+    }
+    return (
+      <>
+        <GeocodingJobTable jobs={jobs} />
+        {pagination && pagination.total_pages > 1 && (
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Page {pagination.page} of {pagination.total_pages} ({pagination.total} total jobs)
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => p - 1)}
+                disabled={page <= 1}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page >= pagination.total_pages}
+              >
+                Next
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </>
+    )
+  }
+
+  const handleJobStarted = () => {
+    setStatusFilter("all")
+    setProviderFilter("all")
+    setCountyFilter("")
+    setDebouncedCounty("")
+    setPage(1)
+  }
 
   return (
     <div className="space-y-6">
@@ -53,7 +166,7 @@ function GeocodingPage() {
         </div>
         <Button
           onClick={() => setShowTriggerDialog(true)}
-          disabled={isJobActive}
+          disabled={hasActiveJobs}
         >
           <Globe className="h-4 w-4 mr-2" />
           Start Batch Geocode
@@ -61,7 +174,22 @@ function GeocodingPage() {
       </div>
 
       {/* Active Job */}
-      {jobStatus && <JobProgressCard job={jobStatus} />}
+      {activeJob && <JobProgressCard job={activeJob} />}
+
+      {/* Job History */}
+      <div className="space-y-3">
+        <h2 className="text-xl font-semibold">Job History</h2>
+        <GeocodingJobFilters
+          statusFilter={statusFilter}
+          providerFilter={providerFilter}
+          countyFilter={countyFilter}
+          providers={providersData?.providers}
+          onStatusChange={handleStatusChange}
+          onProviderChange={handleProviderChange}
+          onCountyChange={handleCountyChange}
+        />
+        {renderJobHistory()}
+      </div>
 
       {/* Cache Statistics */}
       <div className="space-y-3">
@@ -103,7 +231,7 @@ function GeocodingPage() {
       <TriggerGeocodeDialog
         open={showTriggerDialog}
         onOpenChange={setShowTriggerDialog}
-        onJobStarted={setActiveJobId}
+        onJobStarted={handleJobStarted}
         providers={providersData?.providers}
       />
     </div>

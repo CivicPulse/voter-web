@@ -60,11 +60,15 @@ export interface BatchGeocodeRequest {
   county?: string
   provider?: string
   force_regeocode?: boolean
+  fallback?: boolean
 }
 
 export interface BatchGeocodeJob {
   id: string
   status: "pending" | "running" | "completed" | "failed"
+  provider: string
+  county: string | null
+  force_regeocode: boolean
   total_records: number | null
   processed: number | null
   succeeded: number | null
@@ -73,6 +77,28 @@ export interface BatchGeocodeJob {
   started_at: string | null
   completed_at: string | null
   created_at: string
+}
+
+export interface PaginatedGeocodingJobResponse {
+  items: BatchGeocodeJob[]
+  pagination: {
+    total: number
+    page: number
+    page_size: number
+    total_pages: number
+  }
+}
+
+export interface GeocodingJobFilters {
+  job_status?: string
+  provider?: string
+  county?: string
+  page?: number
+  page_size?: number
+}
+
+export function isActiveGeocodingJob(job: BatchGeocodeJob): boolean {
+  return job.status === "pending" || job.status === "running"
 }
 
 // --- Endpoint 6: Cache Stats ---
