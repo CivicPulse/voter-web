@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 
 interface CandidateCardProps {
   candidate: CandidateSummary
+  showDetailLink?: boolean
 }
 
 const FILING_STATUS_LABELS: Record<string, string> = {
@@ -15,7 +16,7 @@ const FILING_STATUS_LABELS: Record<string, string> = {
   write_in: "Write-In",
 }
 
-export function CandidateCard({ candidate }: CandidateCardProps) {
+export function CandidateCard({ candidate, showDetailLink = true }: CandidateCardProps) {
   const isInactive =
     candidate.filing_status === "withdrawn" ||
     candidate.filing_status === "disqualified"
@@ -37,13 +38,17 @@ export function CandidateCard({ candidate }: CandidateCardProps) {
       </Avatar>
 
       <div className="flex flex-col gap-1">
-        <Link
-          to="/candidates/$candidateId"
-          params={{ candidateId: candidate.id }}
-          className="text-sm font-medium hover:underline"
-        >
-          {candidate.full_name}
-        </Link>
+        {showDetailLink ? (
+          <Link
+            to="/candidates/$candidateId"
+            params={{ candidateId: candidate.id }}
+            className="text-sm font-medium hover:underline"
+          >
+            {candidate.full_name}
+          </Link>
+        ) : (
+          <span className="text-sm font-medium">{candidate.full_name}</span>
+        )}
 
         <div className="flex flex-wrap items-center gap-1.5">
           {candidate.party && (

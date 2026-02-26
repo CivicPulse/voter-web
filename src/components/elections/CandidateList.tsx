@@ -123,7 +123,7 @@ export function CandidateList({ electionId }: CandidateListProps) {
           {displayCandidates.map((candidate) => (
             <div key={candidate.id} className="flex items-center gap-2">
               <div className="flex-1">
-                <CandidateCard candidate={candidate} />
+                <CandidateCard candidate={candidate} showDetailLink={hasApiCandidates} />
               </div>
               {isAdmin && hasApiCandidates && (
                 <div className="flex flex-col gap-1 shrink-0">
