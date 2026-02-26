@@ -61,25 +61,15 @@ describe("CandidateCard", () => {
     expect(screen.queryByText("Incumbent")).not.toBeInTheDocument()
   })
 
-  it("shows filing status badge for withdrawn candidate", () => {
-    const candidate = mockCandidateSummary({ filing_status: "withdrawn" })
+  it.each([
+    ["withdrawn", "Withdrawn"],
+    ["disqualified", "Disqualified"],
+    ["write_in", "Write-In"],
+  ] as const)("shows filing status badge for %s candidate", (filingStatus, expectedText) => {
+    const candidate = mockCandidateSummary({ filing_status: filingStatus })
     render(<CandidateCard candidate={candidate} />)
 
-    expect(screen.getByText("Withdrawn")).toBeInTheDocument()
-  })
-
-  it("shows filing status badge for disqualified candidate", () => {
-    const candidate = mockCandidateSummary({ filing_status: "disqualified" })
-    render(<CandidateCard candidate={candidate} />)
-
-    expect(screen.getByText("Disqualified")).toBeInTheDocument()
-  })
-
-  it("shows filing status badge for write_in candidate", () => {
-    const candidate = mockCandidateSummary({ filing_status: "write_in" })
-    render(<CandidateCard candidate={candidate} />)
-
-    expect(screen.getByText("Write-In")).toBeInTheDocument()
+    expect(screen.getByText(expectedText)).toBeInTheDocument()
   })
 
   it("does not show filing status badge for qualified candidate", () => {
@@ -90,21 +80,16 @@ describe("CandidateCard", () => {
     expect(screen.queryByText("qualified")).not.toBeInTheDocument()
   })
 
-  it("has opacity-60 for withdrawn candidates", () => {
-    const candidate = mockCandidateSummary({ filing_status: "withdrawn" })
-    const { container } = render(<CandidateCard candidate={candidate} />)
+  it.each(["withdrawn", "disqualified"] as const)(
+    "has opacity-60 for %s candidates",
+    (filingStatus) => {
+      const candidate = mockCandidateSummary({ filing_status: filingStatus })
+      const { container } = render(<CandidateCard candidate={candidate} />)
 
-    const card = container.firstElementChild
-    expect(card?.className).toContain("opacity-60")
-  })
-
-  it("has opacity-60 for disqualified candidates", () => {
-    const candidate = mockCandidateSummary({ filing_status: "disqualified" })
-    const { container } = render(<CandidateCard candidate={candidate} />)
-
-    const card = container.firstElementChild
-    expect(card?.className).toContain("opacity-60")
-  })
+      const card = container.firstElementChild
+      expect(card?.className).toContain("opacity-60")
+    },
+  )
 
   it("does not have opacity-60 for qualified candidates", () => {
     const candidate = mockCandidateSummary({ filing_status: "qualified" })

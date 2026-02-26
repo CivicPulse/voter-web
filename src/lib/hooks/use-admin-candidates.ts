@@ -15,6 +15,16 @@ import { AuthenticationError, PermissionError } from "@/types/admin"
 import { HTTPError } from "ky"
 import { toast } from "sonner"
 
+function handleError(error: Error, title: string, fallback: string) {
+  if (error instanceof AuthenticationError) {
+    toast.error("Session expired", { description: error.message })
+  } else if (error instanceof PermissionError) {
+    toast.error("Permission denied", { description: error.message })
+  } else {
+    toast.error(title, { description: error.message || fallback })
+  }
+}
+
 /**
  * Hook to create a candidate for an election.
  * Invalidates the election's candidates list on success.
@@ -41,16 +51,7 @@ export function useCreateCandidate() {
       if (error instanceof HTTPError && error.response.status === 409) {
         return
       }
-      if (error instanceof AuthenticationError) {
-        toast.error("Session expired", { description: error.message })
-      } else if (error instanceof PermissionError) {
-        toast.error("Permission denied", { description: error.message })
-      } else {
-        toast.error("Failed to create candidate", {
-          description:
-            error.message || "An error occurred while creating the candidate.",
-        })
-      }
+      handleError(error, "Failed to create candidate", "An error occurred while creating the candidate.")
     },
   })
 }
@@ -85,16 +86,7 @@ export function useUpdateCandidate() {
       if (error instanceof HTTPError && error.response.status === 409) {
         return
       }
-      if (error instanceof AuthenticationError) {
-        toast.error("Session expired", { description: error.message })
-      } else if (error instanceof PermissionError) {
-        toast.error("Permission denied", { description: error.message })
-      } else {
-        toast.error("Failed to update candidate", {
-          description:
-            error.message || "An error occurred while updating the candidate.",
-        })
-      }
+      handleError(error, "Failed to update candidate", "An error occurred while updating the candidate.")
     },
   })
 }
@@ -120,16 +112,7 @@ export function useDeleteCandidate() {
       toast.success("Candidate deleted")
     },
     onError: (error: Error) => {
-      if (error instanceof AuthenticationError) {
-        toast.error("Session expired", { description: error.message })
-      } else if (error instanceof PermissionError) {
-        toast.error("Permission denied", { description: error.message })
-      } else {
-        toast.error("Failed to delete candidate", {
-          description:
-            error.message || "An error occurred while deleting the candidate.",
-        })
-      }
+      handleError(error, "Failed to delete candidate", "An error occurred while deleting the candidate.")
     },
   })
 }
@@ -156,16 +139,7 @@ export function useCreateCandidateLink() {
       toast.success("Link added")
     },
     onError: (error: Error) => {
-      if (error instanceof AuthenticationError) {
-        toast.error("Session expired", { description: error.message })
-      } else if (error instanceof PermissionError) {
-        toast.error("Permission denied", { description: error.message })
-      } else {
-        toast.error("Failed to add link", {
-          description:
-            error.message || "An error occurred while adding the link.",
-        })
-      }
+      handleError(error, "Failed to add link", "An error occurred while adding the link.")
     },
   })
 }
@@ -192,16 +166,7 @@ export function useDeleteCandidateLink() {
       toast.success("Link removed")
     },
     onError: (error: Error) => {
-      if (error instanceof AuthenticationError) {
-        toast.error("Session expired", { description: error.message })
-      } else if (error instanceof PermissionError) {
-        toast.error("Permission denied", { description: error.message })
-      } else {
-        toast.error("Failed to remove link", {
-          description:
-            error.message || "An error occurred while removing the link.",
-        })
-      }
+      handleError(error, "Failed to remove link", "An error occurred while removing the link.")
     },
   })
 }

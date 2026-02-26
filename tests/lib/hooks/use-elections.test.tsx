@@ -1,9 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { renderHook, waitFor } from "@testing-library/react"
 import { useElections } from "@/lib/hooks/use-elections"
-import { createTestQueryClient } from "@/test/render"
-import { QueryClientProvider } from "@tanstack/react-query"
-import type { ReactNode } from "react"
+import { createWrapper } from "@/test/render"
 import { mockPaginatedElectionList } from "@/test/mocks/elections"
 
 vi.mock("@/lib/api/elections", () => ({
@@ -13,15 +11,6 @@ vi.mock("@/lib/api/elections", () => ({
 import { getElections } from "@/lib/api/elections"
 
 const mockedGetElections = vi.mocked(getElections)
-
-function createWrapper() {
-  const queryClient = createTestQueryClient()
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    )
-  }
-}
 
 describe("useElections", () => {
   beforeEach(() => {

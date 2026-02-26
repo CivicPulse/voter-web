@@ -3,32 +3,16 @@ import { getCandidateInitials, sortCandidates } from "@/types/candidates"
 import { mockCandidateSummary } from "@/test/mocks/candidates"
 
 describe("getCandidateInitials", () => {
-  it("returns first and last initials for two-word name", () => {
-    expect(getCandidateInitials("Jane Doe")).toBe("JD")
-  })
-
-  it("returns first and last initials for three-word name", () => {
-    expect(getCandidateInitials("Andrea C. Cooke")).toBe("AC")
-  })
-
-  it("returns single initial for mononym", () => {
-    expect(getCandidateInitials("Madonna")).toBe("M")
-  })
-
-  it("returns empty string for whitespace-only input", () => {
-    expect(getCandidateInitials("  ")).toBe("")
-  })
-
-  it("returns empty string for empty string input", () => {
-    expect(getCandidateInitials("")).toBe("")
-  })
-
-  it("returns first and last initials for hyphenated first name", () => {
-    expect(getCandidateInitials("Mary-Jane Watson")).toBe("MW")
-  })
-
-  it("returns first and last initials for hyphenated multi-word name", () => {
-    expect(getCandidateInitials("Jean-Luc Picard")).toBe("JP")
+  it.each([
+    ["Jane Doe", "JD"],
+    ["Andrea C. Cooke", "AC"],
+    ["Madonna", "M"],
+    ["  ", ""],
+    ["", ""],
+    ["Mary-Jane Watson", "MW"],
+    ["Jean-Luc Picard", "JP"],
+  ])("getCandidateInitials(%j) === %j", (input, expected) => {
+    expect(getCandidateInitials(input)).toBe(expected)
   })
 })
 

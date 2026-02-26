@@ -62,37 +62,15 @@ describe("ElectionInfoTab", () => {
     )
   })
 
-  it("passes the election object to ElectionEligibility", () => {
+  it.each([
+    "election-eligibility",
+    "election-geographic-area",
+    "election-key-dates",
+    "election-metadata",
+  ])("passes the election object to %s", (testId) => {
     render(<ElectionInfoTab election={election} electionId={electionId} />)
 
-    expect(screen.getByTestId("election-eligibility")).toHaveAttribute(
-      "data-election-id",
-      election.id,
-    )
-  })
-
-  it("passes the election object to ElectionGeographicArea", () => {
-    render(<ElectionInfoTab election={election} electionId={electionId} />)
-
-    expect(screen.getByTestId("election-geographic-area")).toHaveAttribute(
-      "data-election-id",
-      election.id,
-    )
-  })
-
-  it("passes the election object to ElectionKeyDates", () => {
-    render(<ElectionInfoTab election={election} electionId={electionId} />)
-
-    expect(screen.getByTestId("election-key-dates")).toHaveAttribute(
-      "data-election-id",
-      election.id,
-    )
-  })
-
-  it("passes the election object to ElectionMetadata", () => {
-    render(<ElectionInfoTab election={election} electionId={electionId} />)
-
-    expect(screen.getByTestId("election-metadata")).toHaveAttribute(
+    expect(screen.getByTestId(testId)).toHaveAttribute(
       "data-election-id",
       election.id,
     )
