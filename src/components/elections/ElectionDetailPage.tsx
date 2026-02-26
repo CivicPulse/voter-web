@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Link } from "@tanstack/react-router"
 import { ChevronRight, Loader2, Map, Grid3X3, Volume2 } from "lucide-react"
 import { useRaceResults } from "@/lib/hooks/use-race-results"
@@ -35,6 +35,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { buildCandidateColorMap } from "@/lib/candidate-colors"
+import { useAuthStore } from "@/stores/authStore"
 
 type MapView = "county" | "precinct"
 
@@ -49,6 +50,8 @@ export function ElectionDetailPage({
   tab,
   onTabChange,
 }: ElectionDetailPageProps) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+
   const {
     data: raceData,
     isLoading: raceLoading,
@@ -62,10 +65,24 @@ export function ElectionDetailPage({
   // Capture the initial default tab once when loading completes (React derived-state pattern).
   // This prevents the tab from flipping back if raceData subsequently changes.
   if (!raceLoading && initialDefault === null) {
-    setInitialDefault(hasResults ? "results" : "info")
+    setInitialDefault(hasResults || !isAuthenticated ? "results" : "info")
   }
 
-  const activeTab = tab ?? initialDefault ?? "info"
+  const activeTab = (() => {
+    const requested = tab ?? initialDefault ?? "results"
+    if (!isAuthenticated && (requested === "info" || requested === "participation")) {
+      return "results"
+    }
+    return requested
+  })()
+
+  // Canonicalize the URL when an unauthenticated user requests a restricted tab.
+  // This keeps the displayed tab and route search state in sync.
+  useEffect(() => {
+    if (!isAuthenticated && (tab === "info" || tab === "participation")) {
+      onTabChange("results")
+    }
+  }, [isAuthenticated, tab, onTabChange])
 
   const [soundEnabled, setSoundEnabled] = useState(true)
 
@@ -201,17 +218,19 @@ export function ElectionDetailPage({
         }}
       >
         <TabsList>
-          <TabsTrigger value="info">Election Information</TabsTrigger>
+          {isAuthenticated && <TabsTrigger value="info">Election Information</TabsTrigger>}
           <TabsTrigger value="results">Results</TabsTrigger>
-          <TabsTrigger value="participation">Participation</TabsTrigger>
+          {isAuthenticated && <TabsTrigger value="participation">Participation</TabsTrigger>}
         </TabsList>
 
-        <TabsContent value="info">
-          <ElectionInfoTab
-            election={election}
-            electionId={electionId}
-          />
-        </TabsContent>
+        {isAuthenticated && (
+          <TabsContent value="info">
+            <ElectionInfoTab
+              election={election}
+              electionId={electionId}
+            />
+          </TabsContent>
+        )}
 
         <TabsContent value="results">
           {/* Inline results */}
@@ -344,11 +363,13 @@ export function ElectionDetailPage({
           )}
         </TabsContent>
 
-        <TabsContent value="participation">
-          {activeTab === "participation" && (
-            <ParticipationTab electionId={electionId} />
-          )}
-        </TabsContent>
+        {isAuthenticated && (
+          <TabsContent value="participation">
+            {activeTab === "participation" && (
+              <ParticipationTab electionId={electionId} />
+            )}
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )

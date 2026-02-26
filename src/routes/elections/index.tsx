@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Toggle } from "@/components/ui/toggle"
 import { useElections } from "@/lib/hooks/use-elections"
 import { useElectionFilters } from "@/lib/hooks/use-election-filters"
 import { useNavigationContext } from "@/stores/navigation-context"
@@ -226,28 +225,6 @@ function ElectionsListPage() {
             <SelectItem value="runoff">Runoff</SelectItem>
           </SelectContent>
         </Select>
-
-        <Toggle
-          variant="outline"
-          pressed={electionFilters.registration_open ?? false}
-          onPressedChange={(pressed) =>
-            updateFilters({ registration_open: pressed || undefined })
-          }
-          className="data-[state=on]:bg-primary/10 data-[state=on]:text-primary"
-        >
-          Registration Open
-        </Toggle>
-
-        <Toggle
-          variant="outline"
-          pressed={electionFilters.early_voting_active ?? false}
-          onPressedChange={(pressed) =>
-            updateFilters({ early_voting_active: pressed || undefined })
-          }
-          className="data-[state=on]:bg-primary/10 data-[state=on]:text-primary"
-        >
-          Early Voting Now
-        </Toggle>
       </div>
 
       {/* Content */}

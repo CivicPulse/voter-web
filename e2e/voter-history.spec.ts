@@ -56,6 +56,19 @@ voterTest.describe("Voter History Card", () => {
 // ==========================================================================
 
 electionTest.describe("Election Participation Tab", () => {
+  // Participation tab requires authentication. Mock auth/me and set access_token
+  // before each test so the app initializes as authenticated.
+  electionTest.beforeEach(async ({ page }) => {
+    await page.route("**/api/v1/auth/me", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ id: "test-user", role: "viewer" }),
+      }),
+    )
+    await page.evaluate(() => localStorage.setItem("access_token", "test-token"))
+  })
+
   electionTest("displays Results and Participation tabs", async ({ page }) => {
     await page.goto(RACE_URL)
 
@@ -124,26 +137,28 @@ base.describe("Election Participation Tab (unauthenticated)", () => {
     )
   })
 
-  base("shows participation stats without redirecting to login", async ({
+  base("redirects ?tab=participation to ?tab=results without going to login", async ({
     page,
   }) => {
     await page.goto(`${RACE_URL}?tab=participation`)
 
-    // Should NOT have redirected to /login
+    // Should canonicalize to ?tab=results, NOT redirect to /login
+    await page.waitForURL(/tab=results/)
     await expect(page).not.toHaveURL(/\/login/)
 
-    // Stats should be visible
-    await expect(page.getByText("Participation Statistics")).toBeVisible()
-    await expect(page.getByText("Votes Cast")).toBeVisible()
+    // Participation stats should NOT be visible (unauthenticated sees results only)
+    await expect(page.getByText("Participation Statistics")).not.toBeVisible()
 
-    // Voter list should NOT be visible (no auth)
-    await expect(page.getByText("Voter List")).not.toBeVisible()
+    // Results tab should be active
+    await expect(
+      page.getByRole("tab", { name: "Results" }),
+    ).toHaveAttribute("data-state", "active")
   })
 
-  base("shows error state instead of redirecting when stats endpoint returns 401", async ({
+  base("stats 401 does not show error for unauthenticated user at ?tab=participation", async ({
     page,
   }) => {
-    // Override participation stats to return 401
+    // Override participation stats to return 401 (simulating expired/missing auth)
     await page.route(
       `**/api/v1/elections/${ELECTION_ID}/participation/stats`,
       (route) =>
@@ -156,13 +171,12 @@ base.describe("Election Participation Tab (unauthenticated)", () => {
 
     await page.goto(`${RACE_URL}?tab=participation`)
 
-    // Should NOT redirect to /login
+    // Unauthenticated users are redirected to results — NOT to /login, NOT shown error
+    await page.waitForURL(/tab=results/)
     await expect(page).not.toHaveURL(/\/login/)
-
-    // Should show error state
     await expect(
       page.getByText("Failed to load participation statistics."),
-    ).toBeVisible()
+    ).not.toBeVisible()
   })
 })
 
