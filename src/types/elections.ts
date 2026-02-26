@@ -462,6 +462,34 @@ export interface ElectionParticipantsResponse {
   }
 }
 
+/** URL search params for the participant list */
+export interface ParticipantUrlParams {
+  p_q?: string
+  p_county?: string
+  p_voter_status?: string
+  p_mismatch?: "true" | "false"
+  p_precinct?: string
+  p_ballot_style?: string
+  p_congressional?: string
+  p_senate?: string
+  p_house?: string
+  p_page?: number
+}
+
+/** Filter params forwarded to the API for the participant list */
+export interface ParticipantFilterParams {
+  q?: string
+  county?: string
+  voter_status?: string
+  has_district_mismatch?: "true" | "false"
+  county_precinct?: string
+  ballot_style?: string
+  congressional_district?: string
+  state_senate_district?: string
+  state_house_district?: string
+  page?: number
+}
+
 /** Group an array of elections by election_date into ElectionEvents */
 export function groupElectionsByDate(elections: Election[]): ElectionEvent[] {
   const grouped = new Map<string, Election[]>()
