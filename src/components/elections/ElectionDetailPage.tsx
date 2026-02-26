@@ -57,8 +57,15 @@ export function ElectionDetailPage({
   } = useRaceResults(electionId)
 
   const hasResults = (raceData?.results.candidates.length ?? 0) > 0
-  const defaultTab = !raceLoading && hasResults ? "results" : "info"
-  const activeTab = tab ?? defaultTab
+  const [initialDefault, setInitialDefault] = useState<"info" | "results" | null>(null)
+
+  // Capture the initial default tab once when loading completes (React derived-state pattern).
+  // This prevents the tab from flipping back if raceData subsequently changes.
+  if (!raceLoading && initialDefault === null) {
+    setInitialDefault(hasResults ? "results" : "info")
+  }
+
+  const activeTab = tab ?? initialDefault ?? "info"
 
   const [soundEnabled, setSoundEnabled] = useState(true)
 
