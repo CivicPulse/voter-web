@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Link } from "@tanstack/react-router"
 import { ChevronRight, Loader2, Map, Grid3X3, Volume2 } from "lucide-react"
 import { useRaceResults } from "@/lib/hooks/use-race-results"
@@ -75,6 +75,14 @@ export function ElectionDetailPage({
     }
     return requested
   })()
+
+  // Canonicalize the URL when an unauthenticated user requests a restricted tab.
+  // This keeps the displayed tab and route search state in sync.
+  useEffect(() => {
+    if (!isAuthenticated && (tab === "info" || tab === "participation")) {
+      onTabChange("results")
+    }
+  }, [isAuthenticated, tab, onTabChange])
 
   const [soundEnabled, setSoundEnabled] = useState(true)
 
