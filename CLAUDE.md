@@ -326,6 +326,10 @@ Do **not** mark a UI task as complete without performing this verification. If t
 - TypeScript 5.9+, React 19.2+ + TanStack Router (file-based routing, Vite plugin), TanStack Query (data fetching/caching), React-Leaflet + Leaflet (maps), Vite 7, shadcn/ui (UI components), ky (HTTP client), Zustand (auth state), Zod (validation), vaul (drawer), Turf.js (geo operations) (004-multi-county-routes)
 - N/A (frontend SPA — all data from voter-api at `/api/v1`) (004-multi-county-routes)
 - TypeScript 5.9+, strict mode + React 19.2+, TanStack Router (file-based routing), TanStack Query (data fetching/caching), shadcn/ui (UI components), Recharts 3.7 (charts — installed, first use), ky (HTTP client), Zustand (auth state), React Hook Form + Zod (if needed for search), Sonner (toasts), Lucide React (icons) (006-voter-history-participation)
+- TypeScript 5.9+ (strict mode) + React 19.2+, TanStack Router (file-based routing, Vite plugin), TanStack Query (data fetching/caching), shadcn/ui (new-york style, neutral base), ky (HTTP client), Zustand (client state), Zod (validation), Lucide React (icons), Sonner (toasts) (007-elections-discovery)
+- TypeScript 5.9+ (strict mode) + React 19.2+, TanStack Router (file-based routing, Vite plugin), TanStack Query (data fetching/caching), shadcn/ui (new-york style, neutral base), ky (HTTP client), Zustand (client state), Zod (validation), React Hook Form (admin forms), Lucide React (icons), Sonner (toasts) (007-elections-discovery)
+- TypeScript 5.9+ (strict mode) + React 19.2+, TanStack Router (file-based routing, `validateSearch`), TanStack Query (data fetching), shadcn/ui (Select, Input), ky (HTTP client), Zod (schema validation) (008-participant-list-filters)
+- N/A (frontend SPA) (008-participant-list-filters)
 
 ## Recent Changes
 - 001-admin-api-access: Added TypeScript 5.8+ (strict mode), React 19.2+

@@ -1,4 +1,4 @@
-import { useState, useDeferredValue } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "@tanstack/react-router"
 import { Search, AlertCircle, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react"
 import {
@@ -13,8 +13,23 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useElectionParticipants } from "@/lib/hooks/use-election-participants"
+import { ParticipantFilters } from "@/components/elections/ParticipantFilters"
+import type { ParticipantUrlParams } from "@/types/elections"
 
 const PAGE_SIZE = 25
+
+function hasActiveFilters(params: ParticipantUrlParams): boolean {
+  return !!(
+    params.p_county ||
+    params.p_voter_status ||
+    params.p_mismatch ||
+    params.p_precinct ||
+    params.p_ballot_style ||
+    params.p_congressional ||
+    params.p_senate ||
+    params.p_house
+  )
+}
 
 function LoadingSkeleton() {
   return (
@@ -28,23 +43,44 @@ function LoadingSkeleton() {
 
 export function ElectionParticipantList({
   electionId,
+  params,
+  onUpdate,
 }: Readonly<{
   electionId: string
+  params: ParticipantUrlParams
+  onUpdate: (updates: Partial<ParticipantUrlParams>) => void
 }>) {
-  const [page, setPage] = useState(1)
-  const [searchInput, setSearchInput] = useState("")
-  const deferredSearch = useDeferredValue(searchInput)
+  const page = params.p_page ?? 1
+  const [searchInput, setSearchInput] = useState(params.p_q ?? "")
+
+  // Debounce search → URL update
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const trimmed = searchInput.trim()
+      if (trimmed !== (params.p_q ?? "")) {
+        onUpdate({ p_q: trimmed || undefined, p_page: undefined })
+      }
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchInput, params.p_q, onUpdate])
 
   const { data, isLoading, isError, refetch } = useElectionParticipants(
     electionId,
-    { page, pageSize: PAGE_SIZE, search: deferredSearch },
+    {
+      page,
+      pageSize: PAGE_SIZE,
+      search: params.p_q,
+      county: params.p_county,
+      voter_status: params.p_voter_status,
+      has_district_mismatch: params.p_mismatch,
+      county_precinct: params.p_precinct,
+      ballot_style: params.p_ballot_style,
+      congressional_district: params.p_congressional,
+      state_senate_district: params.p_senate,
+      state_house_district: params.p_house,
+    },
     true,
   )
-
-  const handleSearchChange = (value: string) => {
-    setSearchInput(value)
-    setPage(1)
-  }
 
   return (
     <div className="space-y-4" data-testid="election-participant-list">
@@ -55,11 +91,17 @@ export function ElectionParticipantList({
           <Input
             placeholder="Search by name or registration #"
             value={searchInput}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            onChange={(e) => setSearchInput(e.target.value)}
             className="pl-9"
           />
         </div>
       </div>
+
+      <ParticipantFilters
+        electionId={electionId}
+        params={params}
+        onUpdate={onUpdate}
+      />
 
       {isLoading && <LoadingSkeleton />}
 
@@ -80,8 +122,8 @@ export function ElectionParticipantList({
         <>
           {data.items.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">
-              {deferredSearch
-                ? "No voters match the search criteria."
+              {hasActiveFilters(params) || params.p_q
+                ? "No voters match the current filters."
                 : "No participants found for this election."}
             </p>
           ) : (
@@ -133,7 +175,7 @@ export function ElectionParticipantList({
                     variant="outline"
                     size="sm"
                     disabled={data.pagination.page <= 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    onClick={() => onUpdate({ p_page: data.pagination.page - 1 })}
                   >
                     <ChevronLeft className="h-4 w-4" />
                     Previous
@@ -142,7 +184,7 @@ export function ElectionParticipantList({
                     variant="outline"
                     size="sm"
                     disabled={data.pagination.page >= data.pagination.total_pages}
-                    onClick={() => setPage((p) => p + 1)}
+                    onClick={() => onUpdate({ p_page: data.pagination.page + 1 })}
                   >
                     Next
                     <ChevronRight className="h-4 w-4" />

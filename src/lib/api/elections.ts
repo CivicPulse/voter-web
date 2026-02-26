@@ -190,12 +190,32 @@ interface RawElectionParticipant {
 /** Get paginated list of voters who participated in an election */
 export async function getElectionParticipants(
   electionId: string,
-  params?: { page?: number; page_size?: number; q?: string },
+  params?: {
+    page?: number
+    page_size?: number
+    q?: string
+    county?: string
+    voter_status?: string
+    has_district_mismatch?: boolean
+    county_precinct?: string
+    ballot_style?: string
+    congressional_district?: string
+    state_senate_district?: string
+    state_house_district?: string
+  },
 ): Promise<import("@/types/elections").ElectionParticipantsResponse> {
   const searchParams: Record<string, string> = {}
   if (params?.page) searchParams.page = String(params.page)
   if (params?.page_size) searchParams.page_size = String(params.page_size)
   if (params?.q) searchParams.q = params.q
+  if (params?.county) searchParams.county = params.county
+  if (params?.voter_status) searchParams.voter_status = params.voter_status
+  if (params?.has_district_mismatch !== undefined) searchParams.has_district_mismatch = String(params.has_district_mismatch)
+  if (params?.county_precinct) searchParams.county_precinct = params.county_precinct
+  if (params?.ballot_style) searchParams.ballot_style = params.ballot_style
+  if (params?.congressional_district) searchParams.congressional_district = params.congressional_district
+  if (params?.state_senate_district) searchParams.state_senate_district = params.state_senate_district
+  if (params?.state_house_district) searchParams.state_house_district = params.state_house_district
 
   const raw = await api
     .get(`elections/${electionId}/participation`, { searchParams })

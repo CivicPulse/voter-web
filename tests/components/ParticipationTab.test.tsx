@@ -8,6 +8,21 @@ vi.mock("@/lib/hooks/use-user-role", () => ({
   useUserRole: () => mockUseUserRole(),
 }))
 
+vi.mock("@/routes/elections/$electionDate", () => ({
+  Route: {
+    useSearch: () => ({}),
+    fullPath: "/elections/$electionDate",
+  },
+}))
+
+vi.mock("@tanstack/react-router", async () => {
+  const actual = await vi.importActual("@tanstack/react-router")
+  return {
+    ...actual,
+    useNavigate: () => () => vi.fn(),
+  }
+})
+
 vi.mock("@/components/elections/ParticipationStatsCard", () => ({
   ParticipationStatsCard: ({ electionId }: { electionId: string }) => (
     <div data-testid="participation-stats-card" data-election-id={electionId}>
