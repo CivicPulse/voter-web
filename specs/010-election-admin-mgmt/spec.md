@@ -74,7 +74,7 @@ Administrators viewing the **admin** election list or the **admin** election det
 
 **Delete Elections**
 
-- **FR-001**: Administrators MUST be able to initiate election deletion from both the `/admin/elections` list page and the `/admin/elections/$id` detail page.
+- **FR-001**: Administrators MUST be able to initiate election deletion from both the `/admin/elections` list page and the `/admin/elections/$electionId` detail page.
 - **FR-002**: The Delete button MUST only be visible to users with the administrator role; analyst and viewer roles MUST NOT see the button.
 - **FR-003**: Clicking the Delete button MUST present a confirmation dialog before any deletion occurs.
 - **FR-004**: The confirmation dialog MUST include a generic warning that the election will be removed from all lists; it MUST NOT proactively fetch or display counts of associated records.

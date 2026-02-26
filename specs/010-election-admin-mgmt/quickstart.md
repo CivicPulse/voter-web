@@ -36,7 +36,7 @@ Admin panel requires a logged-in user with `admin` or `analyst` role. Navigate t
 | `src/lib/hooks/use-boundaries.ts` | `useBoundaries()`, `useBoundaryTypes()` TanStack Query hooks |
 | `src/routes/admin/elections/_components/boundary-selector.tsx` | Searchable combobox for district boundary selection |
 | `src/routes/admin/elections/_components/delete-election-dialog.tsx` | Delete confirmation dialog with inline error display |
-| `tests/lib/hooks/use-boundaries.test.ts` | Unit tests for boundary hooks |
+| `tests/lib/hooks/use-boundaries.test.tsx` | Unit tests for boundary hooks |
 | `tests/routes/admin/elections/_components/boundary-selector.test.tsx` | Unit tests for BoundarySelector |
 | `tests/routes/admin/elections/_components/delete-election-dialog.test.tsx` | Unit tests for DeleteElectionDialog |
 
