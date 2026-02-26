@@ -25,6 +25,9 @@ import {
   voterHistoryResponse,
   participationStatsResponse,
   electionParticipantsResponse,
+  candidateListResponse,
+  candidateDetailResponse,
+  CANDIDATE_ID,
 } from "./mock-data"
 
 export interface MockOptions {
@@ -102,13 +105,36 @@ export async function setupElectionApiMocks(
     },
   )
 
+  // Candidates for election
+  await page.route(
+    `**/api/v1/elections/${ELECTION_ID}/candidates*`,
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(candidateListResponse),
+      }),
+  )
+
+  // Candidate detail
+  await page.route(
+    `**/api/v1/candidates/${CANDIDATE_ID}`,
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(candidateDetailResponse),
+      }),
+  )
+
   // Election detail
   await page.route(
     `**/api/v1/elections/${ELECTION_ID}`,
     (route, request) => {
       if (
         request.url().includes("/results") ||
-        request.url().includes("/participation")
+        request.url().includes("/participation") ||
+        request.url().includes("/candidates")
       )
         return route.fallback()
       return route.fulfill({

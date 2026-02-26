@@ -56,4 +56,17 @@ function customRenderHook<Result, Props>(
   return rtlRenderHook(hook, { wrapper: TestProviders, ...options })
 }
 
-export { customRender as render, customRenderHook as renderHook, createTestQueryClient }
+/**
+ * Creates a per-test wrapper with a fresh QueryClient.
+ * Use this with renderHook when you need isolated query state per test.
+ */
+function createWrapper() {
+  const queryClient = createTestQueryClient()
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    )
+  }
+}
+
+export { customRender as render, customRenderHook as renderHook, createTestQueryClient, createWrapper }

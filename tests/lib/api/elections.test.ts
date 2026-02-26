@@ -105,6 +105,27 @@ describe("elections API client", () => {
         searchParams: { page_size: "50" },
       })
     })
+
+    it("passes registration_open param", async () => {
+      await getElections({ registration_open: true })
+      expect(mockGet).toHaveBeenCalledWith("elections", {
+        searchParams: { registration_open: "true" },
+      })
+    })
+
+    it("passes early_voting_active param", async () => {
+      await getElections({ early_voting_active: true })
+      expect(mockGet).toHaveBeenCalledWith("elections", {
+        searchParams: { early_voting_active: "true" },
+      })
+    })
+
+    it("omits registration_open when false", async () => {
+      await getElections({ registration_open: false })
+      expect(mockGet).toHaveBeenCalledWith("elections", {
+        searchParams: {},
+      })
+    })
   })
 
   describe("getElectionDetail", () => {

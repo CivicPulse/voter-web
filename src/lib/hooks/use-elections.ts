@@ -1,17 +1,17 @@
 import { useQuery } from "@tanstack/react-query"
 import { getElections } from "@/lib/api/elections"
-import { groupElectionsByDate } from "@/types/elections"
 import type { ElectionFilters } from "@/types/elections"
 import { AuthenticationError, PermissionError } from "@/types/admin"
 import { toast } from "sonner"
 
 /**
- * Hook to fetch paginated elections and group them by date into ElectionEvents.
+ * Hook to fetch a flat, paginated election list.
+ * Returns elections sorted by date (newest first).
  */
 export function useElections(
   filters?: Partial<ElectionFilters>,
   page = 1,
-  pageSize = 20,
+  pageSize = 25,
 ) {
   return useQuery({
     queryKey: ["elections", "list", filters, page, pageSize],
@@ -21,9 +21,15 @@ export function useElections(
         page,
         page_size: pageSize,
       })
+      // Ensure date DESC, name ASC sort order
+      const sorted = [...response.elections].sort(
+        (a, b) =>
+          b.election_date.localeCompare(a.election_date) ||
+          a.name.localeCompare(b.name),
+      )
       return {
         ...response,
-        events: groupElectionsByDate(response.elections),
+        elections: sorted,
       }
     },
     staleTime: 30 * 1000,

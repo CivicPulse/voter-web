@@ -11,10 +11,10 @@ import { test as base, expect } from "@playwright/test"
 import { test as electionTest, expect as electionExpect } from "./fixtures/election-api"
 import { test as voterTest, expect as voterExpect } from "./fixtures/voter-api"
 import { setupElectionApiMocks } from "./fixtures/election-api"
-import { ELECTION_DATE, ELECTION_ID, VOTER_ID } from "./fixtures/mock-data"
+import { ELECTION_ID, VOTER_ID } from "./fixtures/mock-data"
 
 const VOTER_URL = `/voters/${VOTER_ID}`
-const RACE_URL = `/elections/${ELECTION_DATE}/${ELECTION_ID}`
+const RACE_URL = `/elections/${ELECTION_ID}`
 
 // ==========================================================================
 // Voter History Card on Voter Detail Page

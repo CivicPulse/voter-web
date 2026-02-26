@@ -60,6 +60,15 @@ export const electionsListResponse = {
       refresh_interval_seconds: 120,
       created_at: "2026-02-10T14:00:00Z",
       updated_at: "2026-02-17T19:40:48Z",
+      description: null,
+      purpose: "Special — State Senate District 18",
+      eligibility_description: null,
+      registration_deadline: null,
+      early_voting_start: null,
+      early_voting_end: null,
+      absentee_request_deadline: null,
+      qualifying_start: null,
+      qualifying_end: null,
     },
   ],
   pagination: {
@@ -86,6 +95,15 @@ export const electionDetailResponse = {
   refresh_interval_seconds: 120,
   created_at: "2026-02-10T14:00:00Z",
   updated_at: "2026-02-17T19:40:48Z",
+  description: null,
+  purpose: "Special — State Senate District 18",
+  eligibility_description: null,
+  registration_deadline: null,
+  early_voting_start: null,
+  early_voting_end: null,
+  absentee_request_deadline: null,
+  qualifying_start: null,
+  qualifying_end: null,
 }
 
 // ---------------------------------------------------------------------------
@@ -649,4 +667,58 @@ export const electionParticipantsResponse = {
     page_size: 25,
     total_pages: 892,
   },
+}
+
+// ---------------------------------------------------------------------------
+// Candidate Data (for Elections Discovery feature)
+// ---------------------------------------------------------------------------
+
+export const CANDIDATE_ID = "cand-uuid-001"
+
+export const candidateListResponse = {
+  items: [
+    {
+      id: CANDIDATE_ID,
+      election_id: ELECTION_ID,
+      full_name: "Andrea C. Cooke",
+      party: "Dem",
+      photo_url: null,
+      ballot_order: 1,
+      filing_status: "qualified",
+      is_incumbent: true,
+      created_at: "2026-01-15T10:00:00Z",
+    },
+    {
+      id: "cand-uuid-002",
+      election_id: ELECTION_ID,
+      full_name: "Robert T. Williams",
+      party: "Rep",
+      photo_url: null,
+      ballot_order: 2,
+      filing_status: "qualified",
+      is_incumbent: false,
+      created_at: "2026-01-15T10:00:00Z",
+    },
+  ],
+  pagination: { total: 2, page: 1, page_size: 100, total_pages: 1 },
+}
+
+export const candidateDetailResponse = {
+  id: CANDIDATE_ID,
+  election_id: ELECTION_ID,
+  full_name: "Andrea C. Cooke",
+  party: "Dem",
+  photo_url: null,
+  ballot_order: 1,
+  filing_status: "qualified",
+  is_incumbent: true,
+  created_at: "2026-01-15T10:00:00Z",
+  bio: "Community advocate and former city council member.",
+  sos_ballot_option_id: "SOS-123",
+  updated_at: "2026-02-01T14:30:00Z",
+  links: [
+    { id: "link-001", link_type: "campaign", url: "https://cookeforsenate.com", label: "Campaign Site" },
+  ],
+  result_vote_count: 15234,
+  result_political_party: "Democratic",
 }

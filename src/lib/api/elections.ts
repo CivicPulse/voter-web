@@ -55,6 +55,12 @@ export async function getElections(
   if (params?.page_size) {
     searchParams.page_size = String(params.page_size)
   }
+  if (params?.registration_open) {
+    searchParams.registration_open = "true"
+  }
+  if (params?.early_voting_active) {
+    searchParams.early_voting_active = "true"
+  }
 
   const raw = await api
     .get("elections", { searchParams })
