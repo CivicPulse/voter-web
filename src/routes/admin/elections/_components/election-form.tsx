@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -26,6 +27,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Link } from "@tanstack/react-router"
 import { Loader2, Sparkles, Info } from "lucide-react"
+import { BoundarySelector } from "./boundary-selector"
 
 interface ElectionFormProps {
   defaultValues?: Partial<ElectionFormValues>
@@ -33,6 +35,7 @@ interface ElectionFormProps {
   isPending: boolean
   submitLabel?: string
   enableAutoFill?: boolean
+  enableBoundarySelector?: boolean
 }
 
 export function ElectionForm({
@@ -41,6 +44,7 @@ export function ElectionForm({
   isPending,
   submitLabel = "Create Election",
   enableAutoFill = true,
+  enableBoundarySelector = true,
 }: ElectionFormProps) {
   const form = useForm<ElectionFormValues>({
     resolver: zodResolver(createElectionSchema),
@@ -187,25 +191,42 @@ export function ElectionForm({
           />
         </div>
 
-        <FormField
-          control={form.control}
-          name="district"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>District</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="State Senate - District 18"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription>
-                The district or scope of this race
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {enableBoundarySelector ? (
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium">District / Boundary</Label>
+            <BoundarySelector
+              value={form.watch("boundary_id") ?? null}
+              district={form.watch("district")}
+              onChange={(boundaryId, districtName) => {
+                form.setValue("boundary_id", boundaryId ?? undefined)
+                form.setValue("district", districtName)
+              }}
+            />
+            {form.formState.errors.district && (
+              <p className="text-sm text-destructive">{form.formState.errors.district.message}</p>
+            )}
+          </div>
+        ) : (
+          <FormField
+            control={form.control}
+            name="district"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>District</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="State Senate - District 18"
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription>
+                  The district or scope of this race
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}
