@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Link } from "@tanstack/react-router"
 import { ChevronRight, Loader2, Map, Grid3X3, Volume2 } from "lucide-react"
 import { useRaceResults } from "@/lib/hooks/use-race-results"
@@ -56,12 +56,17 @@ export function ElectionDetailPage({
     dataUpdatedAt,
   } = useRaceResults(electionId)
 
-  // Compute the default tab once on mount; does not re-evaluate when results arrive
   const hasResults = (raceData?.results.candidates.length ?? 0) > 0
-  const [initialDefaultTab] = useState<"info" | "results" | "participation">(
-    () => (raceLoading ? "info" : hasResults ? "results" : "info"),
-  )
-  const activeTab = tab ?? initialDefaultTab
+  const [defaultTab, setDefaultTab] = useState<"info" | "results" | "participation">("info")
+
+  // Once results load, update default to "results" if results are present and no URL tab is set
+  useEffect(() => {
+    if (!raceLoading && hasResults && !tab) {
+      setDefaultTab("results")
+    }
+  }, [raceLoading, hasResults, tab])
+
+  const activeTab = tab ?? defaultTab
 
   const [soundEnabled, setSoundEnabled] = useState(true)
 
