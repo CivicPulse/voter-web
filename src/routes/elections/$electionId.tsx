@@ -15,6 +15,7 @@ import { CertificationBadge } from "@/components/elections/CertificationBadge"
 import { LiveStatusIndicator } from "@/components/elections/LiveStatusIndicator"
 import { NotificationToggle } from "@/components/elections/NotificationToggle"
 import { ParticipationTab } from "@/components/elections/ParticipationTab"
+import { ElectionInfoTab } from "@/components/elections/ElectionInfoTab"
 import {
   Tabs,
   TabsList,
@@ -211,9 +212,10 @@ function ElectionDetailPage() {
         </TabsList>
 
         <TabsContent value="info">
-          <div className="py-6 text-center text-muted-foreground">
-            <p>Election information coming soon.</p>
-          </div>
+          <ElectionInfoTab
+            election={election}
+            electionId={electionId}
+          />
         </TabsContent>
 
         <TabsContent value="results">

@@ -27,6 +27,7 @@ import { Route as ElectionsElectionIdRouteImport } from './routes/elections/$ele
 import { Route as ElectionsElectionDateRouteImport } from './routes/elections/$electionDate'
 import { Route as DistrictsDistrictIdRouteImport } from './routes/districts/$districtId'
 import { Route as CountiesCountyIdRouteImport } from './routes/counties/$countyId'
+import { Route as CandidatesCandidateIdRouteImport } from './routes/candidates/$candidateId'
 import { Route as ElectionsElectionDateIndexRouteImport } from './routes/elections/$electionDate/index'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
 import { Route as AdminImportsIndexRouteImport } from './routes/admin/imports/index'
@@ -135,6 +136,11 @@ const CountiesCountyIdRoute = CountiesCountyIdRouteImport.update({
   path: '/counties/$countyId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CandidatesCandidateIdRoute = CandidatesCandidateIdRouteImport.update({
+  id: '/candidates/$candidateId',
+  path: '/candidates/$candidateId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ElectionsElectionDateIndexRoute =
   ElectionsElectionDateIndexRouteImport.update({
     id: '/',
@@ -234,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/elections': typeof ElectionsRouteWithChildren
   '/login': typeof LoginRoute
   '/voters': typeof VotersRouteWithChildren
+  '/candidates/$candidateId': typeof CandidatesCandidateIdRoute
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
   '/elections/$electionDate': typeof ElectionsElectionDateRouteWithChildren
@@ -268,6 +275,7 @@ export interface FileRoutesByTo {
   '/$state': typeof StateRoute
   '/about': typeof AboutRoute
   '/login': typeof LoginRoute
+  '/candidates/$candidateId': typeof CandidatesCandidateIdRoute
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
   '/elections/$electionId': typeof ElectionsElectionIdRoute
@@ -305,6 +313,7 @@ export interface FileRoutesById {
   '/elections': typeof ElectionsRouteWithChildren
   '/login': typeof LoginRoute
   '/voters': typeof VotersRouteWithChildren
+  '/candidates/$candidateId': typeof CandidatesCandidateIdRoute
   '/counties/$countyId': typeof CountiesCountyIdRoute
   '/districts/$districtId': typeof DistrictsDistrictIdRoute
   '/elections/$electionDate': typeof ElectionsElectionDateRouteWithChildren
@@ -344,6 +353,7 @@ export interface FileRouteTypes {
     | '/elections'
     | '/login'
     | '/voters'
+    | '/candidates/$candidateId'
     | '/counties/$countyId'
     | '/districts/$districtId'
     | '/elections/$electionDate'
@@ -378,6 +388,7 @@ export interface FileRouteTypes {
     | '/$state'
     | '/about'
     | '/login'
+    | '/candidates/$candidateId'
     | '/counties/$countyId'
     | '/districts/$districtId'
     | '/elections/$electionId'
@@ -414,6 +425,7 @@ export interface FileRouteTypes {
     | '/elections'
     | '/login'
     | '/voters'
+    | '/candidates/$candidateId'
     | '/counties/$countyId'
     | '/districts/$districtId'
     | '/elections/$electionDate'
@@ -452,6 +464,7 @@ export interface RootRouteChildren {
   ElectionsRoute: typeof ElectionsRouteWithChildren
   LoginRoute: typeof LoginRoute
   VotersRoute: typeof VotersRouteWithChildren
+  CandidatesCandidateIdRoute: typeof CandidatesCandidateIdRoute
   CountiesCountyIdRoute: typeof CountiesCountyIdRoute
   DistrictsDistrictIdRoute: typeof DistrictsDistrictIdRoute
   InviteAcceptRoute: typeof InviteAcceptRoute
@@ -589,6 +602,13 @@ declare module '@tanstack/react-router' {
       path: '/counties/$countyId'
       fullPath: '/counties/$countyId'
       preLoaderRoute: typeof CountiesCountyIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/candidates/$candidateId': {
+      id: '/candidates/$candidateId'
+      path: '/candidates/$candidateId'
+      fullPath: '/candidates/$candidateId'
+      preLoaderRoute: typeof CandidatesCandidateIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/elections/$electionDate/': {
@@ -797,6 +817,7 @@ const rootRouteChildren: RootRouteChildren = {
   ElectionsRoute: ElectionsRouteWithChildren,
   LoginRoute: LoginRoute,
   VotersRoute: VotersRouteWithChildren,
+  CandidatesCandidateIdRoute: CandidatesCandidateIdRoute,
   CountiesCountyIdRoute: CountiesCountyIdRoute,
   DistrictsDistrictIdRoute: DistrictsDistrictIdRoute,
   InviteAcceptRoute: InviteAcceptRoute,
