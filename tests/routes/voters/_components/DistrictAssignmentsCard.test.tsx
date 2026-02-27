@@ -398,6 +398,35 @@ describe("DistrictAssignmentsCard", () => {
       expect(screen.getByText("20")).toBeInTheDocument()
     })
 
+    it("shows geographic value (not registered value) in provider column mismatch badge", () => {
+      // Add census is_contained=false for state_senate (mismatch: registered="18", geographic="20")
+      const providerResultsWithSenateMismatch: BatchBoundaryCheckResponse = {
+        ...providerResults,
+        districts: [
+          ...providerResults.districts.filter((d) => d.boundary_type !== "state_senate"),
+          {
+            boundary_id: null,
+            boundary_type: "state_senate",
+            boundary_identifier: "18",
+            has_geometry: true,
+            providers: [
+              { source_type: "nominatim", is_contained: false },
+            ],
+          },
+        ],
+      }
+      render(
+        <DistrictAssignmentsCard
+          districts={districts}
+          verification={verification}
+          providerResults={providerResultsWithSenateMismatch}
+        />,
+      )
+      // state_senate mismatch: geographicValue="20" — provider badge should show "20", not "18"
+      const twentyBadges = screen.getAllByText("20")
+      expect(twentyBadges.length).toBeGreaterThanOrEqual(2) // Primary + nominatim provider
+    })
+
     it("shows dash when provider has no entry for a district", () => {
       render(
         <DistrictAssignmentsCard

@@ -392,6 +392,8 @@ function ProviderMatrixView({
                         )
                       }
 
+                      const geographicValue = comparison?.geographicValue ?? null
+
                       return (
                         <TableCell key={summary.source_type}>
                           <Tooltip>
@@ -401,11 +403,11 @@ function ProviderMatrixView({
                                 className="text-xs text-red-700 border-red-400 gap-1 cursor-default"
                               >
                                 <X className="h-3 w-3" aria-hidden />
-                                {identifier}
+                                {geographicValue ?? identifier}
                               </Badge>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Location is outside the registered district boundary</p>
+                              <p>{geographicValue ? `Registered district: ${identifier}` : "Location is outside the registered district boundary"}</p>
                             </TooltipContent>
                           </Tooltip>
                         </TableCell>
