@@ -12,18 +12,17 @@ export function useProviderBoundaryCheck(
   error: Error | null
   refetch: () => void
 } {
-  const nonPrimaryLocations = locations.filter((l) => !l.is_primary)
   return useQuery({
     queryKey: ["voters", voterId, "provider-boundary-check"],
     queryFn: () =>
       checkProviderBoundaries(voterId!, {
-        locations: nonPrimaryLocations.map((l) => ({
+        locations: locations.map((l) => ({
           provider: l.source_type,
           latitude: l.latitude,
           longitude: l.longitude,
         })),
       }),
-    enabled: !!voterId && nonPrimaryLocations.length > 0,
+    enabled: !!voterId && locations.length > 0,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
     retry: 1,
