@@ -202,6 +202,17 @@ export function GeocodedLocationMap({
     savedLng: officialLocation?.longitude ?? primaryLocation?.longitude ?? DEFAULT_CENTER[1],
   }))
 
+  useEffect(() => {
+    setDragState((prev) => {
+      if (prev.pendingLat !== null) return prev
+      return {
+        ...prev,
+        savedLat: officialLocation?.latitude ?? primaryLocation?.latitude ?? DEFAULT_CENTER[0],
+        savedLng: officialLocation?.longitude ?? primaryLocation?.longitude ?? DEFAULT_CENTER[1],
+      }
+    })
+  }, [officialLocation?.latitude, officialLocation?.longitude, primaryLocation?.latitude, primaryLocation?.longitude])
+
   const primaryMarkerRef = useRef<L.Marker | null>(null)
 
   const updateOfficialLocation = useUpdateOfficialLocation(voterId ?? "")
