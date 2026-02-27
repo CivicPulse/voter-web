@@ -67,7 +67,7 @@ function VoterDetailPage() {
   } = useProviderBoundaryCheck(voterId, locations ?? [])
 
   const providerMatchStatus = useMemo(() => {
-    if (!providerResults) return new Map<string, string>()
+    if (!providerResults || !Array.isArray(providerResults.results)) return new Map<string, string>()
     const statusMap = new Map<string, string>()
     for (const result of providerResults.results) {
       const districtValues = Object.values(result.districts).filter((v) => v !== null)

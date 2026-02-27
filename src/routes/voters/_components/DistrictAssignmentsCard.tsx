@@ -120,8 +120,8 @@ export function DistrictAssignmentsCard({
     [verification],
   )
 
-  // Determine if the matrix should be shown
-  const showMatrix = providerResultsLoading || providerResults !== undefined
+  // Determine if the matrix should be shown (loading, error, or data present)
+  const showMatrix = providerResultsLoading || !!providerResultsError || providerResults != null
 
   return (
     <Card>

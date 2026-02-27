@@ -128,12 +128,12 @@
 
 **Purpose**: Quality gates, cleanup, and final verification across all stories.
 
-- [ ] T042 [P] Run `npm run lint` from repo root and fix all ESLint errors in modified/new files (`GeocodedLocationMap.tsx`, `DistrictAssignmentsCard.tsx`, `$voterId.tsx`, `provider-colors.ts`, `useBoundaries.ts`, `useProviderBoundaryCheck.ts`)
-- [ ] T043 [P] Run `npx tsc -b --noEmit` from repo root and fix all TypeScript strict-mode errors in new/modified files — depends on T039
-- [ ] T044 Run `npm test -- --run` and verify the 95% coverage threshold passes for all new modules; add any missing coverage for edge cases — depends on T040, T043
-- [ ] T045 [P] Full voter detail page visual regression: Playwright MCP screenshot to `screenshots/011-voter-detail-full.png` showing all four stories active simultaneously (colored markers, ≥5 active boundary overlays with distinct colors and readable labels per SC-006, district matrix with provider columns); confirm no visual regressions in overall layout — depends on T041
-- [ ] T046 Confirm `screenshots/` directory is in `.gitignore` (it should already be); verify no test screenshots are accidentally staged
-- [ ] T047 [P] Write E2E tests in `e2e/geocoding-map.spec.ts`: (1) drag primary marker to new position, verify Save/Reset buttons appear, click Save, verify buttons disappear; (2) click a district assignment row, verify overlay appears on map, click again, verify it's removed; (3) click two distinct district rows, verify two overlays visible simultaneously; (4) mock `boundary_id: null` response, click row, verify info toast appears — add supporting mock data to `e2e/fixtures/mock-data.ts`; depends on T039
+- [X] T042 [P] Run `npm run lint` from repo root and fix all ESLint errors in modified/new files (`GeocodedLocationMap.tsx`, `DistrictAssignmentsCard.tsx`, `$voterId.tsx`, `provider-colors.ts`, `useBoundaries.ts`, `useProviderBoundaryCheck.ts`)
+- [X] T043 [P] Run `npx tsc -b --noEmit` from repo root and fix all TypeScript strict-mode errors in new/modified files — depends on T039
+- [X] T044 Run `npm test -- --run` and verify the 95% coverage threshold passes for all new modules; add any missing coverage for edge cases — depends on T040, T043
+- [X] T045 [P] Full voter detail page visual regression: Playwright MCP screenshot to `screenshots/011-voter-detail-full.png` showing all four stories active simultaneously (colored markers, ≥5 active boundary overlays with distinct colors and readable labels per SC-006, district matrix with provider columns); confirm no visual regressions in overall layout — depends on T041
+- [X] T046 Confirm `screenshots/` directory is in `.gitignore` (it should already be); verify no test screenshots are accidentally staged
+- [X] T047 [P] Write E2E tests in `e2e/geocoding-map.spec.ts`: (1) drag primary marker to new position, verify Save/Reset buttons appear, click Save, verify buttons disappear; (2) click a district assignment row, verify overlay appears on map, click again, verify it's removed; (3) click two distinct district rows, verify two overlays visible simultaneously; (4) mock `boundary_id: null` response, click row, verify info toast appears — add supporting mock data to `e2e/fixtures/mock-data.ts`; depends on T039
 
 ---
 

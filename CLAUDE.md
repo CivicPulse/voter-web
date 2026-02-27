@@ -331,6 +331,8 @@ Do **not** mark a UI task as complete without performing this verification. If t
 - TypeScript 5.9+ (strict mode) + React 19.2+, TanStack Router (file-based routing, `validateSearch`), TanStack Query (data fetching), shadcn/ui (Select, Input), ky (HTTP client), Zod (schema validation) (008-participant-list-filters)
 - N/A (frontend SPA) (008-participant-list-filters)
 - TypeScript 5.9+ (strict mode) + React 19.2+, TanStack Router (file-based routing), TanStack Query (data fetching/mutation), shadcn/ui (Dialog, Badge, Select, Command/Popover), React Hook Form + Zod, Sonner (toasts), Lucide React (Trash2, X icons), ky (HTTP client) (010-election-admin-mgmt)
+- TypeScript 5.9+ (strict mode) + React 19.2+, React-Leaflet 5.0.0, Leaflet 1.9.4, TanStack Query v5, TanStack Router (file-based), Zustand, ky, shadcn/ui (new-york, neutral), Sonner, Turf.js (@turf/bbox, @turf/boolean-intersects, @turf/helpers), Lucide React (011-geocoding-map-interactive)
+- N/A (SPA — all data from voter-api REST at `/api/v1`) (011-geocoding-map-interactive)
 
 ## Recent Changes
 - 001-admin-api-access: Added TypeScript 5.9+ (strict mode), React 19.2+
