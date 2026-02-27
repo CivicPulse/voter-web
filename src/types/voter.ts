@@ -36,6 +36,28 @@ export interface DistrictCheckComparison {
   registered_value: string | null
   determined_value: string | null
   status: "match" | "mismatch" | "registered-only" | "determined-only"
+  boundary_id: string | null
+}
+
+export interface ProviderLocation {
+  provider: string
+  latitude: number
+  longitude: number
+}
+
+export interface ProviderBoundaryCheckRequest {
+  locations: ProviderLocation[]
+}
+
+export interface ProviderBoundaryResult {
+  provider: string
+  districts: Record<string, string | null>
+}
+
+export interface ProviderBoundaryCheckResponse {
+  voter_id: string
+  results: ProviderBoundaryResult[]
+  checked_at: string
 }
 
 export interface DistrictCheckResponse {
