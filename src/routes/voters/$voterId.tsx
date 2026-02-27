@@ -40,16 +40,16 @@ function VoterDetailPage() {
     })
   }
 
+  const overlayIds = useMemo(() => [...activeOverlayIds].sort(), [activeOverlayIds])
   const { data: overlayData } = useQuery({
-    queryKey: ["boundaries", "batch", [...activeOverlayIds].sort()],
+    queryKey: ["boundaries", "batch", overlayIds],
     queryFn: async () => {
-      const entries = await Promise.all(
-        [...activeOverlayIds].map(async (id) => {
-          const data = await getBoundaryDetail(id)
-          return [id, data] as const
-        }),
+      const settled = await Promise.allSettled(
+        overlayIds.map(async (id) => [id, await getBoundaryDetail(id)] as const),
       )
-      return new Map<string, BoundaryDetailResponse>(entries)
+      return new Map<string, BoundaryDetailResponse>(
+        settled.flatMap((r) => (r.status === "fulfilled" ? [r.value] : [])),
+      )
     },
     enabled: activeOverlayIds.size > 0,
     staleTime: 1000 * 60 * 10,
@@ -130,7 +130,7 @@ function VoterDetailPage() {
             locations={locations}
             officialLocation={voter.official_location}
             voterId={voterId}
-            activeOverlays={overlayData ?? new Map()}
+            activeOverlays={overlayData}
             providerMatchStatus={providerMatchStatus}
             onLocationSaved={() => {
               // district check will auto-invalidate from mutation

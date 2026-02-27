@@ -64,16 +64,6 @@ const DISTRICT_FIELDS: {
   },
 ]
 
-// Build a reverse map: registeredKey → boundary_type(s) used in provider results
-const REGISTERED_KEY_TO_BOUNDARY_TYPE: Record<string, string> = {}
-for (const [boundaryType, registeredKey] of Object.entries(BOUNDARY_TYPE_TO_REGISTERED_KEY)) {
-  // Use the first boundary_type encountered for each registeredKey
-  if (!(registeredKey in REGISTERED_KEY_TO_BOUNDARY_TYPE)) {
-    REGISTERED_KEY_TO_BOUNDARY_TYPE[registeredKey] = boundaryType
-  }
-}
-
-
 interface DistrictAssignmentsCardProps {
   districts: RegisteredDistricts
   verification?: DistrictVerificationResult | null
@@ -316,7 +306,7 @@ function ProviderMatrixView({
                 .map(([bt]) => bt)
 
               // Find the matching district boundary result from the API
-              const districtResult = providerResults?.districts.find((d) =>
+              const districtResult = providerResults?.districts?.find((d) =>
                 boundaryTypesForKey.includes(d.boundary_type),
               ) ?? null
 

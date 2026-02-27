@@ -132,7 +132,7 @@ e2e/
 1. `GeocodedLocationMap.tsx` — `draggable={true}` on primary `<Marker>`, `dragend` handler, `DragState` tracking, Save/Reset button strip below map
 2. `src/hooks/useAddressLookup.ts` — `useUpdateOfficialLocation(voterId)` mutation wrapping `setOfficialLocation` API
 3. On successful save: invalidate `["voters", voterId]` and `["voters", voterId, "district-check"]`
-4. On save error: snap marker back via `setPosition` on marker ref + Sonner error toast
+4. On save error: snap marker back via `setLatLng` on marker ref + Sonner error toast
 5. Role awareness: `voterId` prop only enables drag when user has admin/analyst role (read role from Zustand `useUserRole`)
 6. Unit tests for drag state transitions
 

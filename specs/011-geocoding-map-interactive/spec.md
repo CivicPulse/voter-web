@@ -30,7 +30,7 @@ A data quality analyst needs to fine-tune a voter's official geocoded location b
 
 **Why this priority**: Enables precision correction workflows that would otherwise require manual coordinate entry. Depends on P1 visual distinction to clearly identify which marker is the official one.
 
-**Independent Test**: Can be fully tested by dragging the official location marker, verifying coordinate display updates in real time, and confirming the district comparison refreshes with the new position.
+**Independent Test**: Can be fully tested by dragging the primary location marker, verifying coordinate display updates in real time, saving, and confirming the district comparison refreshes after save.
 
 **Acceptance Scenarios**:
 
@@ -86,7 +86,7 @@ A senior analyst performing data quality review needs to see, at a glance, how e
 - When district boundary data fails to load for a requested overlay, the map continues to function normally for all other interactions (dragging, other overlay toggles). The failed overlay is silently skipped and a non-blocking info toast informs the user ("Could not load boundary for [district name]"). No error state is applied to the map container.
 - When a dragged position falls outside all known boundary data, no district check is triggered for that position until the user saves. After saving, the district matrix and any active overlays remain visible; provider columns in the matrix will show "No data" for any district type where the saved point lies outside known boundaries. No error is shown for this condition.
 - When the district-check service is unavailable or returns an error, the matrix structure remains visible with an inline error banner and a retry button; no full page reload is required. If the service returns a partial response (some providers succeed, others fail), available provider columns render normally and failed provider columns show `—` in all cells with no per-cell error indicator.
-- What if more geocoding providers exist than palette colors available?
+- When more geocoding providers exist than palette colors, the color cycle repeats (each color reused by a different provider). Shape differentiation (e.g., different icon stroke weights or sizes) can be used if more than ~8 providers are present, but this is unlikely in practice given the current provider count.
 
 ## Requirements *(mandatory)*
 

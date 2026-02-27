@@ -65,7 +65,7 @@
 - Client-side boundary search (N calls to `GET /boundaries`) — rejected because it's N requests at click time with potential mismatches if multiple boundaries have similar names.
 - Include a `boundary_id_map: Record<string, string>` in `DistrictCheckResponse` — slightly cleaner than adding it to each comparison item, but the per-comparison placement is more explicit.
 
-**Frontend changes**: Add `boundary_id?: string | null` to `DistrictCheckComparison` in `src/types/voter.ts` and `DistrictComparisonResult` in `src/lib/district-comparison.ts`.
+**Frontend changes**: Add `boundary_id: string | null` to `DistrictCheckComparison` in `src/types/voter.ts` and `DistrictComparisonResult` in `src/lib/district-comparison.ts`.
 
 ---
 
@@ -119,7 +119,7 @@
 
 ## Decision 11: Boundary Fetch Debouncing
 
-**Decision**: Use a `useRef`-based debounce (300ms) before calling `useBoundaryDetail` when rows are clicked rapidly. TanStack Query already deduplicates in-flight requests for the same `queryKey`, so debounce is only needed to prevent excessive `queryClient.prefetchQuery` calls on fast toggle sequences.
+**Decision**: Use a `useRef`-based debounce (300ms) to delay `queryClient.prefetchQuery` calls on rapid row toggles. TanStack Query already deduplicates in-flight requests for the same `queryKey`, so the debounce guards only the prefetch calls — never the hook invocation itself (React hooks cannot be called from debounced callbacks).
 
 **Rationale**: Given TanStack Query's built-in deduplication, debouncing is a lightweight guard rather than a hard requirement.
 

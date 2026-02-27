@@ -5,7 +5,7 @@ import { render } from "@/test/render"
 import { DistrictAssignmentsCard } from "@/routes/voters/_components/DistrictAssignmentsCard"
 import { mockNullDistricts } from "@/test/mocks/voters"
 import type { DistrictVerificationResult } from "@/lib/district-comparison"
-import type { ProviderBoundaryCheckResponse } from "@/types/voter"
+import type { BatchBoundaryCheckResponse } from "@/types/voter"
 
 const nullDistricts = mockNullDistricts()
 
@@ -295,23 +295,35 @@ describe("DistrictAssignmentsCard", () => {
       lowConfidence: false,
     }
 
-    const providerResults: ProviderBoundaryCheckResponse = {
+    const providerResults: BatchBoundaryCheckResponse = {
       voter_id: "v-001",
       checked_at: "2026-02-27T10:00:00Z",
-      results: [
+      total_locations: 2,
+      total_districts: 2,
+      provider_summary: [
+        { source_type: "nominatim", latitude: 32.84, longitude: -83.63, confidence_score: 0.95, districts_matched: 2, districts_checked: 2 },
+        { source_type: "census", latitude: 32.85, longitude: -83.64, confidence_score: 0.90, districts_matched: 0, districts_checked: 2 },
+      ],
+      districts: [
         {
-          provider: "nominatim",
-          districts: {
-            congressional: "5",
-            state_senate: "18",
-          },
+          boundary_id: null,
+          boundary_type: "congressional",
+          boundary_identifier: "5",
+          has_geometry: true,
+          providers: [
+            { source_type: "nominatim", is_contained: true },
+            { source_type: "census", is_contained: false },
+          ],
         },
         {
-          provider: "census",
-          districts: {
-            congressional: "8",
-            state_senate: null,
-          },
+          boundary_id: null,
+          boundary_type: "state_senate",
+          boundary_identifier: "18",
+          has_geometry: true,
+          providers: [
+            { source_type: "nominatim", is_contained: true },
+            // census absent → renders "—"
+          ],
         },
       ],
     }
@@ -324,7 +336,7 @@ describe("DistrictAssignmentsCard", () => {
           providerResults={providerResults}
         />,
       )
-      // Table headers
+      // Table headers use source_type from provider_summary
       expect(screen.getByText("District")).toBeInTheDocument()
       expect(screen.getByText("Registered")).toBeInTheDocument()
       expect(screen.getByText("Primary")).toBeInTheDocument()
@@ -345,7 +357,7 @@ describe("DistrictAssignmentsCard", () => {
       expect(screen.getByText("Registered")).toBeInTheDocument()
     })
 
-    it("shows match CheckCircle2 icon for matching provider cell", () => {
+    it("shows contained badge for matching provider cell", () => {
       render(
         <DistrictAssignmentsCard
           districts={districts}
@@ -353,12 +365,13 @@ describe("DistrictAssignmentsCard", () => {
           providerResults={providerResults}
         />,
       )
-      // nominatim congressional = "5", official = "5" → match
-      const matchIcons = screen.getAllByLabelText("Match")
-      expect(matchIcons.length).toBeGreaterThan(0)
+      // nominatim congressional is_contained=true → boundary_identifier "5" in green badge
+      // Multiple "5"s appear: Registered col, Primary col match, nominatim match cell
+      const fiveBadges = screen.getAllByText("5")
+      expect(fiveBadges.length).toBeGreaterThan(1)
     })
 
-    it("shows mismatch X icon with tooltip for mismatching provider cell", async () => {
+    it("shows badge for non-contained provider cell (mismatch)", () => {
       render(
         <DistrictAssignmentsCard
           districts={districts}
@@ -366,12 +379,13 @@ describe("DistrictAssignmentsCard", () => {
           providerResults={providerResults}
         />,
       )
-      // census congressional = "8", official = "5" → mismatch
-      const mismatchBtn = screen.getByLabelText(/Mismatch: provider says 8/)
-      expect(mismatchBtn).toBeInTheDocument()
+      // census congressional is_contained=false → renders red badge with boundary_identifier "5"
+      // Registered col + nominatim match + census mismatch all show "5"
+      const fiveBadges = screen.getAllByText("5")
+      expect(fiveBadges.length).toBeGreaterThanOrEqual(3)
     })
 
-    it("shows dash for null provider district value", () => {
+    it("shows dash when provider has no entry for a district", () => {
       render(
         <DistrictAssignmentsCard
           districts={districts}
@@ -379,8 +393,7 @@ describe("DistrictAssignmentsCard", () => {
           providerResults={providerResults}
         />,
       )
-      // census state_senate = null → dash
-      // There should be at least one dash character
+      // census is absent from state_senate providers → "—"
       const dashes = screen.getAllByText("—")
       expect(dashes.length).toBeGreaterThan(0)
     })

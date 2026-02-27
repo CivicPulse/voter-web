@@ -4,6 +4,11 @@ import { GeocodedLocationMap } from "@/routes/voters/_components/GeocodedLocatio
 import { mockVoterGeocodedLocation } from "@/test/mocks/voters"
 import { useUserRole } from "@/lib/hooks/use-user-role"
 import { useUpdateOfficialLocation } from "@/hooks/useAddressLookup"
+import type { OfficialLocation } from "@/types/voter"
+
+vi.mock("@tanstack/react-router", () => ({
+  useNavigate: vi.fn(() => vi.fn()),
+}))
 
 // Mock react-leaflet components
 vi.mock("react-leaflet", () => ({
@@ -49,6 +54,7 @@ vi.mock("react-leaflet", () => ({
   Popup: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="popup">{children}</div>
   ),
+  GeoJSON: () => <div data-testid="geojson-layer" />,
   useMap: () => ({
     fitBounds: vi.fn(),
   }),
@@ -105,6 +111,13 @@ vi.mock("@/hooks/useAddressLookup", () => ({
 
 const mockUseUserRole = vi.mocked(useUserRole)
 const mockUseUpdateOfficialLocation = vi.mocked(useUpdateOfficialLocation)
+
+const mockOfficialLocation: OfficialLocation = {
+  latitude: 32.8407,
+  longitude: -83.6324,
+  source: "manual",
+  is_override: false,
+}
 
 function setRole(role: string) {
   mockUseUserRole.mockReturnValue({
@@ -181,7 +194,13 @@ describe("GeocodedLocationMap", () => {
   describe("drag state", () => {
     it("pendingLat is null initially — Save/Reset strip is not shown", () => {
       const locations = [mockVoterGeocodedLocation({ is_primary: true })]
-      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+      render(
+        <GeocodedLocationMap
+          locations={locations}
+          voterId="v-001"
+          officialLocation={mockOfficialLocation}
+        />,
+      )
 
       expect(screen.queryByRole("button", { name: /save location/i })).not.toBeInTheDocument()
       expect(screen.queryByRole("button", { name: /reset/i })).not.toBeInTheDocument()
@@ -189,11 +208,17 @@ describe("GeocodedLocationMap", () => {
 
     it("shows Save/Reset strip after drag ends", () => {
       const locations = [mockVoterGeocodedLocation({ is_primary: true })]
-      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+      render(
+        <GeocodedLocationMap
+          locations={locations}
+          voterId="v-001"
+          officialLocation={mockOfficialLocation}
+        />,
+      )
 
-      // Simulate dragend on primary marker
-      const primaryMarker = screen.getAllByTestId("marker")[0]
-      fireEvent.mouseUp(primaryMarker)
+      // Official location marker renders first; simulate dragend
+      const officialMarker = screen.getAllByTestId("marker")[0]
+      fireEvent.mouseUp(officialMarker)
 
       expect(screen.getByRole("button", { name: /save location/i })).toBeInTheDocument()
       expect(screen.getByRole("button", { name: /reset/i })).toBeInTheDocument()
@@ -201,10 +226,16 @@ describe("GeocodedLocationMap", () => {
 
     it("hides Save/Reset strip after Reset is clicked", () => {
       const locations = [mockVoterGeocodedLocation({ is_primary: true })]
-      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+      render(
+        <GeocodedLocationMap
+          locations={locations}
+          voterId="v-001"
+          officialLocation={mockOfficialLocation}
+        />,
+      )
 
-      const primaryMarker = screen.getAllByTestId("marker")[0]
-      fireEvent.mouseUp(primaryMarker)
+      const officialMarker = screen.getAllByTestId("marker")[0]
+      fireEvent.mouseUp(officialMarker)
 
       expect(screen.getByRole("button", { name: /reset/i })).toBeInTheDocument()
       fireEvent.click(screen.getByRole("button", { name: /reset/i }))
@@ -217,48 +248,78 @@ describe("GeocodedLocationMap", () => {
     it("primary marker is draggable for admin with voterId", () => {
       setRole("admin")
       const locations = [mockVoterGeocodedLocation({ is_primary: true })]
-      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+      render(
+        <GeocodedLocationMap
+          locations={locations}
+          voterId="v-001"
+          officialLocation={mockOfficialLocation}
+        />,
+      )
 
-      const primaryMarker = screen.getAllByTestId("marker")[0]
-      expect(primaryMarker.dataset.draggable).toBe("true")
+      // Official location marker renders first
+      const officialMarker = screen.getAllByTestId("marker")[0]
+      expect(officialMarker.dataset.draggable).toBe("true")
     })
 
     it("primary marker is draggable for analyst with voterId", () => {
       setRole("analyst")
       const locations = [mockVoterGeocodedLocation({ is_primary: true })]
-      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+      render(
+        <GeocodedLocationMap
+          locations={locations}
+          voterId="v-001"
+          officialLocation={mockOfficialLocation}
+        />,
+      )
 
-      const primaryMarker = screen.getAllByTestId("marker")[0]
-      expect(primaryMarker.dataset.draggable).toBe("true")
+      const officialMarker = screen.getAllByTestId("marker")[0]
+      expect(officialMarker.dataset.draggable).toBe("true")
     })
 
     it("primary marker is NOT draggable for viewer even with voterId", () => {
       setRole("viewer")
       const locations = [mockVoterGeocodedLocation({ is_primary: true })]
-      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+      render(
+        <GeocodedLocationMap
+          locations={locations}
+          voterId="v-001"
+          officialLocation={mockOfficialLocation}
+        />,
+      )
 
-      const primaryMarker = screen.getAllByTestId("marker")[0]
-      expect(primaryMarker.dataset.draggable).toBe("false")
+      const officialMarker = screen.getAllByTestId("marker")[0]
+      expect(officialMarker.dataset.draggable).toBe("false")
     })
 
     it("primary marker is NOT draggable when voterId is not provided", () => {
       setRole("admin")
       const locations = [mockVoterGeocodedLocation({ is_primary: true })]
-      render(<GeocodedLocationMap locations={locations} />)
+      render(
+        <GeocodedLocationMap
+          locations={locations}
+          officialLocation={mockOfficialLocation}
+        />,
+      )
 
-      const primaryMarker = screen.getAllByTestId("marker")[0]
-      expect(primaryMarker.dataset.draggable).toBe("false")
+      const officialMarker = screen.getAllByTestId("marker")[0]
+      expect(officialMarker.dataset.draggable).toBe("false")
     })
 
     it("viewer role does not show Save/Reset after drag attempt", () => {
       setRole("viewer")
       const locations = [mockVoterGeocodedLocation({ is_primary: true })]
-      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+      render(
+        <GeocodedLocationMap
+          locations={locations}
+          voterId="v-001"
+          officialLocation={mockOfficialLocation}
+        />,
+      )
 
-      const primaryMarker = screen.getAllByTestId("marker")[0]
-      fireEvent.mouseUp(primaryMarker)
+      const officialMarker = screen.getAllByTestId("marker")[0]
+      fireEvent.mouseUp(officialMarker)
 
-      // Since marker is not draggable for viewers, no event handlers are set
+      // Viewer has no drag handlers, so Save/Reset never appears
       expect(screen.queryByRole("button", { name: /save location/i })).not.toBeInTheDocument()
     })
   })
@@ -267,10 +328,17 @@ describe("GeocodedLocationMap", () => {
     it("calls mutateAsync with pending coordinates on save", async () => {
       setRole("admin")
       const locations = [mockVoterGeocodedLocation({ is_primary: true })]
-      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+      render(
+        <GeocodedLocationMap
+          locations={locations}
+          voterId="v-001"
+          officialLocation={mockOfficialLocation}
+        />,
+      )
 
-      const primaryMarker = screen.getAllByTestId("marker")[0]
-      fireEvent.mouseUp(primaryMarker)
+      // Official location marker renders first and has drag handlers
+      const officialMarker = screen.getAllByTestId("marker")[0]
+      fireEvent.mouseUp(officialMarker)
 
       const saveButton = screen.getByRole("button", { name: /save location/i })
       fireEvent.click(saveButton)
@@ -294,10 +362,16 @@ describe("GeocodedLocationMap", () => {
 
       setRole("admin")
       const locations = [mockVoterGeocodedLocation({ is_primary: true })]
-      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+      render(
+        <GeocodedLocationMap
+          locations={locations}
+          voterId="v-001"
+          officialLocation={mockOfficialLocation}
+        />,
+      )
 
-      const primaryMarker = screen.getAllByTestId("marker")[0]
-      fireEvent.mouseUp(primaryMarker)
+      const officialMarker = screen.getAllByTestId("marker")[0]
+      fireEvent.mouseUp(officialMarker)
 
       const saveButton = screen.getByRole("button", { name: /save location/i })
       fireEvent.click(saveButton)

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useNavigate } from "@tanstack/react-router"
 import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from "react-leaflet"
 import type { Geometry as GeoJSONGeometry } from "geojson"
 import L from "leaflet"
@@ -16,7 +17,6 @@ import {
   createProviderDivIcon,
   createPrimaryLocationDivIcon,
   applyCoordinateJitter,
-  applyOfficialLocationJitter,
   PRIMARY_LOCATION_COLOR,
   PROVIDER_COLORS,
 } from "@/lib/provider-colors"
@@ -163,7 +163,7 @@ function MapProviderLegend({
     return () => {
       legend.remove()
     }
-  }, [map, locations, activeOverlays])
+  }, [map, locations, activeOverlays, showOfficialLocation])
 
   return null
 }
@@ -187,6 +187,7 @@ export function GeocodedLocationMap({
   onLocationSaved,
   providerMatchStatus,
 }: Readonly<GeocodedLocationMapProps>) {
+  const navigate = useNavigate()
   const { data: userProfile } = useUserRole()
   const isEditable = userProfile?.role === "admin" || userProfile?.role === "analyst"
 
@@ -293,11 +294,6 @@ export function GeocodedLocationMap({
         <FitBoundsToLocations locations={jitteredLocations} officialLocation={officialLocation} />
         <MapProviderLegend locations={locations} activeOverlays={activeOverlays} showOfficialLocation={!!officialLocation} />
         {officialLocation && (() => {
-          const [offLat, offLng] = applyOfficialLocationJitter(
-            officialLocation.latitude,
-            officialLocation.longitude,
-            jitteredLocations,
-          )
           const officialIcon = createPrimaryLocationDivIcon()
           const draggable = !!voterId && isEditable
           return (
@@ -306,7 +302,7 @@ export function GeocodedLocationMap({
               position={
                 dragState.pendingLat !== null && dragState.pendingLng !== null
                   ? [dragState.pendingLat, dragState.pendingLng]
-                  : [offLat, offLng]
+                  : [dragState.savedLat, dragState.savedLng]
               }
               icon={officialIcon}
               draggable={draggable}
@@ -416,6 +412,11 @@ export function GeocodedLocationMap({
                   weight: 2,
                   opacity: 0.9,
                   fillOpacity: 0.2,
+                }}
+                eventHandlers={{
+                  dblclick: () => {
+                    void navigate({ to: "/districts/$districtId", params: { districtId: id } })
+                  },
                 }}
               >
                 <Popup>{boundary.name}</Popup>
