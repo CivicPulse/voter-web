@@ -26,7 +26,6 @@ const DEFAULT_CENTER: [number, number] = [32.6791, -83.6233]
 const DEFAULT_ZOOM = 14
 
 interface DragState {
-  isDragging: boolean
   pendingLat: number | null
   pendingLng: number | null
   savedLat: number
@@ -196,7 +195,6 @@ export function GeocodedLocationMap({
   }, [locations])
 
   const [dragState, setDragState] = useState<DragState>(() => ({
-    isDragging: false,
     pendingLat: null,
     pendingLng: null,
     savedLat: officialLocation?.latitude ?? primaryLocation?.latitude ?? DEFAULT_CENTER[0],
@@ -256,7 +254,6 @@ export function GeocodedLocationMap({
       ...prev,
       pendingLat: null,
       pendingLng: null,
-      isDragging: false,
     }))
   }
 
@@ -302,14 +299,10 @@ export function GeocodedLocationMap({
               eventHandlers={
                 draggable
                   ? {
-                      dragstart: () => {
-                        setDragState((prev) => ({ ...prev, isDragging: true }))
-                      },
                       dragend: (e) => {
                         const latlng = (e.target as L.Marker).getLatLng()
                         setDragState((prev) => ({
                           ...prev,
-                          isDragging: false,
                           pendingLat: latlng.lat,
                           pendingLng: latlng.lng,
                         }))
@@ -399,7 +392,7 @@ export function GeocodedLocationMap({
           })}
       </MapContainer>
 
-      {dragState.isDragging && dragState.pendingLat !== null && dragState.pendingLng !== null && (
+      {dragState.pendingLat !== null && dragState.pendingLng !== null && (
         <div className="text-xs text-muted-foreground mt-1">
           Lat: {dragState.pendingLat.toFixed(6)}, Lng: {dragState.pendingLng.toFixed(6)}
         </div>
