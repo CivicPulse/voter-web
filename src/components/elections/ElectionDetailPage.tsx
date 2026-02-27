@@ -60,17 +60,17 @@ export function ElectionDetailPage({
     dataUpdatedAt,
   } = useRaceResults(electionId)
 
-  const { data: candidatesData } = useCandidates(electionId, { page_size: 1 })
+  const { data: candidatesData, isLoading: candidatesLoading } = useCandidates(electionId, { page_size: 1 })
   const hasApiCandidates = (candidatesData?.items ?? []).length > 0
   const showInfoTab = isAuthenticated || hasApiCandidates
 
   const hasResults = (raceData?.results.candidates.length ?? 0) > 0
   const [initialDefault, setInitialDefault] = useState<"info" | "results" | null>(null)
 
-  // Capture the initial default tab once when loading completes (React derived-state pattern).
-  // This prevents the tab from flipping back if raceData subsequently changes.
-  if (!raceLoading && initialDefault === null) {
-    setInitialDefault(hasResults || !isAuthenticated ? "results" : "info")
+  // Capture the initial default tab once when both queries complete (React derived-state pattern).
+  // This prevents the tab from flipping back if data subsequently changes.
+  if (!raceLoading && !candidatesLoading && initialDefault === null) {
+    setInitialDefault(hasResults || !showInfoTab ? "results" : "info")
   }
 
   const activeTab = (() => {
@@ -78,7 +78,7 @@ export function ElectionDetailPage({
     if (!isAuthenticated && requested === "participation") {
       return "results"
     }
-    if (!showInfoTab && requested === "info") {
+    if (!showInfoTab && !candidatesLoading && requested === "info") {
       return "results"
     }
     return requested
@@ -90,10 +90,10 @@ export function ElectionDetailPage({
     if (!isAuthenticated && tab === "participation") {
       onTabChange("results")
     }
-    if (!showInfoTab && tab === "info") {
+    if (!showInfoTab && !candidatesLoading && tab === "info") {
       onTabChange("results")
     }
-  }, [isAuthenticated, showInfoTab, tab, onTabChange])
+  }, [isAuthenticated, showInfoTab, candidatesLoading, tab, onTabChange])
 
   const [soundEnabled, setSoundEnabled] = useState(true)
 
