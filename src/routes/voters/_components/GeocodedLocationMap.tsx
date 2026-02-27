@@ -305,14 +305,6 @@ export function GeocodedLocationMap({
                       dragstart: () => {
                         setDragState((prev) => ({ ...prev, isDragging: true }))
                       },
-                      drag: (e) => {
-                        const latlng = (e.target as L.Marker).getLatLng()
-                        setDragState((prev) => ({
-                          ...prev,
-                          pendingLat: latlng.lat,
-                          pendingLng: latlng.lng,
-                        }))
-                      },
                       dragend: (e) => {
                         const latlng = (e.target as L.Marker).getLatLng()
                         setDragState((prev) => ({
