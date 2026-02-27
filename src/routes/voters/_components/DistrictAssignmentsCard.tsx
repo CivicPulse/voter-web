@@ -284,7 +284,7 @@ function ProviderMatrixView({
             <TableRow>
               <TableHead className="w-[140px]">District</TableHead>
               <TableHead>Registered</TableHead>
-              <TableHead>Official</TableHead>
+              <TableHead>Primary</TableHead>
               {providerResultsLoading && !providerResults ? (
                 <TableHead>
                   <Skeleton className="h-4 w-16" />
@@ -416,7 +416,7 @@ function ProviderMatrixView({
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>Provider: {providerValue}</p>
-                              <p>Official: {officialValue}</p>
+                              <p>Primary: {officialValue}</p>
                             </TooltipContent>
                           </Tooltip>
                         </TableCell>

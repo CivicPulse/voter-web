@@ -288,7 +288,7 @@ export function GeocodedLocationMap({
                   <div className="text-sm">
                     <p className="font-medium">
                       {color.label}
-                      {loc.is_primary && " (Official)"}
+                      {loc.is_primary && " (Primary)"}
                     </p>
                     <p className="text-muted-foreground">
                       {loc.latitude.toFixed(6)}, {loc.longitude.toFixed(6)}

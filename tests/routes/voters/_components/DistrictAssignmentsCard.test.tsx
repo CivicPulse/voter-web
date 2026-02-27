@@ -327,7 +327,7 @@ describe("DistrictAssignmentsCard", () => {
       // Table headers
       expect(screen.getByText("District")).toBeInTheDocument()
       expect(screen.getByText("Registered")).toBeInTheDocument()
-      expect(screen.getByText("Official")).toBeInTheDocument()
+      expect(screen.getByText("Primary")).toBeInTheDocument()
       expect(screen.getByText("nominatim")).toBeInTheDocument()
       expect(screen.getByText("census")).toBeInTheDocument()
     })

@@ -153,7 +153,7 @@ describe("GeocodedLocationMap", () => {
     render(<GeocodedLocationMap locations={locations} />)
 
     expect(screen.getByText(/census/i)).toBeInTheDocument()
-    expect(screen.getByText(/Official/)).toBeInTheDocument()
+    expect(screen.getByText(/Primary/)).toBeInTheDocument()
   })
 
   it("shows confidence score in popup", () => {
