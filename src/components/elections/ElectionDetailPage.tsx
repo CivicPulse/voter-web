@@ -60,9 +60,9 @@ export function ElectionDetailPage({
     dataUpdatedAt,
   } = useRaceResults(electionId)
 
-  const { data: candidatesData, isLoading: candidatesLoading } = useCandidates(electionId, { page_size: 1 })
+  const { data: candidatesData, isLoading: candidatesLoading } = useCandidates(electionId, { page_size: 100 })
   const hasApiCandidates = (candidatesData?.items ?? []).length > 0
-  const showInfoTab = isAuthenticated || hasApiCandidates
+  const showInfoTab = isAuthenticated || hasApiCandidates || (candidatesLoading && tab === "info")
 
   const hasResults = (raceData?.results.candidates.length ?? 0) > 0
   const [initialDefault, setInitialDefault] = useState<"info" | "results" | null>(null)
