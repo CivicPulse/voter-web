@@ -270,6 +270,7 @@ function ProviderMatrixView({
   onRetryProviderCheck,
   activeOverlayIds,
   onToggleBoundary,
+  providerPointLookups,
 }: Readonly<{
   assignments: AssignmentRow[]
   comparisonMap: Map<keyof RegisteredDistricts, DistrictComparisonResult>
@@ -281,6 +282,7 @@ function ProviderMatrixView({
   onRetryProviderCheck?: () => void
   activeOverlayIds?: Set<string>
   onToggleBoundary?: (boundaryId: string) => void
+  providerPointLookups?: Map<string, Map<string, string>>
 }>) {
   const providers = providerResults?.provider_summary ?? []
 
@@ -422,7 +424,11 @@ function ProviderMatrixView({
                                 className="text-xs text-red-700 border-red-400 gap-1 cursor-default"
                               >
                                 <X className="h-3 w-3" aria-hidden />
-                                {providerResult.determined_identifier ?? undefined}
+                                {providerResult.determined_identifier ??
+                                  providerPointLookups
+                                    ?.get(summary.source_type)
+                                    ?.get(districtResult?.boundary_type ?? "") ??
+                                  comparison?.geographicValue}
                               </Badge>
                             </TooltipTrigger>
                             <TooltipContent>
