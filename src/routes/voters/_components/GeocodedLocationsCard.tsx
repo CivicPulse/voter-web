@@ -111,7 +111,7 @@ export function GeocodedLocationsCard({
   function handleSetOfficial(locationId: string) {
     setPrimaryMutation.mutate(locationId, {
       onSuccess: () => {
-        toast.success("Official location updated.")
+        toast.success("Primary location updated.")
       },
       onError: () => {
         toast.error("Failed to set official location.")
@@ -136,7 +136,7 @@ export function GeocodedLocationsCard({
   function handleOverrideSubmit(values: OverrideFormValues) {
     setOfficialMutation.mutate(values, {
       onSuccess: () => {
-        toast.success("Official location override set.")
+        toast.success("Primary location override set.")
         setOverrideDialogOpen(false)
         overrideForm.reset()
       },
@@ -149,7 +149,7 @@ export function GeocodedLocationsCard({
   function handleClearOverrideConfirm() {
     clearOverrideMutation.mutate(undefined, {
       onSuccess: () => {
-        toast.success("Official location override cleared.")
+        toast.success("Primary location override cleared.")
         setClearOverrideDialogOpen(false)
       },
       onError: () => {
@@ -220,7 +220,7 @@ export function GeocodedLocationsCard({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Navigation className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">Official Location</span>
+                  <span className="text-sm font-medium">Primary Location</span>
                   <Badge variant="secondary" className="text-xs">
                     {officialLocation.source}
                   </Badge>
@@ -275,7 +275,7 @@ export function GeocodedLocationsCard({
                 }}
               >
                 <Navigation className="h-4 w-4 mr-1" />
-                Set Official Location Override
+                Set Primary Location Override
               </Button>
             </div>
           )}
@@ -300,7 +300,7 @@ export function GeocodedLocationsCard({
                       {loc.source_type}
                       {loc.is_primary && (
                         <Badge variant="default" className="text-xs">
-                          Official
+                          Primary
                         </Badge>
                       )}
                     </div>
@@ -326,7 +326,7 @@ export function GeocodedLocationsCard({
                             className="h-8 w-8"
                             onClick={() => handleSetOfficial(loc.id)}
                             disabled={setPrimaryMutation.isPending}
-                            title="Set as Official"
+                            title="Set as Primary"
                           >
                             <Star className="h-4 w-4" />
                           </Button>
@@ -383,7 +383,7 @@ export function GeocodedLocationsCard({
       <Dialog open={overrideDialogOpen} onOpenChange={setOverrideDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Override Official Location</DialogTitle>
+            <DialogTitle>Override Primary Location</DialogTitle>
             <DialogDescription>
               Manually set the official location coordinates for this voter.
               This will override the geocoded location for district

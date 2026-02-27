@@ -36,6 +36,39 @@ export interface DistrictCheckComparison {
   registered_value: string | null
   determined_value: string | null
   status: "match" | "mismatch" | "registered-only" | "determined-only"
+  boundary_id: string | null
+}
+
+export interface BatchProviderResult {
+  source_type: string
+  is_contained: boolean
+  determined_identifier?: string | null
+}
+
+export interface DistrictBoundaryResult {
+  boundary_id: string | null
+  boundary_type: string
+  boundary_identifier: string
+  has_geometry: boolean
+  providers: BatchProviderResult[]
+}
+
+export interface ProviderSummary {
+  source_type: string
+  latitude: number
+  longitude: number
+  confidence_score: number | null
+  districts_matched: number
+  districts_checked: number
+}
+
+export interface BatchBoundaryCheckResponse {
+  voter_id: string
+  districts: DistrictBoundaryResult[]
+  provider_summary: ProviderSummary[]
+  total_locations: number
+  total_districts: number
+  checked_at: string
 }
 
 export interface DistrictCheckResponse {

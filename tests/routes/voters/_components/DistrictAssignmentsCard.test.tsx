@@ -1,9 +1,11 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 import { screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { render } from "@/test/render"
 import { DistrictAssignmentsCard } from "@/routes/voters/_components/DistrictAssignmentsCard"
 import { mockNullDistricts } from "@/test/mocks/voters"
 import type { DistrictVerificationResult } from "@/lib/district-comparison"
+import type { BatchBoundaryCheckResponse } from "@/types/voter"
 
 const nullDistricts = mockNullDistricts()
 
@@ -259,6 +261,253 @@ describe("DistrictAssignmentsCard", () => {
         />,
       )
       expect(screen.queryByText(/Checked/)).not.toBeInTheDocument()
+    })
+  })
+
+  describe("provider × district comparison matrix", () => {
+    const districts = {
+      ...mockNullDistricts(),
+      congressional_district: "5",
+      state_senate_district: "18",
+    }
+
+    const verification: DistrictVerificationResult = {
+      comparisons: [
+        {
+          registeredKey: "congressional_district",
+          label: "Congressional",
+          registeredValue: "5",
+          geographicValue: "5",
+          status: "match",
+          boundaryId: null,
+        },
+        {
+          registeredKey: "state_senate_district",
+          label: "State Senate",
+          registeredValue: "18",
+          geographicValue: "20",
+          status: "mismatch",
+          boundaryId: null,
+        },
+      ],
+      matchCount: 1,
+      mismatchCount: 1,
+      lowConfidence: false,
+    }
+
+    const providerResults: BatchBoundaryCheckResponse = {
+      voter_id: "v-001",
+      checked_at: "2026-02-27T10:00:00Z",
+      total_locations: 2,
+      total_districts: 2,
+      provider_summary: [
+        { source_type: "nominatim", latitude: 32.84, longitude: -83.63, confidence_score: 0.95, districts_matched: 2, districts_checked: 2 },
+        { source_type: "census", latitude: 32.85, longitude: -83.64, confidence_score: 0.90, districts_matched: 0, districts_checked: 2 },
+      ],
+      districts: [
+        {
+          boundary_id: null,
+          boundary_type: "congressional",
+          boundary_identifier: "5",
+          has_geometry: true,
+          providers: [
+            { source_type: "nominatim", is_contained: true },
+            { source_type: "census", is_contained: false },
+          ],
+        },
+        {
+          boundary_id: null,
+          boundary_type: "state_senate",
+          boundary_identifier: "18",
+          has_geometry: true,
+          providers: [
+            { source_type: "nominatim", is_contained: true },
+            // census absent → renders "—"
+          ],
+        },
+      ],
+    }
+
+    it("renders matrix table when providerResults is provided", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={districts}
+          verification={verification}
+          providerResults={providerResults}
+        />,
+      )
+      // Table headers use source_type from provider_summary
+      expect(screen.getByText("District")).toBeInTheDocument()
+      expect(screen.getByText("Registered")).toBeInTheDocument()
+      expect(screen.getByText("Primary")).toBeInTheDocument()
+      expect(screen.getByText("nominatim")).toBeInTheDocument()
+      expect(screen.getByText("census")).toBeInTheDocument()
+    })
+
+    it("renders matrix table when providerResultsLoading is true", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={districts}
+          verification={verification}
+          providerResults={undefined}
+          providerResultsLoading={true}
+        />,
+      )
+      expect(screen.getByText("District")).toBeInTheDocument()
+      expect(screen.getByText("Registered")).toBeInTheDocument()
+    })
+
+    it("shows contained badge for matching provider cell", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={districts}
+          verification={verification}
+          providerResults={providerResults}
+        />,
+      )
+      // nominatim congressional is_contained=true → boundary_identifier "5" in green badge
+      // Multiple "5"s appear: Registered col, Primary col match, nominatim match cell
+      const fiveBadges = screen.getAllByText("5")
+      expect(fiveBadges.length).toBeGreaterThan(1)
+    })
+
+    it("shows badge for non-contained provider cell (mismatch)", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={districts}
+          verification={verification}
+          providerResults={providerResults}
+        />,
+      )
+      // census congressional is_contained=false → renders red badge with boundary_identifier "5"
+      // Registered col + nominatim match + census mismatch all show "5"
+      const fiveBadges = screen.getAllByText("5")
+      expect(fiveBadges.length).toBeGreaterThanOrEqual(3)
+    })
+
+    it("shows geographic value (not registered value) in Primary column mismatch badge", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={districts}
+          verification={verification}
+          providerResults={providerResults}
+        />,
+      )
+      // state_senate mismatch: registeredValue="18", geographicValue="20"
+      // Primary column badge should show "20" (geographic), not "18" (registered)
+      expect(screen.getByText("20")).toBeInTheDocument()
+    })
+
+    it("shows geographic value (not registered value) in provider column mismatch badge", () => {
+      // Add census is_contained=false for state_senate (mismatch: registered="18", geographic="20")
+      const providerResultsWithSenateMismatch: BatchBoundaryCheckResponse = {
+        ...providerResults,
+        districts: [
+          ...providerResults.districts.filter((d) => d.boundary_type !== "state_senate"),
+          {
+            boundary_id: null,
+            boundary_type: "state_senate",
+            boundary_identifier: "18",
+            has_geometry: true,
+            providers: [
+              { source_type: "nominatim", is_contained: false },
+            ],
+          },
+        ],
+      }
+      render(
+        <DistrictAssignmentsCard
+          districts={districts}
+          verification={verification}
+          providerResults={providerResultsWithSenateMismatch}
+        />,
+      )
+      // state_senate mismatch: geographicValue="20" — provider badge should show "20", not "18"
+      const twentyBadges = screen.getAllByText("20")
+      expect(twentyBadges.length).toBeGreaterThanOrEqual(2) // Primary + nominatim provider
+    })
+
+    it("shows dash when provider has no entry for a district", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={districts}
+          verification={verification}
+          providerResults={providerResults}
+        />,
+      )
+      // census is absent from state_senate providers → "—"
+      const dashes = screen.getAllByText("—")
+      expect(dashes.length).toBeGreaterThan(0)
+    })
+
+    it("shows skeleton when loading and no results yet", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={districts}
+          verification={verification}
+          providerResults={undefined}
+          providerResultsLoading={true}
+        />,
+      )
+      // Skeleton renders with data-slot="skeleton"
+      const skeletons = document.querySelectorAll("[data-slot='skeleton']")
+      expect(skeletons.length).toBeGreaterThan(0)
+    })
+
+    it("does not render matrix when providerResults is undefined and not loading", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={districts}
+          verification={verification}
+          providerResults={undefined}
+          providerResultsLoading={false}
+        />,
+      )
+      expect(screen.queryByText("District")).not.toBeInTheDocument()
+      expect(screen.queryByText("Registered")).not.toBeInTheDocument()
+    })
+
+    it("shows error banner when providerResultsError is true", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={districts}
+          verification={verification}
+          providerResults={null}
+          providerResultsError={true}
+          onRetryProviderCheck={vi.fn()}
+        />,
+      )
+      expect(screen.getByText("Could not load provider district data.")).toBeInTheDocument()
+      expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument()
+    })
+
+    it("calls onRetryProviderCheck when Retry button is clicked", async () => {
+      const user = userEvent.setup()
+      const onRetry = vi.fn()
+      render(
+        <DistrictAssignmentsCard
+          districts={districts}
+          verification={verification}
+          providerResults={null}
+          providerResultsError={true}
+          onRetryProviderCheck={onRetry}
+        />,
+      )
+      await user.click(screen.getByRole("button", { name: "Retry" }))
+      expect(onRetry).toHaveBeenCalledTimes(1)
+    })
+
+    it("shows dashes in provider columns when error and providerResults is null", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={districts}
+          verification={verification}
+          providerResults={null}
+          providerResultsError={true}
+        />,
+      )
+      // Table still renders but no provider columns (no results)
+      expect(screen.getByText("District")).toBeInTheDocument()
     })
   })
 })

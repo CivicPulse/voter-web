@@ -5,8 +5,12 @@ import {
   AlertTriangle,
   Loader2,
   Info,
+  X,
 } from "lucide-react"
+import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -14,15 +18,49 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import type { RegisteredDistricts } from "@/types/voter"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Skeleton } from "@/components/ui/skeleton"
+import type { RegisteredDistricts, BatchBoundaryCheckResponse } from "@/types/voter"
 import type {
   DistrictComparisonResult,
   DistrictVerificationResult,
 } from "@/lib/district-comparison"
+import { BOUNDARY_TYPE_TO_REGISTERED_KEY } from "@/lib/district-comparison"
+
+function makeHandleClick(
+  boundaryId: string | null,
+  comparison: DistrictComparisonResult | undefined,
+  onToggleBoundary?: (id: string) => void,
+) {
+  return () => {
+    if (boundaryId) {
+      onToggleBoundary?.(boundaryId)
+    } else if (comparison) {
+      toast.info("Boundary data not available for this district")
+    }
+  }
+}
+
+function makeHandleKeyDown(onClick: () => void) {
+  return (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault()
+      onClick()
+    }
+  }
+}
 
 const DISTRICT_FIELDS: {
   key: keyof RegisteredDistricts
@@ -55,6 +93,14 @@ interface DistrictAssignmentsCardProps {
   verificationLoading?: boolean
   matchStatus?: string
   checkedAt?: string
+  activeOverlayIds?: Set<string>
+  onToggleBoundary?: (boundaryId: string) => void
+  providerResults?: BatchBoundaryCheckResponse | null
+  providerResultsLoading?: boolean
+  providerResultsError?: boolean
+  onRetryProviderCheck?: () => void
+  /** Map<source_type, Map<boundary_type, actual_identifier>> from point-lookups at provider coordinates */
+  providerPointLookups?: Map<string, Map<string, string>>
 }
 
 export function DistrictAssignmentsCard({
@@ -63,6 +109,13 @@ export function DistrictAssignmentsCard({
   verificationLoading,
   matchStatus,
   checkedAt,
+  activeOverlayIds,
+  onToggleBoundary,
+  providerResults,
+  providerResultsLoading,
+  providerResultsError,
+  onRetryProviderCheck,
+  providerPointLookups,
 }: Readonly<DistrictAssignmentsCardProps>) {
   const assignments = DISTRICT_FIELDS.filter(
     ({ key }) => districts[key] !== null,
@@ -78,6 +131,9 @@ export function DistrictAssignmentsCard({
     () => new Map(verification?.comparisons.map((c) => [c.registeredKey, c]) ?? []),
     [verification],
   )
+
+  // Determine if the matrix should be shown (loading, error, or data present)
+  const showMatrix = providerResultsLoading || !!providerResultsError || providerResults != null
 
   return (
     <Card>
@@ -123,12 +179,32 @@ export function DistrictAssignmentsCard({
           <p className="text-sm text-muted-foreground">
             No district assignments found.
           </p>
+        ) : showMatrix ? (
+          <ProviderMatrixView
+            assignments={assignments}
+            comparisonMap={comparisonMap}
+            verificationLoading={verificationLoading ?? false}
+            districts={districts}
+            providerResults={providerResults ?? null}
+            providerResultsLoading={providerResultsLoading ?? false}
+            providerResultsError={providerResultsError ?? false}
+            onRetryProviderCheck={onRetryProviderCheck}
+            activeOverlayIds={activeOverlayIds}
+            onToggleBoundary={onToggleBoundary}
+            providerPointLookups={providerPointLookups}
+          />
         ) : (
           <div className="space-y-3">
             {assignments.map(({ key, label, value, description }) => {
               const comparison = comparisonMap.get(key)
-              return (
-                <div key={`${label}-${value}`}>
+              const boundaryId = comparison?.boundaryId ?? null
+              const isActive = boundaryId !== null && (activeOverlayIds?.has(boundaryId) ?? false)
+              const isClickable = comparison !== undefined
+              const handleClick = makeHandleClick(boundaryId, comparison, onToggleBoundary)
+              const handleKeyDown = makeHandleKeyDown(handleClick)
+
+              const itemContent = (
+                <>
                   <h4 className="text-sm font-medium text-muted-foreground mb-1">
                     {label}
                   </h4>
@@ -141,6 +217,32 @@ export function DistrictAssignmentsCard({
                     )}
                     <ComparisonIndicator comparison={comparison} />
                   </div>
+                </>
+              )
+
+              if (isClickable) {
+                return (
+                  <button
+                    key={`${label}-${value}`}
+                    type="button"
+                    onClick={handleClick}
+                    onKeyDown={handleKeyDown}
+                    className={cn(
+                      "w-full text-left rounded-md p-1 -mx-1 transition-colors cursor-pointer hover:bg-muted/50",
+                      isActive && "bg-muted",
+                    )}
+                  >
+                    {itemContent}
+                  </button>
+                )
+              }
+
+              return (
+                <div
+                  key={`${label}-${value}`}
+                  className="rounded-md p-1 -mx-1"
+                >
+                  {itemContent}
                 </div>
               )
             })}
@@ -148,6 +250,260 @@ export function DistrictAssignmentsCard({
         )}
       </CardContent>
     </Card>
+  )
+}
+
+interface AssignmentRow {
+  key: keyof RegisteredDistricts
+  label: string
+  value: string
+  description: string | null | undefined
+}
+
+function ProviderMatrixView({
+  assignments,
+  comparisonMap,
+  verificationLoading,
+  providerResults,
+  providerResultsLoading,
+  providerResultsError,
+  onRetryProviderCheck,
+  activeOverlayIds,
+  onToggleBoundary,
+  providerPointLookups,
+}: Readonly<{
+  assignments: AssignmentRow[]
+  comparisonMap: Map<keyof RegisteredDistricts, DistrictComparisonResult>
+  verificationLoading: boolean
+  districts: RegisteredDistricts
+  providerResults: BatchBoundaryCheckResponse | null
+  providerResultsLoading: boolean
+  providerResultsError: boolean
+  onRetryProviderCheck?: () => void
+  activeOverlayIds?: Set<string>
+  onToggleBoundary?: (boundaryId: string) => void
+  providerPointLookups?: Map<string, Map<string, string>>
+}>) {
+  const providers = providerResults?.provider_summary ?? []
+
+  return (
+    <div>
+      {providerResultsError && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription className="flex items-center justify-between">
+            <span>Could not load provider district data.</span>
+            <Button variant="outline" size="sm" onClick={onRetryProviderCheck}>
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[140px] pl-0">District</TableHead>
+              <TableHead>Registered</TableHead>
+              {verificationLoading && comparisonMap.size === 0 && (
+                <TableHead>
+                  <Skeleton className="h-4 w-16" />
+                </TableHead>
+              )}
+              {!verificationLoading && comparisonMap.size > 0 && (
+                <TableHead>Primary</TableHead>
+              )}
+              {providerResultsLoading && !providerResults ? (
+                <TableHead>
+                  <Skeleton className="h-4 w-16" />
+                </TableHead>
+              ) : (
+                providers.map((summary) => (
+                  <TableHead key={summary.source_type} className="capitalize">
+                    {summary.source_type}
+                  </TableHead>
+                ))
+              )}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {assignments.map(({ key, label, value }) => {
+              const comparison = comparisonMap.get(key)
+              const boundaryId = comparison?.boundaryId ?? null
+              const isActive = boundaryId !== null && (activeOverlayIds?.has(boundaryId) ?? false)
+              const isClickable = comparison !== undefined
+
+              // Find boundary_type(s) that map to this registered key
+              const boundaryTypesForKey = new Set(
+                Object.entries(BOUNDARY_TYPE_TO_REGISTERED_KEY)
+                  .filter(([, rk]) => rk === key)
+                  .map(([bt]) => bt),
+              )
+
+              // Find the matching district boundary result from the API
+              const districtResult = providerResults?.districts?.find((d) =>
+                boundaryTypesForKey.has(d.boundary_type),
+              ) ?? null
+
+              const handleClick = makeHandleClick(boundaryId, comparison, onToggleBoundary)
+              const handleKeyDown = makeHandleKeyDown(handleClick)
+
+              return (
+                <TableRow
+                  key={key}
+                  role={isClickable ? "button" : undefined}
+                  tabIndex={isClickable ? 0 : undefined}
+                  onClick={isClickable ? handleClick : undefined}
+                  onKeyDown={isClickable ? handleKeyDown : undefined}
+                  className={cn(
+                    isClickable && "cursor-pointer hover:bg-muted/50",
+                    isActive && "bg-muted",
+                  )}
+                >
+                  <TableCell className="font-medium text-muted-foreground text-sm pl-0">
+                    {label}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{value}</Badge>
+                  </TableCell>
+                  {verificationLoading && comparisonMap.size === 0 && (
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                  )}
+                  {!verificationLoading && comparisonMap.size > 0 && (
+                    <PrimaryCell comparison={comparison} value={value} />
+                  )}
+                  {providerResultsLoading && !providerResults ? (
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                  ) : (
+                    providers.map((summary) => {
+                      const providerResult = districtResult?.providers.find(
+                        (p) => p.source_type === summary.source_type,
+                      )
+
+                      // No geometry available — can't check containment
+                      if (!providerResult) {
+                        return (
+                          <TableCell key={summary.source_type}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="text-muted-foreground cursor-default">—</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>No boundary geometry available</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TableCell>
+                        )
+                      }
+
+                      const identifier = districtResult?.boundary_identifier ?? value ?? null
+
+                      if (providerResult.is_contained) {
+                        return (
+                          <TableCell key={summary.source_type}>
+                            <Badge
+                              variant="outline"
+                              className="text-xs text-green-700 border-green-400 gap-1"
+                            >
+                              <CheckCircle2 className="h-3 w-3" aria-hidden />
+                              {identifier}
+                            </Badge>
+                          </TableCell>
+                        )
+                      }
+
+                      return (
+                        <TableCell key={summary.source_type}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge
+                                variant="outline"
+                                className="text-xs text-red-700 border-red-400 gap-1 cursor-default"
+                              >
+                                <X className="h-3 w-3" aria-hidden />
+                                {providerResult.determined_identifier ??
+                                  providerPointLookups
+                                    ?.get(summary.source_type)
+                                    ?.get(districtResult?.boundary_type ?? "") ??
+                                  comparison?.geographicValue}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Location is outside the registered district boundary</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                      )
+                    })
+                  )}
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  )
+}
+
+function PrimaryCell({
+  comparison,
+  value,
+}: Readonly<{
+  comparison?: DistrictComparisonResult
+  value: string
+}>) {
+  if (!comparison) {
+    return <TableCell><span className="text-muted-foreground">—</span></TableCell>
+  }
+
+  if (comparison.status === "match") {
+    return (
+      <TableCell>
+        <Badge variant="outline" className="text-xs text-green-700 border-green-400 gap-1">
+          <CheckCircle2 className="h-3 w-3" aria-hidden />
+          {value}
+        </Badge>
+      </TableCell>
+    )
+  }
+
+  if (comparison.status === "mismatch") {
+    return (
+      <TableCell>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              variant="outline"
+              className="text-xs text-red-700 border-red-400 gap-1 cursor-default"
+            >
+              <X className="h-3 w-3" aria-hidden />
+              {comparison.geographicValue}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Registered district: {value}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TableCell>
+    )
+  }
+
+  // no_geographic_data
+  return (
+    <TableCell>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="text-muted-foreground cursor-default">—</span>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>No geographic data</p>
+        </TooltipContent>
+      </Tooltip>
+    </TableCell>
   )
 }
 

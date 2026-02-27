@@ -16,6 +16,7 @@ export interface DistrictComparisonResult {
   registeredValue: string | null
   geographicValue: string | null
   status: DistrictMatchStatus
+  boundaryId: string | null
 }
 
 export interface DistrictVerificationResult {
@@ -126,6 +127,7 @@ export function compareDistricts(
           registeredValue: null,
           geographicValue,
           status: "no_registered_data",
+          boundaryId: null,
         })
       }
       continue
@@ -138,6 +140,7 @@ export function compareDistricts(
         registeredValue,
         geographicValue: null,
         status: "no_geographic_data",
+        boundaryId: null,
       })
       continue
     }
@@ -152,6 +155,7 @@ export function compareDistricts(
       registeredValue,
       geographicValue,
       status: isMatch ? "match" : "mismatch",
+      boundaryId: null,
     })
   }
 

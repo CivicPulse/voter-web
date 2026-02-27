@@ -1,5 +1,5 @@
 import { api } from "@/api/client"
-import type { BoundaryListResponse, BoundaryTypesResponse } from "@/types/boundary"
+import type { BoundaryDetailResponse, BoundaryListResponse, BoundaryTypesResponse } from "@/types/boundary"
 
 export async function getBoundaries(params?: {
   type?: string
@@ -20,4 +20,8 @@ export async function getBoundaries(params?: {
 
 export async function getBoundaryTypes(): Promise<BoundaryTypesResponse> {
   return api.get("boundaries/types").json<BoundaryTypesResponse>()
+}
+
+export async function getBoundaryDetail(id: string): Promise<BoundaryDetailResponse> {
+  return api.get(`boundaries/${id}`).json<BoundaryDetailResponse>()
 }

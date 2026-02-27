@@ -144,7 +144,7 @@ describe("GeocodedLocationsCard", () => {
     ]
     render(<GeocodedLocationsCard locations={locations} voterId="v-001" />)
 
-    expect(screen.getByText("Official")).toBeInTheDocument()
+    expect(screen.getByText("Primary")).toBeInTheDocument()
   })
 
   it("shows empty state when no locations", () => {
@@ -182,7 +182,7 @@ describe("GeocodedLocationsCard", () => {
     ).toBeInTheDocument()
   })
 
-  // US4: Set as Official
+  // US4: Set as Primary
   describe("set official action", () => {
     it("shows set official button for non-primary locations when admin", () => {
       setRole("admin")
@@ -196,7 +196,7 @@ describe("GeocodedLocationsCard", () => {
       ]
       render(<GeocodedLocationsCard locations={locations} voterId="v-001" />)
 
-      const starButtons = screen.getAllByTitle("Set as Official")
+      const starButtons = screen.getAllByTitle("Set as Primary")
       expect(starButtons).toHaveLength(1)
     })
 
@@ -208,7 +208,7 @@ describe("GeocodedLocationsCard", () => {
       render(<GeocodedLocationsCard locations={locations} voterId="v-001" />)
 
       expect(
-        screen.queryByTitle("Set as Official"),
+        screen.queryByTitle("Set as Primary"),
       ).not.toBeInTheDocument()
     })
 
@@ -219,7 +219,7 @@ describe("GeocodedLocationsCard", () => {
       ]
       render(<GeocodedLocationsCard locations={locations} voterId="v-001" />)
 
-      expect(screen.queryByTitle("Set as Official")).not.toBeInTheDocument()
+      expect(screen.queryByTitle("Set as Primary")).not.toBeInTheDocument()
       expect(screen.queryByTitle("Remove")).not.toBeInTheDocument()
     })
 
@@ -235,7 +235,7 @@ describe("GeocodedLocationsCard", () => {
       ]
       render(<GeocodedLocationsCard locations={locations} voterId="v-001" />)
 
-      await user.click(screen.getByTitle("Set as Official"))
+      await user.click(screen.getByTitle("Set as Primary"))
 
       expect(mockSetPrimaryMutate).toHaveBeenCalledWith(
         "loc-002",
