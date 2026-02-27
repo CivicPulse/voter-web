@@ -353,21 +353,34 @@ function ProviderMatrixView({
                         (p) => p.source_type === summary.source_type,
                       )
 
+                      // No geometry available — can't check containment
                       if (!providerResult) {
                         return (
                           <TableCell key={summary.source_type}>
-                            <span className="text-muted-foreground">—</span>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="text-muted-foreground cursor-default">—</span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>No boundary geometry available</p>
+                              </TooltipContent>
+                            </Tooltip>
                           </TableCell>
                         )
                       }
 
+                      const identifier = districtResult?.boundary_identifier ?? null
+
                       if (providerResult.is_contained) {
                         return (
                           <TableCell key={summary.source_type}>
-                            <CheckCircle2
-                              className="h-4 w-4 text-green-600"
-                              aria-label="Contained in registered district"
-                            />
+                            <Badge
+                              variant="outline"
+                              className="text-xs text-green-700 border-green-400 gap-1"
+                            >
+                              <CheckCircle2 className="h-3 w-3" aria-hidden />
+                              {identifier}
+                            </Badge>
                           </TableCell>
                         )
                       }
