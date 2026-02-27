@@ -291,7 +291,11 @@ export function GeocodedLocationMap({
           return (
             <Marker
               key="official-location"
-              position={[offLat, offLng]}
+              position={
+                dragState.pendingLat !== null && dragState.pendingLng !== null
+                  ? [dragState.pendingLat, dragState.pendingLng]
+                  : [offLat, offLng]
+              }
               icon={officialIcon}
               draggable={draggable}
               ref={primaryMarkerRef}
