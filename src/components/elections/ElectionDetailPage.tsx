@@ -35,6 +35,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { buildCandidateColorMap } from "@/lib/candidate-colors"
+import { useCandidates } from "@/lib/hooks/use-candidates"
 import { useAuthStore } from "@/stores/authStore"
 
 type MapView = "county" | "precinct"
@@ -59,30 +60,40 @@ export function ElectionDetailPage({
     dataUpdatedAt,
   } = useRaceResults(electionId)
 
+  const { data: candidatesData, isLoading: candidatesLoading } = useCandidates(electionId, { page_size: 100 })
+  const hasApiCandidates = (candidatesData?.items ?? []).length > 0
+  const showInfoTab = isAuthenticated || hasApiCandidates || (candidatesLoading && tab === "info")
+
   const hasResults = (raceData?.results.candidates.length ?? 0) > 0
   const [initialDefault, setInitialDefault] = useState<"info" | "results" | null>(null)
 
-  // Capture the initial default tab once when loading completes (React derived-state pattern).
-  // This prevents the tab from flipping back if raceData subsequently changes.
-  if (!raceLoading && initialDefault === null) {
-    setInitialDefault(hasResults || !isAuthenticated ? "results" : "info")
+  // Capture the initial default tab once when both queries complete (React derived-state pattern).
+  // This prevents the tab from flipping back if data subsequently changes.
+  if (!raceLoading && !candidatesLoading && initialDefault === null) {
+    setInitialDefault(hasResults || !showInfoTab ? "results" : "info")
   }
 
   const activeTab = (() => {
     const requested = tab ?? initialDefault ?? "results"
-    if (!isAuthenticated && (requested === "info" || requested === "participation")) {
+    if (!isAuthenticated && requested === "participation") {
+      return "results"
+    }
+    if (!showInfoTab && !candidatesLoading && requested === "info") {
       return "results"
     }
     return requested
   })()
 
-  // Canonicalize the URL when an unauthenticated user requests a restricted tab.
+  // Canonicalize the URL when a user requests a tab they can't access.
   // This keeps the displayed tab and route search state in sync.
   useEffect(() => {
-    if (!isAuthenticated && (tab === "info" || tab === "participation")) {
+    if (!isAuthenticated && tab === "participation") {
       onTabChange("results")
     }
-  }, [isAuthenticated, tab, onTabChange])
+    if (!showInfoTab && !candidatesLoading && tab === "info") {
+      onTabChange("results")
+    }
+  }, [isAuthenticated, showInfoTab, candidatesLoading, tab, onTabChange])
 
   const [soundEnabled, setSoundEnabled] = useState(true)
 
@@ -218,12 +229,12 @@ export function ElectionDetailPage({
         }}
       >
         <TabsList>
-          {isAuthenticated && <TabsTrigger value="info">Election Information</TabsTrigger>}
+          {showInfoTab && <TabsTrigger value="info">Election Information</TabsTrigger>}
           <TabsTrigger value="results">Results</TabsTrigger>
           {isAuthenticated && <TabsTrigger value="participation">Participation</TabsTrigger>}
         </TabsList>
 
-        {isAuthenticated && (
+        {showInfoTab && (
           <TabsContent value="info">
             <ElectionInfoTab
               election={election}
