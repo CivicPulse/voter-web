@@ -42,6 +42,7 @@ export interface DistrictCheckComparison {
 export interface BatchProviderResult {
   source_type: string
   is_contained: boolean
+  determined_identifier?: string | null
 }
 
 export interface DistrictBoundaryResult {

@@ -99,6 +99,8 @@ interface DistrictAssignmentsCardProps {
   providerResultsLoading?: boolean
   providerResultsError?: boolean
   onRetryProviderCheck?: () => void
+  /** Map<source_type, Map<boundary_type, actual_identifier>> from point-lookups at provider coordinates */
+  providerPointLookups?: Map<string, Map<string, string>>
 }
 
 export function DistrictAssignmentsCard({
@@ -113,6 +115,7 @@ export function DistrictAssignmentsCard({
   providerResultsLoading,
   providerResultsError,
   onRetryProviderCheck,
+  providerPointLookups,
 }: Readonly<DistrictAssignmentsCardProps>) {
   const assignments = DISTRICT_FIELDS.filter(
     ({ key }) => districts[key] !== null,
@@ -188,6 +191,7 @@ export function DistrictAssignmentsCard({
             onRetryProviderCheck={onRetryProviderCheck}
             activeOverlayIds={activeOverlayIds}
             onToggleBoundary={onToggleBoundary}
+            providerPointLookups={providerPointLookups}
           />
         ) : (
           <div className="space-y-3">
@@ -418,7 +422,7 @@ function ProviderMatrixView({
                                 className="text-xs text-red-700 border-red-400 gap-1 cursor-default"
                               >
                                 <X className="h-3 w-3" aria-hidden />
-                                {identifier}
+                                {providerResult.determined_identifier ?? undefined}
                               </Badge>
                             </TooltipTrigger>
                             <TooltipContent>

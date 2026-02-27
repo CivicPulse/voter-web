@@ -12,6 +12,7 @@ import { DistrictAssignmentsCard } from "@/routes/voters/_components/DistrictAss
 import { VoterHistoryCard } from "@/routes/voters/_components/VoterHistoryCard"
 import { useDistrictCheck } from "@/hooks/useDistrictCheck"
 import { useProviderBoundaryCheck } from "@/hooks/useProviderBoundaryCheck"
+import { useProviderPointLookups } from "@/hooks/useProviderPointLookups"
 import { getBoundaryDetail } from "@/lib/api/boundaries"
 import type { BoundaryDetailResponse } from "@/types/boundary"
 
@@ -61,6 +62,8 @@ function VoterDetailPage() {
     error: providerError,
     refetch: refetchProvider,
   } = useProviderBoundaryCheck(voterId)
+
+  const providerPointLookups = useProviderPointLookups(providerResults)
 
   const providerMatchStatus = useMemo(() => {
     if (!providerResults?.provider_summary) return new Map<string, string>()
@@ -151,6 +154,7 @@ function VoterDetailPage() {
         providerResultsLoading={providerResultsLoading}
         providerResultsError={!!providerError}
         onRetryProviderCheck={refetchProvider}
+        providerPointLookups={providerPointLookups}
       />
 
       <VoterHistoryCard voterRegistrationNumber={voter.voter_id} />
