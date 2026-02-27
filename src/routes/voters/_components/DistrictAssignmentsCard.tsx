@@ -167,6 +167,7 @@ export function DistrictAssignmentsCard({
           <ProviderMatrixView
             assignments={assignments}
             comparisonMap={comparisonMap}
+            verificationLoading={verificationLoading ?? false}
             districts={districts}
             providerResults={providerResults ?? null}
             providerResultsLoading={providerResultsLoading ?? false}
@@ -243,6 +244,7 @@ interface AssignmentRow {
 function ProviderMatrixView({
   assignments,
   comparisonMap,
+  verificationLoading,
   providerResults,
   providerResultsLoading,
   providerResultsError,
@@ -252,6 +254,7 @@ function ProviderMatrixView({
 }: {
   assignments: AssignmentRow[]
   comparisonMap: Map<keyof RegisteredDistricts, DistrictComparisonResult>
+  verificationLoading: boolean
   districts: RegisteredDistricts
   providerResults: BatchBoundaryCheckResponse | null
   providerResultsLoading: boolean
@@ -280,6 +283,13 @@ function ProviderMatrixView({
             <TableRow>
               <TableHead className="w-[140px] pl-0">District</TableHead>
               <TableHead>Registered</TableHead>
+              {verificationLoading && comparisonMap.size === 0 ? (
+                <TableHead>
+                  <Skeleton className="h-4 w-16" />
+                </TableHead>
+              ) : comparisonMap.size > 0 ? (
+                <TableHead>Primary</TableHead>
+              ) : null}
               {providerResultsLoading && !providerResults ? (
                 <TableHead>
                   <Skeleton className="h-4 w-16" />
@@ -343,6 +353,13 @@ function ProviderMatrixView({
                   <TableCell>
                     <Badge variant="outline">{value}</Badge>
                   </TableCell>
+                  {(verificationLoading && comparisonMap.size === 0) ? (
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                  ) : comparisonMap.size > 0 ? (
+                    <PrimaryCell comparison={comparison} value={value} />
+                  ) : null}
                   {providerResultsLoading && !providerResults ? (
                     <TableCell>
                       <Skeleton className="h-4 w-16" />
@@ -412,6 +429,64 @@ function ProviderMatrixView({
         </Table>
       </div>
     </div>
+  )
+}
+
+function PrimaryCell({
+  comparison,
+  value,
+}: {
+  comparison?: DistrictComparisonResult
+  value: string
+}) {
+  if (!comparison) {
+    return <TableCell><span className="text-muted-foreground">—</span></TableCell>
+  }
+
+  if (comparison.status === "match") {
+    return (
+      <TableCell>
+        <Badge variant="outline" className="text-xs text-green-700 border-green-400 gap-1">
+          <CheckCircle2 className="h-3 w-3" aria-hidden />
+          {value}
+        </Badge>
+      </TableCell>
+    )
+  }
+
+  if (comparison.status === "mismatch") {
+    return (
+      <TableCell>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              className="inline-flex items-center"
+              aria-label={`District mismatch — geographic value: ${comparison.geographicValue}`}
+            >
+              <X className="h-4 w-4 text-red-600" aria-hidden />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Geographic district: {comparison.geographicValue}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TableCell>
+    )
+  }
+
+  // no_geographic_data
+  return (
+    <TableCell>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="text-muted-foreground cursor-default">—</span>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>No geographic data</p>
+        </TooltipContent>
+      </Tooltip>
+    </TableCell>
   )
 }
 
