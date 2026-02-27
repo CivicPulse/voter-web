@@ -454,11 +454,11 @@ function PrimaryCell({
               className="text-xs text-red-700 border-red-400 gap-1 cursor-default"
             >
               <X className="h-3 w-3" aria-hidden />
-              {value}
+              {comparison.geographicValue}
             </Badge>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Geographic district: {comparison.geographicValue}</p>
+            <p>Registered district: {value}</p>
           </TooltipContent>
         </Tooltip>
       </TableCell>

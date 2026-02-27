@@ -385,6 +385,19 @@ describe("DistrictAssignmentsCard", () => {
       expect(fiveBadges.length).toBeGreaterThanOrEqual(3)
     })
 
+    it("shows geographic value (not registered value) in Primary column mismatch badge", () => {
+      render(
+        <DistrictAssignmentsCard
+          districts={districts}
+          verification={verification}
+          providerResults={providerResults}
+        />,
+      )
+      // state_senate mismatch: registeredValue="18", geographicValue="20"
+      // Primary column badge should show "20" (geographic), not "18" (registered)
+      expect(screen.getByText("20")).toBeInTheDocument()
+    })
+
     it("shows dash when provider has no entry for a district", () => {
       render(
         <DistrictAssignmentsCard
