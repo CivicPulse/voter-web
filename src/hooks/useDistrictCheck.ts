@@ -53,12 +53,25 @@ export function adaptDistrictCheck(
       const registeredKey = BOUNDARY_TYPE_TO_REGISTERED_KEY[c.boundary_type]
       const label = REGISTERED_KEY_LABELS[registeredKey] ?? c.boundary_type
 
+      // Normalize both values by stripping leading zeros for comparison.
+      // The server may compare "5" vs "005" and return mismatch; re-evaluate here.
+      const normalizedRegistered = c.registered_value?.replace(/^0+/, "").toLowerCase() ?? null
+      const normalizedDetermined = c.determined_value?.replace(/^0+/, "").toLowerCase() ?? null
+      const serverStatus = mapComparisonStatus(c.status)
+      const status: DistrictMatchStatus =
+        serverStatus === "mismatch" &&
+        normalizedRegistered !== null &&
+        normalizedDetermined !== null &&
+        normalizedRegistered === normalizedDetermined
+          ? "match"
+          : serverStatus
+
       return {
         registeredKey,
         label,
         registeredValue: c.registered_value,
         geographicValue: c.determined_value?.replace(/^0+/, "") || c.determined_value,
-        status: mapComparisonStatus(c.status),
+        status,
         boundaryId: c.boundary_id ?? null,
       }
     })
