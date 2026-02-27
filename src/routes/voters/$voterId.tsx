@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -11,12 +11,18 @@ import { GeocodedLocationMap } from "@/routes/voters/_components/GeocodedLocatio
 import { DistrictAssignmentsCard } from "@/routes/voters/_components/DistrictAssignmentsCard"
 import { VoterHistoryCard } from "@/routes/voters/_components/VoterHistoryCard"
 import { useDistrictCheck } from "@/hooks/useDistrictCheck"
+import { useProviderBoundaryCheck } from "@/hooks/useProviderBoundaryCheck"
 import { getBoundaryDetail } from "@/lib/api/boundaries"
+import { BOUNDARY_TYPE_TO_REGISTERED_KEY } from "@/lib/district-comparison"
 import type { BoundaryDetailResponse } from "@/types/boundary"
 
 export const Route = createFileRoute("/voters/$voterId")({
   component: VoterDetailPage,
 })
+
+function normalizeForMatch(v: string): string {
+  return v.replace(/^0+/, "").toLowerCase() || "0"
+}
 
 function VoterDetailPage() {
   const { voterId } = Route.useParams()
@@ -52,6 +58,53 @@ function VoterDetailPage() {
     enabled: activeOverlayIds.size > 0,
     staleTime: 1000 * 60 * 10,
   })
+
+  const {
+    data: providerResults,
+    isLoading: providerResultsLoading,
+    error: providerError,
+    refetch: refetchProvider,
+  } = useProviderBoundaryCheck(voterId, locations ?? [])
+
+  const providerMatchStatus = useMemo(() => {
+    if (!providerResults) return new Map<string, string>()
+    const statusMap = new Map<string, string>()
+    for (const result of providerResults.results) {
+      const districtValues = Object.values(result.districts).filter((v) => v !== null)
+      if (districtValues.length === 0) continue
+
+      // Compare against official/determined values
+      if (!verification) continue
+      let anyMismatch = false
+      let anyMatch = false
+
+      for (const comparison of verification.comparisons) {
+        const boundaryType = Object.entries(BOUNDARY_TYPE_TO_REGISTERED_KEY).find(
+          ([, v]) => v === comparison.registeredKey,
+        )?.[0]
+        if (!boundaryType) continue
+        const providerValue = result.districts[boundaryType]
+        if (providerValue === null || providerValue === undefined) continue
+        const officialValue = comparison.geographicValue
+        if (officialValue === null) continue
+        const match = normalizeForMatch(providerValue) === normalizeForMatch(officialValue)
+        if (!match) {
+          anyMismatch = true
+        } else {
+          anyMatch = true
+        }
+      }
+
+      if (anyMismatch && anyMatch) {
+        statusMap.set(result.provider, "mixed")
+      } else if (anyMismatch) {
+        statusMap.set(result.provider, "any-mismatch")
+      } else if (anyMatch) {
+        statusMap.set(result.provider, "all-match")
+      }
+    }
+    return statusMap
+  }, [providerResults, verification])
 
   if (isLoading) {
     return (
@@ -104,6 +157,7 @@ function VoterDetailPage() {
             locations={locations}
             voterId={voterId}
             activeOverlays={overlayData ?? new Map()}
+            providerMatchStatus={providerMatchStatus}
             onLocationSaved={() => {
               // district check will auto-invalidate from mutation
             }}
@@ -119,6 +173,10 @@ function VoterDetailPage() {
         checkedAt={districtCheck?.checked_at}
         activeOverlayIds={activeOverlayIds}
         onToggleBoundary={handleToggleBoundary}
+        providerResults={providerResults ?? null}
+        providerResultsLoading={providerResultsLoading}
+        providerResultsError={!!providerError}
+        onRetryProviderCheck={refetchProvider}
       />
 
       <VoterHistoryCard voterRegistrationNumber={voter.voter_id} />

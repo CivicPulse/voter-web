@@ -5,10 +5,12 @@ import {
   AlertTriangle,
   Loader2,
   Info,
+  X,
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -16,15 +18,27 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Skeleton } from "@/components/ui/skeleton"
 import type { RegisteredDistricts } from "@/types/voter"
+import type { ProviderBoundaryCheckResponse } from "@/types/voter"
 import type {
   DistrictComparisonResult,
   DistrictVerificationResult,
 } from "@/lib/district-comparison"
+import { BOUNDARY_TYPE_TO_REGISTERED_KEY } from "@/lib/district-comparison"
 
 const DISTRICT_FIELDS: {
   key: keyof RegisteredDistricts
@@ -51,6 +65,19 @@ const DISTRICT_FIELDS: {
   },
 ]
 
+// Build a reverse map: registeredKey → boundary_type(s) used in provider results
+const REGISTERED_KEY_TO_BOUNDARY_TYPE: Record<string, string> = {}
+for (const [boundaryType, registeredKey] of Object.entries(BOUNDARY_TYPE_TO_REGISTERED_KEY)) {
+  // Use the first boundary_type encountered for each registeredKey
+  if (!(registeredKey in REGISTERED_KEY_TO_BOUNDARY_TYPE)) {
+    REGISTERED_KEY_TO_BOUNDARY_TYPE[registeredKey] = boundaryType
+  }
+}
+
+function normalizeForMatch(v: string): string {
+  return v.replace(/^0+/, "").toLowerCase() || "0"
+}
+
 interface DistrictAssignmentsCardProps {
   districts: RegisteredDistricts
   verification?: DistrictVerificationResult | null
@@ -59,6 +86,10 @@ interface DistrictAssignmentsCardProps {
   checkedAt?: string
   activeOverlayIds?: Set<string>
   onToggleBoundary?: (boundaryId: string) => void
+  providerResults?: ProviderBoundaryCheckResponse | null
+  providerResultsLoading?: boolean
+  providerResultsError?: boolean
+  onRetryProviderCheck?: () => void
 }
 
 export function DistrictAssignmentsCard({
@@ -69,6 +100,10 @@ export function DistrictAssignmentsCard({
   checkedAt,
   activeOverlayIds,
   onToggleBoundary,
+  providerResults,
+  providerResultsLoading,
+  providerResultsError,
+  onRetryProviderCheck,
 }: Readonly<DistrictAssignmentsCardProps>) {
   const assignments = DISTRICT_FIELDS.filter(
     ({ key }) => districts[key] !== null,
@@ -84,6 +119,9 @@ export function DistrictAssignmentsCard({
     () => new Map(verification?.comparisons.map((c) => [c.registeredKey, c]) ?? []),
     [verification],
   )
+
+  // Determine if the matrix should be shown
+  const showMatrix = providerResultsLoading || providerResults !== undefined
 
   return (
     <Card>
@@ -129,6 +167,18 @@ export function DistrictAssignmentsCard({
           <p className="text-sm text-muted-foreground">
             No district assignments found.
           </p>
+        ) : showMatrix ? (
+          <ProviderMatrixView
+            assignments={assignments}
+            comparisonMap={comparisonMap}
+            districts={districts}
+            providerResults={providerResults ?? null}
+            providerResultsLoading={providerResultsLoading ?? false}
+            providerResultsError={providerResultsError ?? false}
+            onRetryProviderCheck={onRetryProviderCheck}
+            activeOverlayIds={activeOverlayIds}
+            onToggleBoundary={onToggleBoundary}
+          />
         ) : (
           <div className="space-y-3">
             {assignments.map(({ key, label, value, description }) => {
@@ -184,6 +234,202 @@ export function DistrictAssignmentsCard({
         )}
       </CardContent>
     </Card>
+  )
+}
+
+interface AssignmentRow {
+  key: keyof RegisteredDistricts
+  label: string
+  value: string
+  description: string | null | undefined
+}
+
+function ProviderMatrixView({
+  assignments,
+  comparisonMap,
+  providerResults,
+  providerResultsLoading,
+  providerResultsError,
+  onRetryProviderCheck,
+  activeOverlayIds,
+  onToggleBoundary,
+}: {
+  assignments: AssignmentRow[]
+  comparisonMap: Map<keyof RegisteredDistricts, DistrictComparisonResult>
+  districts: RegisteredDistricts
+  providerResults: ProviderBoundaryCheckResponse | null
+  providerResultsLoading: boolean
+  providerResultsError: boolean
+  onRetryProviderCheck?: () => void
+  activeOverlayIds?: Set<string>
+  onToggleBoundary?: (boundaryId: string) => void
+}) {
+  const providers = providerResults?.results ?? []
+
+  return (
+    <div>
+      {providerResultsError && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription className="flex items-center justify-between">
+            <span>Could not load provider district data.</span>
+            <Button variant="outline" size="sm" onClick={onRetryProviderCheck}>
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[140px]">District</TableHead>
+              <TableHead>Registered</TableHead>
+              <TableHead>Official</TableHead>
+              {providerResultsLoading && !providerResults ? (
+                <TableHead>
+                  <Skeleton className="h-4 w-16" />
+                </TableHead>
+              ) : (
+                providers.map((result) => (
+                  <TableHead key={result.provider} className="capitalize">
+                    {result.provider}
+                  </TableHead>
+                ))
+              )}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {assignments.map(({ key, label, value }) => {
+              const comparison = comparisonMap.get(key)
+              const officialValue = comparison?.geographicValue ?? null
+              const boundaryId = comparison?.boundaryId ?? null
+              const isActive = boundaryId !== null && (activeOverlayIds?.has(boundaryId) ?? false)
+              const isClickable = comparison !== undefined
+
+              // Find boundary_type(s) that map to this registered key
+              const boundaryTypesForKey = Object.entries(BOUNDARY_TYPE_TO_REGISTERED_KEY)
+                .filter(([, rk]) => rk === key)
+                .map(([bt]) => bt)
+
+              function handleClick() {
+                if (boundaryId) {
+                  onToggleBoundary?.(boundaryId)
+                } else if (comparison) {
+                  toast.info("Boundary data not available for this district")
+                }
+              }
+
+              function handleKeyDown(e: React.KeyboardEvent) {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  handleClick()
+                }
+              }
+
+              return (
+                <TableRow
+                  key={key}
+                  role={isClickable ? "button" : undefined}
+                  tabIndex={isClickable ? 0 : undefined}
+                  onClick={isClickable ? handleClick : undefined}
+                  onKeyDown={isClickable ? handleKeyDown : undefined}
+                  className={cn(
+                    isClickable && "cursor-pointer hover:bg-muted/50",
+                    isActive && "bg-muted",
+                  )}
+                >
+                  <TableCell className="font-medium text-muted-foreground text-sm">
+                    {label}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{value}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    {officialValue ? (
+                      <Badge variant="outline" className="text-xs">
+                        {officialValue}
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  {providerResultsLoading && !providerResults ? (
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                  ) : (
+                    providers.map((result) => {
+                      // Look up provider district value using any matching boundary type
+                      let providerValue: string | null = null
+                      for (const bt of boundaryTypesForKey) {
+                        const v = result.districts[bt]
+                        if (v !== null && v !== undefined) {
+                          providerValue = v
+                          break
+                        }
+                      }
+
+                      if (providerValue === null || providerValue === undefined) {
+                        return (
+                          <TableCell key={result.provider}>
+                            <span className="text-muted-foreground">—</span>
+                          </TableCell>
+                        )
+                      }
+
+                      if (officialValue === null) {
+                        // No official value to compare against — just show provider value
+                        return (
+                          <TableCell key={result.provider}>
+                            <span className="text-muted-foreground text-xs">
+                              {providerValue}
+                            </span>
+                          </TableCell>
+                        )
+                      }
+
+                      const isMatch =
+                        normalizeForMatch(providerValue) === normalizeForMatch(officialValue)
+
+                      if (isMatch) {
+                        return (
+                          <TableCell key={result.provider}>
+                            <CheckCircle2
+                              className="h-4 w-4 text-green-600"
+                              aria-label="Match"
+                            />
+                          </TableCell>
+                        )
+                      }
+
+                      return (
+                        <TableCell key={result.provider}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                className="inline-flex items-center"
+                                aria-label={`Mismatch: provider says ${providerValue}, official is ${officialValue}`}
+                              >
+                                <X className="h-4 w-4 text-red-600" aria-hidden />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Provider: {providerValue}</p>
+                              <p>Official: {officialValue}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                      )
+                    })
+                  )}
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   )
 }
 

@@ -137,6 +137,7 @@ export function GeocodedLocationMap({
   voterId,
   activeOverlays,
   onLocationSaved,
+  providerMatchStatus,
 }: Readonly<GeocodedLocationMapProps>) {
   const { data: userProfile } = useUserRole()
   const isEditable = userProfile?.role === "admin" || userProfile?.role === "analyst"
@@ -237,7 +238,15 @@ export function GeocodedLocationMap({
             const isKnown = key in PROVIDER_COLORS
             const color = getProviderColor(loc.source_type, isKnown ? 0 : fallbackIndex)
             if (!isKnown) fallbackIndex++
-            const icon = createProviderDivIcon(color, loc.is_primary)
+            // Determine match ring color for non-primary markers
+            let matchRingColor: string | undefined
+            if (!loc.is_primary && providerMatchStatus) {
+              const status = providerMatchStatus.get(loc.source_type)
+              if (status === "all-match") matchRingColor = "#3cb44b"
+              else if (status === "any-mismatch") matchRingColor = "#e6194b"
+              else if (status === "mixed") matchRingColor = "#f58231"
+            }
+            const icon = createProviderDivIcon(color, loc.is_primary, matchRingColor)
             const isPrimaryMarker = loc.is_primary
             const draggable = isPrimaryMarker && !!voterId && isEditable
 
