@@ -36,10 +36,28 @@ vi.mock("react-leaflet", () => ({
 
 vi.mock("leaflet", () => {
   const MockIcon = vi.fn()
+  // Use a real function so `new L.Control(...)` works
+  function MockControl() {
+    return {
+      onAdd: vi.fn(),
+      addTo: vi.fn().mockReturnThis(),
+      remove: vi.fn(),
+    }
+  }
+  const mockDomUtil = {
+    create: vi.fn().mockImplementation((_tag: string, _cls?: string, parent?: HTMLElement) => {
+      const el = document.createElement("div")
+      if (parent) parent.appendChild(el)
+      return el
+    }),
+  }
   return {
     default: {
       Icon: MockIcon,
+      divIcon: vi.fn((options: unknown) => ({ _isDivIcon: true, ...options as object })),
       latLngBounds: vi.fn().mockReturnValue({}),
+      Control: MockControl,
+      DomUtil: mockDomUtil,
     },
     Icon: MockIcon,
     latLngBounds: vi.fn().mockReturnValue({}),
@@ -73,7 +91,7 @@ describe("GeocodedLocationMap", () => {
     ]
     render(<GeocodedLocationMap locations={locations} />)
 
-    expect(screen.getByText(/census/)).toBeInTheDocument()
+    expect(screen.getByText(/census/i)).toBeInTheDocument()
     expect(screen.getByText(/Official/)).toBeInTheDocument()
   })
 
