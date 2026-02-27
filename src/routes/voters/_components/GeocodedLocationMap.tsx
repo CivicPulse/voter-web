@@ -7,13 +7,17 @@ import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import type { VoterGeocodedLocation } from "@/types/lookup"
+import type { OfficialLocation } from "@/types/voter"
 import type { BoundaryDetailResponse } from "@/types/boundary"
 import { useUserRole } from "@/lib/hooks/use-user-role"
 import { useUpdateOfficialLocation } from "@/hooks/useAddressLookup"
 import {
   getProviderColor,
   createProviderDivIcon,
+  createPrimaryLocationDivIcon,
   applyCoordinateJitter,
+  applyOfficialLocationJitter,
+  PRIMARY_LOCATION_COLOR,
   PROVIDER_COLORS,
 } from "@/lib/provider-colors"
 import { DISTRICT_COLORS } from "@/lib/colors"
@@ -31,24 +35,54 @@ interface DragState {
 
 function FitBoundsToLocations({
   locations,
+  officialLocation,
 }: {
   locations: VoterGeocodedLocation[]
+  officialLocation?: OfficialLocation | null
 }) {
   const map = useMap()
 
   useEffect(() => {
     if (locations.length === 0) return
-    const bounds = L.latLngBounds(
-      locations.map((loc) => [loc.latitude, loc.longitude] as [number, number]),
-    )
+    const points: [number, number][] = locations.map((loc) => [loc.latitude, loc.longitude])
+    if (officialLocation) {
+      points.push([officialLocation.latitude, officialLocation.longitude])
+    }
+    const bounds = L.latLngBounds(points)
     map.fitBounds(bounds, { padding: [40, 40], maxZoom: 17 })
-  }, [map, locations])
+  }, [map, locations, officialLocation])
 
   return null
 }
 
+const SVG_NS = "http://www.w3.org/2000/svg"
+
+function createPinSvgElement(fill: string, border: string): SVGSVGElement {
+  const svg = document.createElementNS(SVG_NS, "svg")
+  svg.setAttribute("width", "10")
+  svg.setAttribute("height", "13")
+  svg.setAttribute("viewBox", "0 0 32 40")
+  svg.style.cssText = "flex-shrink:0;display:inline-block;"
+
+  const path = document.createElementNS(SVG_NS, "path")
+  path.setAttribute("d", "M16 2 C8 2 2 8 2 16 C2 26 16 38 16 38 C16 38 30 26 30 16 C30 8 24 2 16 2 Z")
+  path.setAttribute("fill", fill)
+  path.setAttribute("stroke", border)
+  path.setAttribute("stroke-width", "2")
+  svg.appendChild(path)
+
+  const circle = document.createElementNS(SVG_NS, "circle")
+  circle.setAttribute("cx", "16")
+  circle.setAttribute("cy", "16")
+  circle.setAttribute("r", "6")
+  circle.setAttribute("fill", "white")
+  svg.appendChild(circle)
+
+  return svg
+}
+
 function buildLegendDom(
-  providers: Array<{ label: string; fill: string; shape?: "circle" | "square" }>,
+  providers: Array<{ label: string; fill: string; shape?: "circle" | "square" | "pin" }>,
 ): HTMLElement {
   const container = L.DomUtil.create("div")
   container.style.cssText =
@@ -58,9 +92,15 @@ function buildLegendDom(
     const row = L.DomUtil.create("div", "", container)
     row.style.cssText = "display:flex;align-items:center;gap:6px;"
 
-    const dot = L.DomUtil.create("span", "", row)
-    const isSquare = p.shape === "square"
-    dot.style.cssText = `display:inline-block;width:10px;height:10px;border-radius:${isSquare ? "2px" : "50%"};background:${p.fill};flex-shrink:0;`
+    if (p.shape === "pin") {
+      const pinWrapper = L.DomUtil.create("span", "", row)
+      pinWrapper.style.cssText = "display:inline-flex;align-items:center;flex-shrink:0;"
+      pinWrapper.appendChild(createPinSvgElement(p.fill, PRIMARY_LOCATION_COLOR.border))
+    } else {
+      const dot = L.DomUtil.create("span", "", row)
+      const isSquare = p.shape === "square"
+      dot.style.cssText = `display:inline-block;width:10px;height:10px;border-radius:${isSquare ? "2px" : "50%"};background:${p.fill};flex-shrink:0;`
+    }
 
     const label = L.DomUtil.create("span", "", row)
     label.style.color = "#333"
@@ -73,17 +113,24 @@ function buildLegendDom(
 function MapProviderLegend({
   locations,
   activeOverlays,
+  showOfficialLocation,
 }: {
   locations: VoterGeocodedLocation[]
   activeOverlays?: Map<string, BoundaryDetailResponse>
+  showOfficialLocation?: boolean
 }) {
   const map = useMap()
 
   useEffect(() => {
     // Compute unique providers in order of first appearance
     const seen = new Set<string>()
-    const items: Array<{ label: string; fill: string; shape?: "circle" | "square" }> = []
+    const items: Array<{ label: string; fill: string; shape?: "circle" | "square" | "pin" }> = []
     let fallbackIndex = 0
+
+    // Primary Location first
+    if (showOfficialLocation) {
+      items.push({ label: PRIMARY_LOCATION_COLOR.label, fill: PRIMARY_LOCATION_COLOR.fill, shape: "pin" })
+    }
 
     for (const loc of locations) {
       const key = loc.source_type.toLowerCase()
@@ -124,6 +171,7 @@ function MapProviderLegend({
 
 interface GeocodedLocationMapProps {
   locations: VoterGeocodedLocation[]
+  officialLocation?: OfficialLocation | null
   className?: string
   voterId?: string
   activeOverlays?: Map<string, BoundaryDetailResponse>
@@ -133,6 +181,7 @@ interface GeocodedLocationMapProps {
 
 export function GeocodedLocationMap({
   locations,
+  officialLocation,
   className,
   voterId,
   activeOverlays,
@@ -150,8 +199,8 @@ export function GeocodedLocationMap({
     isDragging: false,
     pendingLat: null,
     pendingLng: null,
-    savedLat: primaryLocation?.latitude ?? DEFAULT_CENTER[0],
-    savedLng: primaryLocation?.longitude ?? DEFAULT_CENTER[1],
+    savedLat: officialLocation?.latitude ?? primaryLocation?.latitude ?? DEFAULT_CENTER[0],
+    savedLng: officialLocation?.longitude ?? primaryLocation?.longitude ?? DEFAULT_CENTER[1],
   }))
 
   const primaryMarkerRef = useRef<L.Marker | null>(null)
@@ -229,8 +278,65 @@ export function GeocodedLocationMap({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <FitBoundsToLocations locations={jitteredLocations} />
-        <MapProviderLegend locations={locations} activeOverlays={activeOverlays} />
+        <FitBoundsToLocations locations={jitteredLocations} officialLocation={officialLocation} />
+        <MapProviderLegend locations={locations} activeOverlays={activeOverlays} showOfficialLocation={!!officialLocation} />
+        {officialLocation && (() => {
+          const [offLat, offLng] = applyOfficialLocationJitter(
+            officialLocation.latitude,
+            officialLocation.longitude,
+            jitteredLocations,
+          )
+          const officialIcon = createPrimaryLocationDivIcon()
+          const draggable = !!voterId && isEditable
+          return (
+            <Marker
+              key="official-location"
+              position={[offLat, offLng]}
+              icon={officialIcon}
+              draggable={draggable}
+              ref={primaryMarkerRef}
+              eventHandlers={
+                draggable
+                  ? {
+                      dragstart: () => {
+                        setDragState((prev) => ({ ...prev, isDragging: true }))
+                      },
+                      drag: (e) => {
+                        const latlng = (e.target as L.Marker).getLatLng()
+                        setDragState((prev) => ({
+                          ...prev,
+                          pendingLat: latlng.lat,
+                          pendingLng: latlng.lng,
+                        }))
+                      },
+                      dragend: (e) => {
+                        const latlng = (e.target as L.Marker).getLatLng()
+                        setDragState((prev) => ({
+                          ...prev,
+                          isDragging: false,
+                          pendingLat: latlng.lat,
+                          pendingLng: latlng.lng,
+                        }))
+                      },
+                    }
+                  : undefined
+              }
+            >
+              <Popup>
+                <div className="text-sm">
+                  <p className="font-medium">Primary Location</p>
+                  <p className="text-muted-foreground">
+                    {officialLocation.latitude.toFixed(6)}, {officialLocation.longitude.toFixed(6)}
+                  </p>
+                  <p className="text-muted-foreground">Source: {officialLocation.source}</p>
+                  {officialLocation.is_override && (
+                    <p className="text-amber-600 font-medium">Override</p>
+                  )}
+                </div>
+              </Popup>
+            </Marker>
+          )
+        })()}
         {(() => {
           let fallbackIndex = 0
           return jitteredLocations.map((loc) => {
@@ -247,48 +353,18 @@ export function GeocodedLocationMap({
               else if (status === "mixed") matchRingColor = "#f58231"
             }
             const icon = createProviderDivIcon(color, loc.is_primary, matchRingColor)
-            const isPrimaryMarker = loc.is_primary
-            const draggable = isPrimaryMarker && !!voterId && isEditable
 
             return (
               <Marker
                 key={loc.id}
                 position={[loc.latitude, loc.longitude]}
                 icon={icon}
-                draggable={draggable}
-                ref={isPrimaryMarker ? primaryMarkerRef : undefined}
-                eventHandlers={
-                  draggable
-                    ? {
-                        dragstart: () => {
-                          setDragState((prev) => ({ ...prev, isDragging: true }))
-                        },
-                        drag: (e) => {
-                          const latlng = (e.target as L.Marker).getLatLng()
-                          setDragState((prev) => ({
-                            ...prev,
-                            pendingLat: latlng.lat,
-                            pendingLng: latlng.lng,
-                          }))
-                        },
-                        dragend: (e) => {
-                          const latlng = (e.target as L.Marker).getLatLng()
-                          setDragState((prev) => ({
-                            ...prev,
-                            isDragging: false,
-                            pendingLat: latlng.lat,
-                            pendingLng: latlng.lng,
-                          }))
-                        },
-                      }
-                    : undefined
-                }
               >
                 <Popup>
                   <div className="text-sm">
                     <p className="font-medium">
                       {color.label}
-                      {loc.is_primary && " (Primary)"}
+                      {loc.is_primary && " (Primary provider)"}
                     </p>
                     <p className="text-muted-foreground">
                       {loc.latitude.toFixed(6)}, {loc.longitude.toFixed(6)}

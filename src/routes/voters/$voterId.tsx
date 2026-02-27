@@ -155,6 +155,7 @@ function VoterDetailPage() {
         {locations && locations.length > 0 && (
           <GeocodedLocationMap
             locations={locations}
+            officialLocation={voter.official_location}
             voterId={voterId}
             activeOverlays={overlayData ?? new Map()}
             providerMatchStatus={providerMatchStatus}
