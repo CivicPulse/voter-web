@@ -57,7 +57,7 @@ export function adaptDistrictCheck(
         registeredKey,
         label,
         registeredValue: c.registered_value,
-        geographicValue: c.determined_value,
+        geographicValue: c.determined_value?.replace(/^0+/, "") || c.determined_value,
         status: mapComparisonStatus(c.status),
         boundaryId: c.boundary_id ?? null,
       }
