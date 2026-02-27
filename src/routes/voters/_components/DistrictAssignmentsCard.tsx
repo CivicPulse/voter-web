@@ -386,7 +386,7 @@ function ProviderMatrixView({
                         )
                       }
 
-                      const identifier = districtResult?.boundary_identifier ?? null
+                      const identifier = districtResult?.boundary_identifier ?? value ?? null
 
                       if (providerResult.is_contained) {
                         return (
@@ -406,13 +406,13 @@ function ProviderMatrixView({
                         <TableCell key={summary.source_type}>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <button
-                                type="button"
-                                className="inline-flex items-center"
-                                aria-label="Location is outside registered district"
+                              <Badge
+                                variant="outline"
+                                className="text-xs text-red-700 border-red-400 gap-1 cursor-default"
                               >
-                                <X className="h-4 w-4 text-red-600" aria-hidden />
-                              </button>
+                                <X className="h-3 w-3" aria-hidden />
+                                {identifier}
+                              </Badge>
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>Location is outside the registered district boundary</p>
@@ -459,13 +459,13 @@ function PrimaryCell({
       <TableCell>
         <Tooltip>
           <TooltipTrigger asChild>
-            <button
-              type="button"
-              className="inline-flex items-center"
-              aria-label={`District mismatch — geographic value: ${comparison.geographicValue}`}
+            <Badge
+              variant="outline"
+              className="text-xs text-red-700 border-red-400 gap-1 cursor-default"
             >
-              <X className="h-4 w-4 text-red-600" aria-hidden />
-            </button>
+              <X className="h-3 w-3" aria-hidden />
+              {value}
+            </Badge>
           </TooltipTrigger>
           <TooltipContent>
             <p>Geographic district: {comparison.geographicValue}</p>
