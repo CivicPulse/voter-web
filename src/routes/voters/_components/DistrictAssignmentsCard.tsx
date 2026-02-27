@@ -282,7 +282,7 @@ function ProviderMatrixView({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[140px]">District</TableHead>
+              <TableHead className="w-[140px] pl-0">District</TableHead>
               <TableHead>Registered</TableHead>
               <TableHead>Primary</TableHead>
               {providerResultsLoading && !providerResults ? (
@@ -338,7 +338,7 @@ function ProviderMatrixView({
                     isActive && "bg-muted",
                   )}
                 >
-                  <TableCell className="font-medium text-muted-foreground text-sm">
+                  <TableCell className="font-medium text-muted-foreground text-sm pl-0">
                     {label}
                   </TableCell>
                   <TableCell>
