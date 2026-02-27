@@ -21,6 +21,8 @@ import {
   PROVIDER_COLORS,
 } from "@/lib/provider-colors"
 import { DISTRICT_COLORS } from "@/lib/colors"
+import { districtSlugPath } from "@/lib/slugs"
+import { FIPS_TO_ABBREV } from "@/lib/states"
 
 const DEFAULT_CENTER: [number, number] = [32.6791, -83.6233]
 const DEFAULT_ZOOM = 14
@@ -418,7 +420,12 @@ export function GeocodedLocationMap({
                 }}
                 eventHandlers={{
                   dblclick: () => {
-                    navigate({ to: "/districts/$districtId", params: { districtId: id } })
+                    const stateFips = boundary.boundary_identifier.slice(0, 2)
+                    const stateAbbrev = FIPS_TO_ABBREV[stateFips]
+                    const slug = stateAbbrev
+                      ? districtSlugPath(boundary.name, boundary.boundary_type, stateAbbrev, boundary.county)
+                      : `/districts/${id}`
+                    navigate({ to: slug })
                   },
                 }}
               >
