@@ -36,7 +36,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { buildCandidateColorMap } from "@/lib/candidate-colors"
 import { useCandidates } from "@/lib/hooks/use-candidates"
-import { CandidateList } from "@/components/elections/CandidateList"
 import { useAuthStore } from "@/stores/authStore"
 
 type MapView = "county" | "precinct"
@@ -63,6 +62,7 @@ export function ElectionDetailPage({
 
   const { data: candidatesData } = useCandidates(electionId, { page_size: 1 })
   const hasApiCandidates = (candidatesData?.items ?? []).length > 0
+  const showInfoTab = isAuthenticated || hasApiCandidates
 
   const hasResults = (raceData?.results.candidates.length ?? 0) > 0
   const [initialDefault, setInitialDefault] = useState<"info" | "results" | null>(null)
@@ -75,19 +75,25 @@ export function ElectionDetailPage({
 
   const activeTab = (() => {
     const requested = tab ?? initialDefault ?? "results"
-    if (!isAuthenticated && (requested === "info" || requested === "participation")) {
+    if (!isAuthenticated && requested === "participation") {
+      return "results"
+    }
+    if (!showInfoTab && requested === "info") {
       return "results"
     }
     return requested
   })()
 
-  // Canonicalize the URL when an unauthenticated user requests a restricted tab.
+  // Canonicalize the URL when a user requests a tab they can't access.
   // This keeps the displayed tab and route search state in sync.
   useEffect(() => {
-    if (!isAuthenticated && (tab === "info" || tab === "participation")) {
+    if (!isAuthenticated && tab === "participation") {
       onTabChange("results")
     }
-  }, [isAuthenticated, tab, onTabChange])
+    if (!showInfoTab && tab === "info") {
+      onTabChange("results")
+    }
+  }, [isAuthenticated, showInfoTab, tab, onTabChange])
 
   const [soundEnabled, setSoundEnabled] = useState(true)
 
@@ -223,12 +229,12 @@ export function ElectionDetailPage({
         }}
       >
         <TabsList>
-          {isAuthenticated && <TabsTrigger value="info">Election Information</TabsTrigger>}
+          {showInfoTab && <TabsTrigger value="info">Election Information</TabsTrigger>}
           <TabsTrigger value="results">Results</TabsTrigger>
           {isAuthenticated && <TabsTrigger value="participation">Participation</TabsTrigger>}
         </TabsList>
 
-        {isAuthenticated && (
+        {showInfoTab && (
           <TabsContent value="info">
             <ElectionInfoTab
               election={election}
@@ -238,13 +244,6 @@ export function ElectionDetailPage({
         )}
 
         <TabsContent value="results">
-          {/* Candidate info (shown when API has candidate data) */}
-          {hasApiCandidates && (
-            <div className="mb-4">
-              <CandidateList electionId={electionId} />
-            </div>
-          )}
-
           {/* Inline results */}
           <div className="mb-4">
             <ElectionResultsSection
