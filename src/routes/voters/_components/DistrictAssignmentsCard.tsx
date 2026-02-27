@@ -6,6 +6,8 @@ import {
   Loader2,
   Info,
 } from "lucide-react"
+import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -55,6 +57,8 @@ interface DistrictAssignmentsCardProps {
   verificationLoading?: boolean
   matchStatus?: string
   checkedAt?: string
+  activeOverlayIds?: Set<string>
+  onToggleBoundary?: (boundaryId: string) => void
 }
 
 export function DistrictAssignmentsCard({
@@ -63,6 +67,8 @@ export function DistrictAssignmentsCard({
   verificationLoading,
   matchStatus,
   checkedAt,
+  activeOverlayIds,
+  onToggleBoundary,
 }: Readonly<DistrictAssignmentsCardProps>) {
   const assignments = DISTRICT_FIELDS.filter(
     ({ key }) => districts[key] !== null,
@@ -127,8 +133,38 @@ export function DistrictAssignmentsCard({
           <div className="space-y-3">
             {assignments.map(({ key, label, value, description }) => {
               const comparison = comparisonMap.get(key)
+              const boundaryId = comparison?.boundaryId ?? null
+              const isActive = boundaryId !== null && (activeOverlayIds?.has(boundaryId) ?? false)
+              const isClickable = comparison !== undefined
+
+              function handleClick() {
+                if (boundaryId) {
+                  onToggleBoundary?.(boundaryId)
+                } else if (comparison) {
+                  toast.info("Boundary data not available for this district")
+                }
+              }
+
+              function handleKeyDown(e: React.KeyboardEvent) {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  handleClick()
+                }
+              }
+
               return (
-                <div key={`${label}-${value}`}>
+                <div
+                  key={`${label}-${value}`}
+                  role={isClickable ? "button" : undefined}
+                  tabIndex={isClickable ? 0 : undefined}
+                  onClick={isClickable ? handleClick : undefined}
+                  onKeyDown={isClickable ? handleKeyDown : undefined}
+                  className={cn(
+                    "rounded-md p-1 -mx-1 transition-colors",
+                    isClickable && "cursor-pointer hover:bg-muted/50",
+                    isActive && "bg-muted",
+                  )}
+                >
                   <h4 className="text-sm font-medium text-muted-foreground mb-1">
                     {label}
                   </h4>

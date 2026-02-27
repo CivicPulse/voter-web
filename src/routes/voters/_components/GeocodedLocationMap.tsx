@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet"
+import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from "react-leaflet"
+import type { Geometry as GeoJSONGeometry } from "geojson"
 import L from "leaflet"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
@@ -15,6 +16,7 @@ import {
   applyCoordinateJitter,
   PROVIDER_COLORS,
 } from "@/lib/provider-colors"
+import { DISTRICT_COLORS } from "@/lib/colors"
 
 const DEFAULT_CENTER: [number, number] = [32.6791, -83.6233]
 const DEFAULT_ZOOM = 14
@@ -46,18 +48,19 @@ function FitBoundsToLocations({
 }
 
 function buildLegendDom(
-  providers: Array<{ label: string; fill: string }>,
+  providers: Array<{ label: string; fill: string; shape?: "circle" | "square" }>,
 ): HTMLElement {
   const container = L.DomUtil.create("div")
   container.style.cssText =
-    "background:white;border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.6;box-shadow:0 1px 4px rgba(0,0,0,0.25);max-width:160px;"
+    "background:white;border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.6;box-shadow:0 1px 4px rgba(0,0,0,0.25);max-width:180px;"
 
   for (const p of providers) {
     const row = L.DomUtil.create("div", "", container)
     row.style.cssText = "display:flex;align-items:center;gap:6px;"
 
     const dot = L.DomUtil.create("span", "", row)
-    dot.style.cssText = `display:inline-block;width:10px;height:10px;border-radius:50%;background:${p.fill};flex-shrink:0;`
+    const isSquare = p.shape === "square"
+    dot.style.cssText = `display:inline-block;width:10px;height:10px;border-radius:${isSquare ? "2px" : "50%"};background:${p.fill};flex-shrink:0;`
 
     const label = L.DomUtil.create("span", "", row)
     label.style.color = "#333"
@@ -69,15 +72,17 @@ function buildLegendDom(
 
 function MapProviderLegend({
   locations,
+  activeOverlays,
 }: {
   locations: VoterGeocodedLocation[]
+  activeOverlays?: Map<string, BoundaryDetailResponse>
 }) {
   const map = useMap()
 
   useEffect(() => {
     // Compute unique providers in order of first appearance
     const seen = new Set<string>()
-    const providers: Array<{ label: string; fill: string }> = []
+    const items: Array<{ label: string; fill: string; shape?: "circle" | "square" }> = []
     let fallbackIndex = 0
 
     for (const loc of locations) {
@@ -87,22 +92,32 @@ function MapProviderLegend({
         const isKnown = key in PROVIDER_COLORS
         const color = getProviderColor(loc.source_type, isKnown ? 0 : fallbackIndex)
         if (!isKnown) fallbackIndex++
-        providers.push({ label: color.label, fill: color.fill })
+        items.push({ label: color.label, fill: color.fill, shape: "circle" })
       }
     }
 
-    if (providers.length === 0) return
+    // Add overlay district entries
+    if (activeOverlays && activeOverlays.size > 0) {
+      let overlayIndex = 0
+      for (const [, boundary] of activeOverlays) {
+        const dc = DISTRICT_COLORS[overlayIndex % DISTRICT_COLORS.length]
+        items.push({ label: boundary.name, fill: dc.fill, shape: "square" })
+        overlayIndex++
+      }
+    }
+
+    if (items.length === 0) return
 
     const legend = new L.Control({ position: "bottomleft" })
 
-    legend.onAdd = () => buildLegendDom(providers)
+    legend.onAdd = () => buildLegendDom(items)
 
     legend.addTo(map)
 
     return () => {
       legend.remove()
     }
-  }, [map, locations])
+  }, [map, locations, activeOverlays])
 
   return null
 }
@@ -120,6 +135,7 @@ export function GeocodedLocationMap({
   locations,
   className,
   voterId,
+  activeOverlays,
   onLocationSaved,
 }: Readonly<GeocodedLocationMapProps>) {
   const { data: userProfile } = useUserRole()
@@ -213,7 +229,7 @@ export function GeocodedLocationMap({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <FitBoundsToLocations locations={jitteredLocations} />
-        <MapProviderLegend locations={locations} />
+        <MapProviderLegend locations={locations} activeOverlays={activeOverlays} />
         {(() => {
           let fallbackIndex = 0
           return jitteredLocations.map((loc) => {
@@ -280,6 +296,26 @@ export function GeocodedLocationMap({
             )
           })
         })()}
+        {activeOverlays &&
+          [...activeOverlays.entries()].map(([id, boundary], index) => {
+            if (!boundary.geometry) return null
+            const dc = DISTRICT_COLORS[index % DISTRICT_COLORS.length]
+            return (
+              <GeoJSON
+                key={id}
+                data={boundary.geometry as unknown as GeoJSONGeometry}
+                style={{
+                  fillColor: dc.fill,
+                  color: dc.border,
+                  weight: 2,
+                  opacity: 0.9,
+                  fillOpacity: 0.2,
+                }}
+              >
+                <Popup>{boundary.name}</Popup>
+              </GeoJSON>
+            )
+          })}
       </MapContainer>
 
       {dragState.isDragging && dragState.pendingLat !== null && dragState.pendingLng !== null && (

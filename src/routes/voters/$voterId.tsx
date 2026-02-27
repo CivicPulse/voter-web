@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
+import { useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useVoterDetail } from "@/hooks/useVoters"
@@ -9,6 +11,8 @@ import { GeocodedLocationMap } from "@/routes/voters/_components/GeocodedLocatio
 import { DistrictAssignmentsCard } from "@/routes/voters/_components/DistrictAssignmentsCard"
 import { VoterHistoryCard } from "@/routes/voters/_components/VoterHistoryCard"
 import { useDistrictCheck } from "@/hooks/useDistrictCheck"
+import { getBoundaryDetail } from "@/lib/api/boundaries"
+import type { BoundaryDetailResponse } from "@/types/boundary"
 
 export const Route = createFileRoute("/voters/$voterId")({
   component: VoterDetailPage,
@@ -19,6 +23,35 @@ function VoterDetailPage() {
   const { data: voter, isLoading, error } = useVoterDetail(voterId)
   const { data: locations } = useVoterGeocodedLocations(voterId)
   const { districtCheck, verification, isLoading: verificationLoading } = useDistrictCheck(voterId)
+
+  const [activeOverlayIds, setActiveOverlayIds] = useState<Set<string>>(new Set())
+
+  function handleToggleBoundary(id: string) {
+    setActiveOverlayIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const { data: overlayData } = useQuery({
+    queryKey: ["boundaries", "batch", [...activeOverlayIds].sort()],
+    queryFn: async () => {
+      const entries = await Promise.all(
+        [...activeOverlayIds].map(async (id) => {
+          const data = await getBoundaryDetail(id)
+          return [id, data] as const
+        }),
+      )
+      return new Map<string, BoundaryDetailResponse>(entries)
+    },
+    enabled: activeOverlayIds.size > 0,
+    staleTime: 1000 * 60 * 10,
+  })
 
   if (isLoading) {
     return (
@@ -70,6 +103,7 @@ function VoterDetailPage() {
           <GeocodedLocationMap
             locations={locations}
             voterId={voterId}
+            activeOverlays={overlayData ?? new Map()}
             onLocationSaved={() => {
               // district check will auto-invalidate from mutation
             }}
@@ -83,6 +117,8 @@ function VoterDetailPage() {
         verificationLoading={verificationLoading}
         matchStatus={districtCheck?.match_status}
         checkedAt={districtCheck?.checked_at}
+        activeOverlayIds={activeOverlayIds}
+        onToggleBoundary={handleToggleBoundary}
       />
 
       <VoterHistoryCard voterRegistrationNumber={voter.voter_id} />
