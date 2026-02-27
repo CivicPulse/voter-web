@@ -39,6 +39,29 @@ import type {
 } from "@/lib/district-comparison"
 import { BOUNDARY_TYPE_TO_REGISTERED_KEY } from "@/lib/district-comparison"
 
+function makeHandleClick(
+  boundaryId: string | null,
+  comparison: DistrictComparisonResult | undefined,
+  onToggleBoundary?: (id: string) => void,
+) {
+  return () => {
+    if (boundaryId) {
+      onToggleBoundary?.(boundaryId)
+    } else if (comparison) {
+      toast.info("Boundary data not available for this district")
+    }
+  }
+}
+
+function makeHandleKeyDown(onClick: () => void) {
+  return (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault()
+      onClick()
+    }
+  }
+}
+
 const DISTRICT_FIELDS: {
   key: keyof RegisteredDistricts
   label: string
@@ -173,35 +196,11 @@ export function DistrictAssignmentsCard({
               const boundaryId = comparison?.boundaryId ?? null
               const isActive = boundaryId !== null && (activeOverlayIds?.has(boundaryId) ?? false)
               const isClickable = comparison !== undefined
+              const handleClick = makeHandleClick(boundaryId, comparison, onToggleBoundary)
+              const handleKeyDown = makeHandleKeyDown(handleClick)
 
-              function handleClick() {
-                if (boundaryId) {
-                  onToggleBoundary?.(boundaryId)
-                } else if (comparison) {
-                  toast.info("Boundary data not available for this district")
-                }
-              }
-
-              function handleKeyDown(e: React.KeyboardEvent) {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault()
-                  handleClick()
-                }
-              }
-
-              return (
-                <div
-                  key={`${label}-${value}`}
-                  role={isClickable ? "button" : undefined}
-                  tabIndex={isClickable ? 0 : undefined}
-                  onClick={isClickable ? handleClick : undefined}
-                  onKeyDown={isClickable ? handleKeyDown : undefined}
-                  className={cn(
-                    "rounded-md p-1 -mx-1 transition-colors",
-                    isClickable && "cursor-pointer hover:bg-muted/50",
-                    isActive && "bg-muted",
-                  )}
-                >
+              const itemContent = (
+                <>
                   <h4 className="text-sm font-medium text-muted-foreground mb-1">
                     {label}
                   </h4>
@@ -214,6 +213,32 @@ export function DistrictAssignmentsCard({
                     )}
                     <ComparisonIndicator comparison={comparison} />
                   </div>
+                </>
+              )
+
+              if (isClickable) {
+                return (
+                  <button
+                    key={`${label}-${value}`}
+                    type="button"
+                    onClick={handleClick}
+                    onKeyDown={handleKeyDown}
+                    className={cn(
+                      "w-full text-left rounded-md p-1 -mx-1 transition-colors cursor-pointer hover:bg-muted/50",
+                      isActive && "bg-muted",
+                    )}
+                  >
+                    {itemContent}
+                  </button>
+                )
+              }
+
+              return (
+                <div
+                  key={`${label}-${value}`}
+                  className="rounded-md p-1 -mx-1"
+                >
+                  {itemContent}
                 </div>
               )
             })}
@@ -241,7 +266,7 @@ function ProviderMatrixView({
   onRetryProviderCheck,
   activeOverlayIds,
   onToggleBoundary,
-}: {
+}: Readonly<{
   assignments: AssignmentRow[]
   comparisonMap: Map<keyof RegisteredDistricts, DistrictComparisonResult>
   verificationLoading: boolean
@@ -252,7 +277,7 @@ function ProviderMatrixView({
   onRetryProviderCheck?: () => void
   activeOverlayIds?: Set<string>
   onToggleBoundary?: (boundaryId: string) => void
-}) {
+}>) {
   const providers = providerResults?.provider_summary ?? []
 
   return (
@@ -273,13 +298,14 @@ function ProviderMatrixView({
             <TableRow>
               <TableHead className="w-[140px] pl-0">District</TableHead>
               <TableHead>Registered</TableHead>
-              {verificationLoading && comparisonMap.size === 0 ? (
+              {verificationLoading && comparisonMap.size === 0 && (
                 <TableHead>
                   <Skeleton className="h-4 w-16" />
                 </TableHead>
-              ) : comparisonMap.size > 0 ? (
+              )}
+              {!verificationLoading && comparisonMap.size > 0 && (
                 <TableHead>Primary</TableHead>
-              ) : null}
+              )}
               {providerResultsLoading && !providerResults ? (
                 <TableHead>
                   <Skeleton className="h-4 w-16" />
@@ -301,29 +327,19 @@ function ProviderMatrixView({
               const isClickable = comparison !== undefined
 
               // Find boundary_type(s) that map to this registered key
-              const boundaryTypesForKey = Object.entries(BOUNDARY_TYPE_TO_REGISTERED_KEY)
-                .filter(([, rk]) => rk === key)
-                .map(([bt]) => bt)
+              const boundaryTypesForKey = new Set(
+                Object.entries(BOUNDARY_TYPE_TO_REGISTERED_KEY)
+                  .filter(([, rk]) => rk === key)
+                  .map(([bt]) => bt),
+              )
 
               // Find the matching district boundary result from the API
               const districtResult = providerResults?.districts?.find((d) =>
-                boundaryTypesForKey.includes(d.boundary_type),
+                boundaryTypesForKey.has(d.boundary_type),
               ) ?? null
 
-              function handleClick() {
-                if (boundaryId) {
-                  onToggleBoundary?.(boundaryId)
-                } else if (comparison) {
-                  toast.info("Boundary data not available for this district")
-                }
-              }
-
-              function handleKeyDown(e: React.KeyboardEvent) {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault()
-                  handleClick()
-                }
-              }
+              const handleClick = makeHandleClick(boundaryId, comparison, onToggleBoundary)
+              const handleKeyDown = makeHandleKeyDown(handleClick)
 
               return (
                 <TableRow
@@ -343,13 +359,14 @@ function ProviderMatrixView({
                   <TableCell>
                     <Badge variant="outline">{value}</Badge>
                   </TableCell>
-                  {(verificationLoading && comparisonMap.size === 0) ? (
+                  {verificationLoading && comparisonMap.size === 0 && (
                     <TableCell>
                       <Skeleton className="h-4 w-16" />
                     </TableCell>
-                  ) : comparisonMap.size > 0 ? (
+                  )}
+                  {!verificationLoading && comparisonMap.size > 0 && (
                     <PrimaryCell comparison={comparison} value={value} />
-                  ) : null}
+                  )}
                   {providerResultsLoading && !providerResults ? (
                     <TableCell>
                       <Skeleton className="h-4 w-16" />
@@ -427,10 +444,10 @@ function ProviderMatrixView({
 function PrimaryCell({
   comparison,
   value,
-}: {
+}: Readonly<{
   comparison?: DistrictComparisonResult
   value: string
-}) {
+}>) {
   if (!comparison) {
     return <TableCell><span className="text-muted-foreground">—</span></TableCell>
   }

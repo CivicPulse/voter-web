@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from "react-leaflet"
 import type { Geometry as GeoJSONGeometry } from "geojson"
@@ -284,6 +284,11 @@ export function GeocodedLocationMap({
     }))
   }
 
+  const handleDragEnd = useCallback((e: L.DragEndEvent) => {
+    const latlng = (e.target as L.Marker).getLatLng()
+    setDragState((prev) => ({ ...prev, pendingLat: latlng.lat, pendingLng: latlng.lng }))
+  }, [])
+
   if (locations.length === 0) return null
 
   return (
@@ -318,20 +323,7 @@ export function GeocodedLocationMap({
               icon={officialIcon}
               draggable={draggable}
               ref={primaryMarkerRef}
-              eventHandlers={
-                draggable
-                  ? {
-                      dragend: (e) => {
-                        const latlng = (e.target as L.Marker).getLatLng()
-                        setDragState((prev) => ({
-                          ...prev,
-                          pendingLat: latlng.lat,
-                          pendingLng: latlng.lng,
-                        }))
-                      },
-                    }
-                  : undefined
-              }
+              eventHandlers={draggable ? { dragend: handleDragEnd } : undefined}
             >
               <Popup>
                 <div className="text-sm">
@@ -426,7 +418,7 @@ export function GeocodedLocationMap({
                 }}
                 eventHandlers={{
                   dblclick: () => {
-                    void navigate({ to: "/districts/$districtId", params: { districtId: id } })
+                    navigate({ to: "/districts/$districtId", params: { districtId: id } })
                   },
                 }}
               >

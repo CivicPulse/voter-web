@@ -40,7 +40,7 @@ function VoterDetailPage() {
     })
   }
 
-  const overlayIds = useMemo(() => [...activeOverlayIds].sort(), [activeOverlayIds])
+  const overlayIds = useMemo(() => [...activeOverlayIds].sort((a, b) => a.localeCompare(b)), [activeOverlayIds])
   const { data: overlayData } = useQuery({
     queryKey: ["boundaries", "batch", overlayIds],
     queryFn: async () => {

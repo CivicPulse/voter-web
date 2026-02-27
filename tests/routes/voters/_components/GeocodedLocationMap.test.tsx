@@ -31,7 +31,8 @@ vi.mock("react-leaflet", () => ({
     eventHandlers?: Record<string, (e: unknown) => void>
     ref?: unknown
   }) => (
-    <div
+    <button
+      type="button"
       data-testid="marker"
       data-lat={position[0]}
       data-lng={position[1]}
@@ -49,7 +50,7 @@ vi.mock("react-leaflet", () => ({
       }
     >
       {children}
-    </div>
+    </button>
   ),
   Popup: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="popup">{children}</div>

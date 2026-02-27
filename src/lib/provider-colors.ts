@@ -141,10 +141,10 @@ export function applyOfficialLocationJitter(
   let lat = officialLat
   let lng = officialLng
 
-  for (let i = 0; i < jitteredLocations.length; i++) {
+  for (const loc of jitteredLocations) {
     if (
-      Math.abs(lat - jitteredLocations[i].latitude) < JITTER_THRESHOLD &&
-      Math.abs(lng - jitteredLocations[i].longitude) < JITTER_THRESHOLD
+      Math.abs(lat - loc.latitude) < JITTER_THRESHOLD &&
+      Math.abs(lng - loc.longitude) < JITTER_THRESHOLD
     ) {
       // Push the official marker slightly up
       const angle = -Math.PI / 2 // straight up
