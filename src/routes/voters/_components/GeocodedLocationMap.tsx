@@ -217,6 +217,21 @@ export function GeocodedLocationMap({
     [locations],
   )
 
+  const locationById = useMemo(
+    () => new Map(locations.map((l) => [l.id, l])),
+    [locations],
+  )
+
+  const handleSetFromProvider = async (lat: number, lng: number) => {
+    if (!voterId) return
+    try {
+      await updateOfficialLocation.mutateAsync({ latitude: lat, longitude: lng })
+      onLocationSaved?.()
+    } catch {
+      toast.error("Failed to set primary location")
+    }
+  }
+
   const handleSave = async () => {
     if (dragState.pendingLat === null || dragState.pendingLng === null || !voterId) return
     try {
@@ -364,6 +379,23 @@ export function GeocodedLocationMap({
                         ? "—"
                         : `${(loc.confidence_score * 100).toFixed(0)}%`}
                     </p>
+                    {isEditable && voterId && (() => {
+                      const original = locationById.get(loc.id)
+                      if (!original) return null
+                      return (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="mt-2 w-full text-xs"
+                          disabled={updateOfficialLocation.isPending}
+                          onClick={() => handleSetFromProvider(original.latitude, original.longitude)}
+                        >
+                          {updateOfficialLocation.isPending
+                            ? <Loader2 className="h-3 w-3 animate-spin" />
+                            : "Set as Primary Location"}
+                        </Button>
+                      )
+                    })()}
                   </div>
                 </Popup>
               </Marker>
