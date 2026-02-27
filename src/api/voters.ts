@@ -9,8 +9,7 @@ import type {
   DistrictCheckResponse,
   OfficialLocationRequest,
   OfficialLocation,
-  ProviderBoundaryCheckRequest,
-  ProviderBoundaryCheckResponse,
+  BatchBoundaryCheckResponse,
 } from "@/types/voter"
 
 /** Raw summary item returned by GET /voters (search results) */
@@ -268,9 +267,8 @@ export async function clearOfficialLocationOverride(
 
 export async function checkProviderBoundaries(
   voterId: string,
-  request: ProviderBoundaryCheckRequest,
-): Promise<ProviderBoundaryCheckResponse> {
+): Promise<BatchBoundaryCheckResponse> {
   return api
-    .post(`voters/${voterId}/geocode/check-boundaries`, { json: request })
-    .json<ProviderBoundaryCheckResponse>()
+    .post(`voters/${voterId}/geocode/check-boundaries`)
+    .json<BatchBoundaryCheckResponse>()
 }

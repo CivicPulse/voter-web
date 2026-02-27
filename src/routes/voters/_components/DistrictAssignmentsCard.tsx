@@ -32,8 +32,7 @@ import {
 } from "@/components/ui/tooltip"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
-import type { RegisteredDistricts } from "@/types/voter"
-import type { ProviderBoundaryCheckResponse } from "@/types/voter"
+import type { RegisteredDistricts, BatchBoundaryCheckResponse } from "@/types/voter"
 import type {
   DistrictComparisonResult,
   DistrictVerificationResult,
@@ -74,9 +73,6 @@ for (const [boundaryType, registeredKey] of Object.entries(BOUNDARY_TYPE_TO_REGI
   }
 }
 
-function normalizeForMatch(v: string): string {
-  return v.replace(/^0+/, "").toLowerCase() || "0"
-}
 
 interface DistrictAssignmentsCardProps {
   districts: RegisteredDistricts
@@ -86,7 +82,7 @@ interface DistrictAssignmentsCardProps {
   checkedAt?: string
   activeOverlayIds?: Set<string>
   onToggleBoundary?: (boundaryId: string) => void
-  providerResults?: ProviderBoundaryCheckResponse | null
+  providerResults?: BatchBoundaryCheckResponse | null
   providerResultsLoading?: boolean
   providerResultsError?: boolean
   onRetryProviderCheck?: () => void
@@ -257,14 +253,14 @@ function ProviderMatrixView({
   assignments: AssignmentRow[]
   comparisonMap: Map<keyof RegisteredDistricts, DistrictComparisonResult>
   districts: RegisteredDistricts
-  providerResults: ProviderBoundaryCheckResponse | null
+  providerResults: BatchBoundaryCheckResponse | null
   providerResultsLoading: boolean
   providerResultsError: boolean
   onRetryProviderCheck?: () => void
   activeOverlayIds?: Set<string>
   onToggleBoundary?: (boundaryId: string) => void
 }) {
-  const providers = providerResults?.results ?? []
+  const providers = providerResults?.provider_summary ?? []
 
   return (
     <div>
@@ -284,15 +280,14 @@ function ProviderMatrixView({
             <TableRow>
               <TableHead className="w-[140px] pl-0">District</TableHead>
               <TableHead>Registered</TableHead>
-              <TableHead>Primary</TableHead>
               {providerResultsLoading && !providerResults ? (
                 <TableHead>
                   <Skeleton className="h-4 w-16" />
                 </TableHead>
               ) : (
-                providers.map((result) => (
-                  <TableHead key={result.provider} className="capitalize">
-                    {result.provider}
+                providers.map((summary) => (
+                  <TableHead key={summary.source_type} className="capitalize">
+                    {summary.source_type}
                   </TableHead>
                 ))
               )}
@@ -301,7 +296,6 @@ function ProviderMatrixView({
           <TableBody>
             {assignments.map(({ key, label, value }) => {
               const comparison = comparisonMap.get(key)
-              const officialValue = comparison?.geographicValue ?? null
               const boundaryId = comparison?.boundaryId ?? null
               const isActive = boundaryId !== null && (activeOverlayIds?.has(boundaryId) ?? false)
               const isClickable = comparison !== undefined
@@ -310,6 +304,11 @@ function ProviderMatrixView({
               const boundaryTypesForKey = Object.entries(BOUNDARY_TYPE_TO_REGISTERED_KEY)
                 .filter(([, rk]) => rk === key)
                 .map(([bt]) => bt)
+
+              // Find the matching district boundary result from the API
+              const districtResult = providerResults?.districts.find((d) =>
+                boundaryTypesForKey.includes(d.boundary_type),
+              ) ?? null
 
               function handleClick() {
                 if (boundaryId) {
@@ -344,79 +343,49 @@ function ProviderMatrixView({
                   <TableCell>
                     <Badge variant="outline">{value}</Badge>
                   </TableCell>
-                  <TableCell>
-                    {officialValue ? (
-                      <Badge variant="outline" className="text-xs">
-                        {officialValue}
-                      </Badge>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
                   {providerResultsLoading && !providerResults ? (
                     <TableCell>
                       <Skeleton className="h-4 w-16" />
                     </TableCell>
                   ) : (
-                    providers.map((result) => {
-                      // Look up provider district value using any matching boundary type
-                      let providerValue: string | null = null
-                      for (const bt of boundaryTypesForKey) {
-                        const v = result.districts[bt]
-                        if (v !== null && v !== undefined) {
-                          providerValue = v
-                          break
-                        }
-                      }
+                    providers.map((summary) => {
+                      const providerResult = districtResult?.providers.find(
+                        (p) => p.source_type === summary.source_type,
+                      )
 
-                      if (providerValue === null || providerValue === undefined) {
+                      if (!providerResult) {
                         return (
-                          <TableCell key={result.provider}>
+                          <TableCell key={summary.source_type}>
                             <span className="text-muted-foreground">—</span>
                           </TableCell>
                         )
                       }
 
-                      if (officialValue === null) {
-                        // No official value to compare against — just show provider value
+                      if (providerResult.is_contained) {
                         return (
-                          <TableCell key={result.provider}>
-                            <span className="text-muted-foreground text-xs">
-                              {providerValue}
-                            </span>
-                          </TableCell>
-                        )
-                      }
-
-                      const isMatch =
-                        normalizeForMatch(providerValue) === normalizeForMatch(officialValue)
-
-                      if (isMatch) {
-                        return (
-                          <TableCell key={result.provider}>
+                          <TableCell key={summary.source_type}>
                             <CheckCircle2
                               className="h-4 w-4 text-green-600"
-                              aria-label="Match"
+                              aria-label="Contained in registered district"
                             />
                           </TableCell>
                         )
                       }
 
                       return (
-                        <TableCell key={result.provider}>
+                        <TableCell key={summary.source_type}>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button
                                 type="button"
                                 className="inline-flex items-center"
-                                aria-label={`Mismatch: provider says ${providerValue}, official is ${officialValue}`}
+                                aria-label="Location is outside registered district"
                               >
                                 <X className="h-4 w-4 text-red-600" aria-hidden />
                               </button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Provider: {providerValue}</p>
-                              <p>Primary: {officialValue}</p>
+                              <p>Location is outside the registered district boundary</p>
                             </TooltipContent>
                           </Tooltip>
                         </TableCell>

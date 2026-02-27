@@ -13,16 +13,12 @@ import { VoterHistoryCard } from "@/routes/voters/_components/VoterHistoryCard"
 import { useDistrictCheck } from "@/hooks/useDistrictCheck"
 import { useProviderBoundaryCheck } from "@/hooks/useProviderBoundaryCheck"
 import { getBoundaryDetail } from "@/lib/api/boundaries"
-import { BOUNDARY_TYPE_TO_REGISTERED_KEY } from "@/lib/district-comparison"
 import type { BoundaryDetailResponse } from "@/types/boundary"
 
 export const Route = createFileRoute("/voters/$voterId")({
   component: VoterDetailPage,
 })
 
-function normalizeForMatch(v: string): string {
-  return v.replace(/^0+/, "").toLowerCase() || "0"
-}
 
 function VoterDetailPage() {
   const { voterId } = Route.useParams()
@@ -64,47 +60,24 @@ function VoterDetailPage() {
     isLoading: providerResultsLoading,
     error: providerError,
     refetch: refetchProvider,
-  } = useProviderBoundaryCheck(voterId, locations ?? [])
+  } = useProviderBoundaryCheck(voterId)
 
   const providerMatchStatus = useMemo(() => {
-    if (!providerResults || !Array.isArray(providerResults.results)) return new Map<string, string>()
+    if (!providerResults?.provider_summary) return new Map<string, string>()
     const statusMap = new Map<string, string>()
-    for (const result of providerResults.results) {
-      const districtValues = Object.values(result.districts).filter((v) => v !== null)
-      if (districtValues.length === 0) continue
-
-      // Compare against official/determined values
-      if (!verification) continue
-      let anyMismatch = false
-      let anyMatch = false
-
-      for (const comparison of verification.comparisons) {
-        const boundaryType = Object.entries(BOUNDARY_TYPE_TO_REGISTERED_KEY).find(
-          ([, v]) => v === comparison.registeredKey,
-        )?.[0]
-        if (!boundaryType) continue
-        const providerValue = result.districts[boundaryType]
-        if (providerValue === null || providerValue === undefined) continue
-        const officialValue = comparison.geographicValue
-        if (officialValue === null) continue
-        const match = normalizeForMatch(providerValue) === normalizeForMatch(officialValue)
-        if (!match) {
-          anyMismatch = true
-        } else {
-          anyMatch = true
-        }
-      }
-
-      if (anyMismatch && anyMatch) {
-        statusMap.set(result.provider, "mixed")
-      } else if (anyMismatch) {
-        statusMap.set(result.provider, "any-mismatch")
-      } else if (anyMatch) {
-        statusMap.set(result.provider, "all-match")
+    for (const summary of providerResults.provider_summary) {
+      const { source_type, districts_matched, districts_checked } = summary
+      if (districts_checked === 0) continue
+      if (districts_matched === districts_checked) {
+        statusMap.set(source_type, "all-match")
+      } else if (districts_matched === 0) {
+        statusMap.set(source_type, "any-mismatch")
+      } else {
+        statusMap.set(source_type, "mixed")
       }
     }
     return statusMap
-  }, [providerResults, verification])
+  }, [providerResults])
 
   if (isLoading) {
     return (
