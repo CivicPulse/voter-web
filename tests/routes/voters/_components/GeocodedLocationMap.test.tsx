@@ -1,7 +1,9 @@
-import { describe, it, expect, vi } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { describe, it, expect, vi, beforeEach } from "vitest"
+import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { GeocodedLocationMap } from "@/routes/voters/_components/GeocodedLocationMap"
 import { mockVoterGeocodedLocation } from "@/test/mocks/voters"
+import { useUserRole } from "@/lib/hooks/use-user-role"
+import { useUpdateOfficialLocation } from "@/hooks/useAddressLookup"
 
 // Mock react-leaflet components
 vi.mock("react-leaflet", () => ({
@@ -14,14 +16,32 @@ vi.mock("react-leaflet", () => ({
   Marker: ({
     children,
     position,
+    draggable,
+    eventHandlers,
+    ref: _ref,
   }: {
     children: React.ReactNode
     position: [number, number]
+    draggable?: boolean
+    eventHandlers?: Record<string, (e: unknown) => void>
+    ref?: unknown
   }) => (
     <div
       data-testid="marker"
       data-lat={position[0]}
       data-lng={position[1]}
+      data-draggable={String(draggable ?? false)}
+      onClick={() => eventHandlers?.["dragstart"]?.({})}
+      onMouseMove={() =>
+        eventHandlers?.["drag"]?.({
+          target: { getLatLng: () => ({ lat: 32.85, lng: -83.64 }) },
+        })
+      }
+      onMouseUp={() =>
+        eventHandlers?.["dragend"]?.({
+          target: { getLatLng: () => ({ lat: 32.85, lng: -83.64 }) },
+        })
+      }
     >
       {children}
     </div>
@@ -64,7 +84,48 @@ vi.mock("leaflet", () => {
   }
 })
 
+vi.mock("@/lib/hooks/use-user-role", () => ({
+  useUserRole: vi.fn(() => ({ data: { role: "admin" } })),
+}))
+
+const mockMutateAsync = vi.fn()
+const mockMutate = vi.fn()
+
+vi.mock("@/hooks/useAddressLookup", () => ({
+  useUpdateOfficialLocation: vi.fn(() => ({
+    mutateAsync: mockMutateAsync,
+    mutate: mockMutate,
+    isPending: false,
+  })),
+  useSetPrimaryLocation: vi.fn(() => ({
+    mutate: vi.fn(),
+    isPending: false,
+  })),
+}))
+
+const mockUseUserRole = vi.mocked(useUserRole)
+const mockUseUpdateOfficialLocation = vi.mocked(useUpdateOfficialLocation)
+
+function setRole(role: string) {
+  mockUseUserRole.mockReturnValue({
+    data: { id: "u-001", email: "test@test.com", role, is_active: true },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any)
+}
+
 describe("GeocodedLocationMap", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    setRole("admin")
+    mockMutateAsync.mockResolvedValue({})
+    mockUseUpdateOfficialLocation.mockReturnValue({
+      mutateAsync: mockMutateAsync,
+      mutate: mockMutate,
+      isPending: false,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any)
+  })
+
   it("renders map container with markers", () => {
     const locations = [
       mockVoterGeocodedLocation({ is_primary: true }),
@@ -115,5 +176,136 @@ describe("GeocodedLocationMap", () => {
 
     expect(screen.getByText(/32\.840700/)).toBeInTheDocument()
     expect(screen.getByText(/-83\.632400/)).toBeInTheDocument()
+  })
+
+  describe("drag state", () => {
+    it("pendingLat is null initially — Save/Reset strip is not shown", () => {
+      const locations = [mockVoterGeocodedLocation({ is_primary: true })]
+      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+
+      expect(screen.queryByRole("button", { name: /save location/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole("button", { name: /reset/i })).not.toBeInTheDocument()
+    })
+
+    it("shows Save/Reset strip after drag ends", () => {
+      const locations = [mockVoterGeocodedLocation({ is_primary: true })]
+      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+
+      // Simulate dragend on primary marker
+      const primaryMarker = screen.getAllByTestId("marker")[0]
+      fireEvent.mouseUp(primaryMarker)
+
+      expect(screen.getByRole("button", { name: /save location/i })).toBeInTheDocument()
+      expect(screen.getByRole("button", { name: /reset/i })).toBeInTheDocument()
+    })
+
+    it("hides Save/Reset strip after Reset is clicked", () => {
+      const locations = [mockVoterGeocodedLocation({ is_primary: true })]
+      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+
+      const primaryMarker = screen.getAllByTestId("marker")[0]
+      fireEvent.mouseUp(primaryMarker)
+
+      expect(screen.getByRole("button", { name: /reset/i })).toBeInTheDocument()
+      fireEvent.click(screen.getByRole("button", { name: /reset/i }))
+
+      expect(screen.queryByRole("button", { name: /save location/i })).not.toBeInTheDocument()
+    })
+  })
+
+  describe("role guard", () => {
+    it("primary marker is draggable for admin with voterId", () => {
+      setRole("admin")
+      const locations = [mockVoterGeocodedLocation({ is_primary: true })]
+      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+
+      const primaryMarker = screen.getAllByTestId("marker")[0]
+      expect(primaryMarker.dataset.draggable).toBe("true")
+    })
+
+    it("primary marker is draggable for analyst with voterId", () => {
+      setRole("analyst")
+      const locations = [mockVoterGeocodedLocation({ is_primary: true })]
+      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+
+      const primaryMarker = screen.getAllByTestId("marker")[0]
+      expect(primaryMarker.dataset.draggable).toBe("true")
+    })
+
+    it("primary marker is NOT draggable for viewer even with voterId", () => {
+      setRole("viewer")
+      const locations = [mockVoterGeocodedLocation({ is_primary: true })]
+      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+
+      const primaryMarker = screen.getAllByTestId("marker")[0]
+      expect(primaryMarker.dataset.draggable).toBe("false")
+    })
+
+    it("primary marker is NOT draggable when voterId is not provided", () => {
+      setRole("admin")
+      const locations = [mockVoterGeocodedLocation({ is_primary: true })]
+      render(<GeocodedLocationMap locations={locations} />)
+
+      const primaryMarker = screen.getAllByTestId("marker")[0]
+      expect(primaryMarker.dataset.draggable).toBe("false")
+    })
+
+    it("viewer role does not show Save/Reset after drag attempt", () => {
+      setRole("viewer")
+      const locations = [mockVoterGeocodedLocation({ is_primary: true })]
+      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+
+      const primaryMarker = screen.getAllByTestId("marker")[0]
+      fireEvent.mouseUp(primaryMarker)
+
+      // Since marker is not draggable for viewers, no event handlers are set
+      expect(screen.queryByRole("button", { name: /save location/i })).not.toBeInTheDocument()
+    })
+  })
+
+  describe("save workflow", () => {
+    it("calls mutateAsync with pending coordinates on save", async () => {
+      setRole("admin")
+      const locations = [mockVoterGeocodedLocation({ is_primary: true })]
+      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+
+      const primaryMarker = screen.getAllByTestId("marker")[0]
+      fireEvent.mouseUp(primaryMarker)
+
+      const saveButton = screen.getByRole("button", { name: /save location/i })
+      fireEvent.click(saveButton)
+
+      await waitFor(() => {
+        expect(mockMutateAsync).toHaveBeenCalledWith({
+          latitude: 32.85,
+          longitude: -83.64,
+        })
+      })
+    })
+
+    it("error path: hides Save/Reset strip and shows toast on mutation error", async () => {
+      mockMutateAsync.mockRejectedValue(new Error("Network error"))
+      mockUseUpdateOfficialLocation.mockReturnValue({
+        mutateAsync: mockMutateAsync,
+        mutate: mockMutate,
+        isPending: false,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any)
+
+      setRole("admin")
+      const locations = [mockVoterGeocodedLocation({ is_primary: true })]
+      render(<GeocodedLocationMap locations={locations} voterId="v-001" />)
+
+      const primaryMarker = screen.getAllByTestId("marker")[0]
+      fireEvent.mouseUp(primaryMarker)
+
+      const saveButton = screen.getByRole("button", { name: /save location/i })
+      fireEvent.click(saveButton)
+
+      await waitFor(() => {
+        // After error, the Save/Reset strip should be hidden (pendingLat cleared)
+        expect(screen.queryByRole("button", { name: /save location/i })).not.toBeInTheDocument()
+      })
+    })
   })
 })

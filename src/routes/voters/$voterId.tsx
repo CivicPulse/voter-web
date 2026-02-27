@@ -67,7 +67,13 @@ function VoterDetailPage() {
           officialLocation={voter.official_location}
         />
         {locations && locations.length > 0 && (
-          <GeocodedLocationMap locations={locations} />
+          <GeocodedLocationMap
+            locations={locations}
+            voterId={voterId}
+            onLocationSaved={() => {
+              // district check will auto-invalidate from mutation
+            }}
+          />
         )}
       </div>
 

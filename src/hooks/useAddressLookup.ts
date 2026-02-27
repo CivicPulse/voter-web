@@ -12,12 +12,14 @@ import {
   addManualLocation,
   setPrimaryLocation,
 } from "@/api/lookup"
+import { setOfficialLocation } from "@/api/voters"
 import type {
   BatchGeocodeRequest,
   GeocodingJobFilters,
   ManualLocationRequest,
   PointLookupParams,
 } from "@/types/lookup"
+import type { OfficialLocationRequest } from "@/types/voter"
 import { isActiveGeocodingJob } from "@/types/lookup"
 import { adminQueryRetry } from "@/lib/hooks/admin-query-retry"
 
@@ -153,6 +155,18 @@ export function useSetPrimaryLocation(voterId: string) {
       queryClient.invalidateQueries({
         queryKey: ["voters", voterId, "geocoded-locations"],
       })
+    },
+  })
+}
+
+export function useUpdateOfficialLocation(voterId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (request: OfficialLocationRequest) =>
+      setOfficialLocation(voterId, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["voters", voterId] })
+      queryClient.invalidateQueries({ queryKey: ["voters", voterId, "district-check"] })
     },
   })
 }
