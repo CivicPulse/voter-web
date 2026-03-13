@@ -28,11 +28,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can see how many elections match current filters ("Showing X of Y"), see active filters as removable badge chips, and clear all filters with one action
   4. User sees a helpful empty state explaining which filters are active and suggesting broader criteria when no results match
   5. Browser back/forward navigates between previous filter states and pagination resets to page 1 when any filter changes
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md — Date preset utility + URL state migration with new filter controls
+- [ ] 01-02-PLAN.md — UX feedback (result count, filter chips, empty states) + E2E tests
 
 ### Phase 2: Feature Detection Infrastructure
 **Goal**: The application can detect which API filter capabilities are available and conditionally show or hide filter controls, and the backend team has a specification for the new parameters needed
@@ -68,6 +68,6 @@ Phases execute in numeric order: 1 -> 2 -> 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. URL State and Existing Filters | 0/0 | Not started | - |
+| 1. URL State and Existing Filters | 0/2 | Planning complete | - |
 | 2. Feature Detection Infrastructure | 0/0 | Not started | - |
 | 3. API-Dependent Filters | 0/0 | Not started | - |
