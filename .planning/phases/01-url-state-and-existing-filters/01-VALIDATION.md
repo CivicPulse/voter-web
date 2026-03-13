@@ -2,7 +2,7 @@
 phase: 1
 slug: url-state-and-existing-filters
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-03-13
 ---
@@ -38,24 +38,26 @@ created: 2026-03-13
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 01-01-01 | 01 | 0 | URL-01 | unit | `npx vitest run tests/lib/date-presets.test.ts` | ❌ W0 | ⬜ pending |
-| 01-01-02 | 01 | 0 | FILT-01 | unit | `npx vitest run tests/lib/date-presets.test.ts` | ❌ W0 | ⬜ pending |
-| 01-01-03 | 01 | 0 | URL-02, URL-03, URL-04 | e2e | `npx playwright test e2e/elections-list.spec.ts` | ❌ W0 | ⬜ pending |
-| 01-01-04 | 01 | 0 | UX-01, UX-02, UX-03, UX-04 | e2e | `npx playwright test e2e/elections-list.spec.ts` | ❌ W0 | ⬜ pending |
-| 01-02-01 | 02 | 1 | URL-01 | unit | `npx vitest run tests/lib/date-presets.test.ts -t "schema"` | ❌ W0 | ⬜ pending |
-| 01-02-02 | 02 | 1 | FILT-01 | unit | `npx vitest run tests/lib/date-presets.test.ts -t "preset"` | ❌ W0 | ⬜ pending |
-| 01-03-01 | 03 | 1 | FILT-02, FILT-03, FILT-04 | e2e | `npx playwright test e2e/elections-list.spec.ts -g "filter"` | ❌ W0 | ⬜ pending |
-| 01-03-02 | 03 | 1 | UX-01, UX-02, UX-03, UX-04 | e2e | `npx playwright test e2e/elections-list.spec.ts -g "chips"` | ❌ W0 | ⬜ pending |
+| 01-01-01 | 01 | 1 | URL-01, FILT-01 | unit | `npx vitest run tests/lib/date-presets.test.ts` | Plan 01 creates | pending |
+| 01-01-02 | 01 | 1 | URL-02, URL-03, URL-04 | unit | `npx vitest run tests/routes/elections-search-schema.test.ts` | Plan 01 creates | pending |
+| 01-02-01 | 02 | 2 | UX-01, UX-02, UX-03, UX-04 | unit | `npx vitest run tests/routes/elections-active-filters.test.ts` | Plan 02 creates | pending |
+| 01-02-02 | 02 | 2 | FILT-02, FILT-03, FILT-04 | e2e | `npx playwright test e2e/elections-list.spec.ts` | Plan 02 creates | pending |
+| 01-02-03 | 02 | 2 | URL-02, URL-03, URL-04 | e2e | `npx playwright test e2e/elections-list.spec.ts` | Plan 02 creates | pending |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: pending / green / red / flaky*
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `tests/lib/date-presets.test.ts` — stubs for FILT-01 (date preset resolution) and URL-01 (Zod schema validation)
-- [ ] `e2e/elections-list.spec.ts` — expand existing file with filter-specific tests for URL-02, URL-03, URL-04, UX-01 through UX-04
-- [ ] `e2e/fixtures/mock-data.ts` — add mock election data with date ranges, registration/early voting metadata
+All test files are created by their respective plan tasks during execution. No separate Wave 0 stub creation is needed because:
+
+- Plan 01 Task 1 creates `tests/lib/date-presets.test.ts` (TDD — tests first)
+- Plan 01 Task 2 creates `tests/routes/elections-search-schema.test.ts` (Step 13)
+- Plan 02 Task 1 creates `tests/routes/elections-active-filters.test.ts` (Step 6)
+- Plan 02 Task 2 creates `e2e/elections-list.spec.ts` and `e2e/fixtures/mock-data.ts`
+
+Each task's `<verify>` command runs the tests that task creates, ensuring Nyquist compliance within each task.
 
 ---
 
@@ -70,11 +72,10 @@ created: 2026-03-13
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 45s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify commands that run tests created by that task
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] No watch-mode flags
+- [x] Feedback latency < 45s
+- [x] FILT-02 and FILT-03 covered by E2E tests (Plan 02 Task 2), not date-presets.test.ts
 
 **Approval:** pending
