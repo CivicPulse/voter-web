@@ -9,17 +9,17 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### URL State
 
-- [ ] **URL-01**: Filter state persists in URL search params via TanStack Router validateSearch with Zod schema
-- [ ] **URL-02**: Pagination resets to page 1 when any filter changes
-- [ ] **URL-03**: Browser back/forward navigates between previous filter states
-- [ ] **URL-04**: Shared URLs restore exact filter combination for the recipient
+- [x] **URL-01**: Filter state persists in URL search params via TanStack Router validateSearch with Zod schema
+- [x] **URL-02**: Pagination resets to page 1 when any filter changes
+- [x] **URL-03**: Browser back/forward navigates between previous filter states
+- [x] **URL-04**: Shared URLs restore exact filter combination for the recipient
 
 ### Existing API Filters
 
-- [ ] **FILT-01**: User can filter elections by date range (date_from / date_to) using a date range picker
-- [ ] **FILT-02**: User can toggle "Registration open" filter to show only elections with open registration
-- [ ] **FILT-03**: User can toggle "Early voting active" filter to show only elections with active early voting
-- [ ] **FILT-04**: All filters are visible inline without toggles or collapsing — wrapping layout on smaller screens
+- [x] **FILT-01**: User can filter elections by date range (date_from / date_to) using a date range picker
+- [x] **FILT-02**: User can toggle "Registration open" filter to show only elections with open registration
+- [x] **FILT-03**: User can toggle "Early voting active" filter to show only elections with active early voting
+- [x] **FILT-04**: All filters are visible inline without toggles or collapsing — wrapping layout on smaller screens
 
 ### UX Feedback
 
@@ -73,14 +73,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| URL-01 | Phase 1 | Pending |
-| URL-02 | Phase 1 | Pending |
-| URL-03 | Phase 1 | Pending |
-| URL-04 | Phase 1 | Pending |
-| FILT-01 | Phase 1 | Pending |
-| FILT-02 | Phase 1 | Pending |
-| FILT-03 | Phase 1 | Pending |
-| FILT-04 | Phase 1 | Pending |
+| URL-01 | Phase 1 | Complete |
+| URL-02 | Phase 1 | Complete |
+| URL-03 | Phase 1 | Complete |
+| URL-04 | Phase 1 | Complete |
+| FILT-01 | Phase 1 | Complete |
+| FILT-02 | Phase 1 | Complete |
+| FILT-03 | Phase 1 | Complete |
+| FILT-04 | Phase 1 | Complete |
 | UX-01 | Phase 1 | Pending |
 | UX-02 | Phase 1 | Pending |
 | UX-03 | Phase 1 | Pending |
