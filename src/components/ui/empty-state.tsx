@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 interface EmptyStateProps {
   icon: React.ReactNode
   title: string
-  description: string
+  description: React.ReactNode
   action?: {
     label: string
     onClick: () => void

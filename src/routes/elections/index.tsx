@@ -38,8 +38,10 @@ import {
 import {
   electionSearchSchema,
   mapParamsToApiFilters,
+  deriveActiveFilters,
 } from "@/lib/election-search"
 import type { ElectionSearchParams } from "@/lib/election-search"
+import { EmptyState } from "@/components/ui/empty-state"
 import type { DatePresetKey } from "@/lib/date-presets"
 import type { Election } from "@/types/elections"
 
@@ -191,15 +193,39 @@ function ElectionsListPage() {
     return false
   }
 
-  const hasActiveFilters =
-    params.status !== undefined ||
-    params.type !== undefined ||
-    params.date_preset === "all-time" ||
-    params.date_from !== undefined ||
-    params.date_to !== undefined ||
-    params.reg_open === "true" ||
-    params.early_voting === "true" ||
-    searchText !== ""
+  // Derive active (non-default) filters for chip display
+  const activeFilters = useMemo(
+    () => deriveActiveFilters(params, activePreset),
+    [params, activePreset],
+  )
+
+  // Handle removing a single filter chip
+  const onRemoveChip = (paramKey: string) => {
+    switch (paramKey) {
+      case "status":
+        updateFilters({ status: undefined })
+        break
+      case "type":
+        updateFilters({ type: undefined })
+        break
+      case "date_range":
+        updateFilters({
+          date_from: undefined,
+          date_to: undefined,
+          date_preset: undefined,
+        })
+        break
+      case "reg_open":
+        updateFilters({ reg_open: undefined })
+        break
+      case "early_voting":
+        updateFilters({ early_voting: undefined })
+        break
+      case "search":
+        updateFilters({ search: undefined })
+        break
+    }
+  }
 
   // Handle date preset selection
   const handlePresetChange = (value: string) => {
@@ -391,6 +417,31 @@ function ElectionsListPage() {
         </div>
       </div>
 
+      {/* Active filter chips */}
+      {activeFilters.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          {activeFilters.map((chip) => (
+            <Badge
+              key={chip.paramKey}
+              variant="outline"
+              className="gap-1 cursor-pointer pl-2.5 pr-1.5 py-1"
+              onClick={() => onRemoveChip(chip.paramKey)}
+            >
+              {chip.key}
+              <X className="h-3 w-3" />
+            </Badge>
+          ))}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs"
+            onClick={clearAllFilters}
+          >
+            Clear all
+          </Button>
+        </div>
+      )}
+
       {/* Content */}
       {isLoading && (
         <div className="flex items-center justify-center py-12">
@@ -404,23 +455,51 @@ function ElectionsListPage() {
         </div>
       )}
 
-      {data && filteredElections.length === 0 && (
-        <div className="text-center py-12">
-          <Vote className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground mb-2">
-            No elections found matching your search.
-          </p>
-          {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={clearAllFilters}>
-              <X className="h-4 w-4 mr-1" />
-              Clear filters
-            </Button>
-          )}
-        </div>
+      {/* Empty state: filters active, zero results */}
+      {data && filteredElections.length === 0 && activeFilters.length > 0 && (
+        <EmptyState
+          icon={<Vote className="h-12 w-12" />}
+          title="No elections found"
+          description={
+            <div>
+              <p className="mb-2">Active filters:</p>
+              <ul className="text-left list-disc list-inside mb-2">
+                {activeFilters.map((f) => (
+                  <li key={f.key}>{f.key}</li>
+                ))}
+              </ul>
+              <p>Try broadening your filters for more results.</p>
+            </div>
+          }
+          action={{ label: "Clear all filters", onClick: clearAllFilters }}
+        />
+      )}
+
+      {/* Empty state: default filters, no results */}
+      {data && filteredElections.length === 0 && activeFilters.length === 0 && (
+        <EmptyState
+          icon={<Vote className="h-12 w-12" />}
+          title="No upcoming elections"
+          description="There are no elections in the next 3 months."
+          action={{
+            label: "Show all elections",
+            onClick: () =>
+              updateFilters({
+                date_from: undefined,
+                date_to: undefined,
+                date_preset: "all-time",
+              }),
+          }}
+        />
       )}
 
       {data && filteredElections.length > 0 && (
         <>
+          {/* Result count */}
+          <p className="text-sm text-muted-foreground mb-3">
+            Showing {filteredElections.length} of {data.total} elections
+          </p>
+
           <div className="space-y-3">
             {filteredElections.map((election) => (
               <ElectionListItem
