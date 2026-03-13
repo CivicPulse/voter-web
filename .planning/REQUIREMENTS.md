@@ -23,10 +23,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### UX Feedback
 
-- [ ] **UX-01**: Result count displayed above list ("Showing X of Y elections")
-- [ ] **UX-02**: Active filters shown as removable badge chips above results
-- [ ] **UX-03**: "Clear all filters" action available when any filter is active
-- [ ] **UX-04**: Empty state shows which filters are active and suggests broadening criteria
+- [x] **UX-01**: Result count displayed above list ("Showing X of Y elections")
+- [x] **UX-02**: Active filters shown as removable badge chips above results
+- [x] **UX-03**: "Clear all filters" action available when any filter is active
+- [x] **UX-04**: Empty state shows which filters are active and suggests broadening criteria
 
 ### New API Filters (Feature-Detected)
 
@@ -81,10 +81,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FILT-02 | Phase 1 | Complete |
 | FILT-03 | Phase 1 | Complete |
 | FILT-04 | Phase 1 | Complete |
-| UX-01 | Phase 1 | Pending |
-| UX-02 | Phase 1 | Pending |
-| UX-03 | Phase 1 | Pending |
-| UX-04 | Phase 1 | Pending |
+| UX-01 | Phase 1 | Complete |
+| UX-02 | Phase 1 | Complete |
+| UX-03 | Phase 1 | Complete |
+| UX-04 | Phase 1 | Complete |
 | API-01 | Phase 3 | Pending |
 | API-02 | Phase 3 | Pending |
 | API-03 | Phase 3 | Pending |
