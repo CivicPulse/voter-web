@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useDeferredValue, useMemo, useState } from "react"
 import {
   ChevronLeft,
@@ -19,16 +19,42 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { useElections } from "@/lib/hooks/use-elections"
-import { useElectionFilters } from "@/lib/hooks/use-election-filters"
 import { useNavigationContext } from "@/stores/navigation-context"
 import { ABBREV_TO_NAME } from "@/lib/states"
 import { synthesizeDescription } from "@/types/elections"
+import {
+  DATE_PRESETS,
+  resolvePreset,
+  matchPreset,
+  getDefaultDateRange,
+} from "@/lib/date-presets"
+import {
+  electionSearchSchema,
+  mapParamsToApiFilters,
+} from "@/lib/election-search"
+import type { ElectionSearchParams } from "@/lib/election-search"
+import type { DatePresetKey } from "@/lib/date-presets"
 import type { Election } from "@/types/elections"
+
+// ---------------------------------------------------------------------------
+// Route definition
+// ---------------------------------------------------------------------------
 
 export const Route = createFileRoute("/elections/")({
   component: ElectionsListPage,
+  validateSearch: electionSearchSchema,
 })
+
+// ---------------------------------------------------------------------------
+// ElectionListItem (unchanged)
+// ---------------------------------------------------------------------------
 
 function ElectionListItem({
   election,
@@ -84,27 +110,49 @@ function ElectionListItem({
   )
 }
 
+// ---------------------------------------------------------------------------
+// ElectionsListPage
+// ---------------------------------------------------------------------------
+
 function ElectionsListPage() {
-  const { electionFilters, setElectionFilters, resetElectionFilters } =
-    useElectionFilters()
-  const [page, setPage] = useState(1)
+  const params = Route.useSearch()
+  const navigate = useNavigate()
+
+  // Default date range for "Next 3 months" (applied when no dates in URL)
+  const defaultDates = getDefaultDateRange()
+
+  // Map URL params to API filters
+  const apiFilters = mapParamsToApiFilters(params, defaultDates)
 
   // Exclude client-side search from API params
-  const apiFilters = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { search, ...rest } = electionFilters
-    return rest
-  }, [electionFilters])
-  const { data, isLoading, error } = useElections(apiFilters, page)
+  const { data, isLoading, error } = useElections(apiFilters, params.page ?? 1)
 
-  // Wrap filter updates to reset pagination when filters change
-  const updateFilters = (updates: Partial<typeof electionFilters>) => {
-    setElectionFilters(updates)
-    setPage(1)
+  // Helper to update filters and reset page
+  const updateFilters = (updates: Partial<ElectionSearchParams>) => {
+    navigate({ to: "/elections", search: { ...params, ...updates, page: 1 } })
   }
 
+  // Clear all filters (returns to default "Next 3 months" state)
+  const clearAllFilters = () => {
+    navigate({ to: "/elections", search: {} })
+  }
+
+  // Determine the active date preset from current URL params
+  const activePreset: DatePresetKey =
+    params.date_preset === "all-time"
+      ? "all-time"
+      : matchPreset(
+          params.date_from ?? defaultDates.date_from,
+          params.date_to ?? defaultDates.date_to,
+        )
+
+  // Custom date range popover state
+  const [customRangeOpen, setCustomRangeOpen] = useState(false)
+  const [customFrom, setCustomFrom] = useState(params.date_from ?? "")
+  const [customTo, setCustomTo] = useState(params.date_to ?? "")
+
   // Client-side search filtering with deferred value
-  const searchText = electionFilters.search ?? ""
+  const searchText = params.search ?? ""
   const deferredSearch = useDeferredValue(searchText)
 
   const elections = data?.elections
@@ -144,11 +192,51 @@ function ElectionsListPage() {
   }
 
   const hasActiveFilters =
-    electionFilters.status !== "all" ||
-    electionFilters.election_type !== "all" ||
-    electionFilters.registration_open ||
-    electionFilters.early_voting_active ||
-    searchText
+    params.status !== undefined ||
+    params.type !== undefined ||
+    params.date_preset === "all-time" ||
+    params.date_from !== undefined ||
+    params.date_to !== undefined ||
+    params.reg_open === "true" ||
+    params.early_voting === "true" ||
+    searchText !== ""
+
+  // Handle date preset selection
+  const handlePresetChange = (value: string) => {
+    const key = value as DatePresetKey
+    if (key === "custom") {
+      // Open the custom date range popover, don't navigate yet
+      setCustomFrom(params.date_from ?? "")
+      setCustomTo(params.date_to ?? "")
+      setCustomRangeOpen(true)
+      return
+    }
+    if (key === "all-time") {
+      updateFilters({
+        date_from: undefined,
+        date_to: undefined,
+        date_preset: "all-time",
+      })
+      return
+    }
+    // Named preset -- resolve to dates
+    const resolved = resolvePreset(key)
+    updateFilters({
+      date_from: resolved.date_from,
+      date_to: resolved.date_to,
+      date_preset: undefined,
+    })
+  }
+
+  // Apply custom date range
+  const applyCustomRange = () => {
+    updateFilters({
+      date_from: customFrom || undefined,
+      date_to: customTo || undefined,
+      date_preset: undefined,
+    })
+    setCustomRangeOpen(false)
+  }
 
   return (
     <div className="container mx-auto px-4 py-4 sm:p-6 max-w-3xl">
@@ -181,19 +269,18 @@ function ElectionsListPage() {
         <Input
           placeholder="Search elections..."
           value={searchText}
-          onChange={(e) => updateFilters({ search: e.target.value })}
+          onChange={(e) => updateFilters({ search: e.target.value || undefined })}
           className="pl-9"
         />
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-6">
+      <div className="flex flex-wrap gap-3 mb-6 items-center">
+        {/* Status filter */}
         <Select
-          value={electionFilters.status}
+          value={params.status ?? "all"}
           onValueChange={(v) =>
-            updateFilters({
-              status: v as typeof electionFilters.status,
-            })
+            updateFilters({ status: v === "all" ? undefined : (v as "active" | "finalized") })
           }
         >
           <SelectTrigger className="w-[140px]">
@@ -206,12 +293,11 @@ function ElectionsListPage() {
           </SelectContent>
         </Select>
 
+        {/* Type filter */}
         <Select
-          value={electionFilters.election_type}
+          value={params.type ?? "all"}
           onValueChange={(v) =>
-            updateFilters({
-              election_type: v as typeof electionFilters.election_type,
-            })
+            updateFilters({ type: v === "all" ? undefined : (v as "general" | "primary" | "special" | "runoff") })
           }
         >
           <SelectTrigger className="w-[140px]">
@@ -225,6 +311,84 @@ function ElectionsListPage() {
             <SelectItem value="runoff">Runoff</SelectItem>
           </SelectContent>
         </Select>
+
+        {/* Date preset filter */}
+        <Popover open={customRangeOpen} onOpenChange={setCustomRangeOpen}>
+          <PopoverTrigger asChild>
+            <div>
+              <Select value={activePreset} onValueChange={handlePresetChange}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Date range" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DATE_PRESETS.map((preset) => (
+                    <SelectItem key={preset.key} value={preset.key}>
+                      {preset.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </PopoverTrigger>
+          <PopoverContent className="w-72" align="start">
+            <div className="space-y-3">
+              <p className="text-sm font-medium">Custom date range</p>
+              <div className="space-y-2">
+                <label className="text-sm text-muted-foreground">From</label>
+                <Input
+                  type="date"
+                  value={customFrom}
+                  onChange={(e) => setCustomFrom(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-muted-foreground">To</label>
+                <Input
+                  type="date"
+                  value={customTo}
+                  onChange={(e) => setCustomTo(e.target.value)}
+                />
+              </div>
+              <Button size="sm" className="w-full" onClick={applyCustomRange}>
+                Apply
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        {/* Registration open checkbox */}
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="reg-open"
+            checked={params.reg_open === "true"}
+            onCheckedChange={(checked) =>
+              updateFilters({ reg_open: checked ? "true" : undefined })
+            }
+          />
+          <label
+            htmlFor="reg-open"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Registration open
+          </label>
+        </div>
+
+        {/* Early voting active checkbox */}
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="early-voting"
+            checked={params.early_voting === "true"}
+            onCheckedChange={(checked) =>
+              updateFilters({ early_voting: checked ? "true" : undefined })
+            }
+          />
+          <label
+            htmlFor="early-voting"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Early voting active
+          </label>
+        </div>
       </div>
 
       {/* Content */}
@@ -247,11 +411,7 @@ function ElectionsListPage() {
             No elections found matching your search.
           </p>
           {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => { resetElectionFilters(); setPage(1) }}
-            >
+            <Button variant="ghost" size="sm" onClick={clearAllFilters}>
               <X className="h-4 w-4 mr-1" />
               Clear filters
             </Button>
@@ -277,20 +437,30 @@ function ElectionsListPage() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => p - 1)}
+                disabled={(params.page ?? 1) <= 1}
+                onClick={() =>
+                  navigate({
+                    to: "/elections",
+                    search: { ...params, page: (params.page ?? 1) - 1 },
+                  })
+                }
               >
                 <ChevronLeft className="h-4 w-4" />
                 Previous
               </Button>
               <span className="text-sm text-muted-foreground">
-                Page {page} of {data.total_pages}
+                Page {params.page ?? 1} of {data.total_pages}
               </span>
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page >= data.total_pages}
-                onClick={() => setPage((p) => p + 1)}
+                disabled={(params.page ?? 1) >= data.total_pages}
+                onClick={() =>
+                  navigate({
+                    to: "/elections",
+                    search: { ...params, page: (params.page ?? 1) + 1 },
+                  })
+                }
               >
                 Next
                 <ChevronRight className="h-4 w-4" />
