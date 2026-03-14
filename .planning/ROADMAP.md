@@ -41,10 +41,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Filter controls for API-dependent features (search, race category, geographic, election date) appear only when the API supports those parameters and are hidden otherwise
   2. A written API feature request spec document exists covering the q, race_category, county, district, election_date parameters and filter-options endpoint with expected behavior and response formats
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 02-01: TBD
+- [ ] 02-01-PLAN.md — Feature detection hook + mapping logic + unit tests + API spec document
 
 ### Phase 3: API-Dependent Filters
 **Goal**: Users can find specific contests using server-side text search, race category, geographic scope, and exact election date — with all filters working across the full dataset, not just the current page
@@ -69,5 +69,5 @@ Phases execute in numeric order: 1 -> 2 -> 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. URL State and Existing Filters | 1/2 | In Progress | - |
-| 2. Feature Detection Infrastructure | 0/0 | Not started | - |
+| 2. Feature Detection Infrastructure | 0/1 | Not started | - |
 | 3. API-Dependent Filters | 0/0 | Not started | - |
