@@ -38,8 +38,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: Feature-detection hook probes API capabilities and conditionally shows/hides new filter controls
-- [ ] **INFRA-02**: API feature request spec document for backend team covering: q, race_category, county, district, election_date, filter-options endpoint
+- [x] **INFRA-01**: Feature-detection hook probes API capabilities and conditionally shows/hides new filter controls
+- [x] **INFRA-02**: API feature request spec document for backend team covering: q, race_category, county, district, election_date, filter-options endpoint
 
 ## v2 Requirements
 
@@ -90,8 +90,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | API-03 | Phase 3 | Pending |
 | API-04 | Phase 3 | Pending |
 | API-05 | Phase 3 | Pending |
-| INFRA-01 | Phase 2 | Pending |
-| INFRA-02 | Phase 2 | Pending |
+| INFRA-01 | Phase 2 | Complete |
+| INFRA-02 | Phase 2 | Complete |
 
 **Coverage:**
 - v1 requirements: 19 total
