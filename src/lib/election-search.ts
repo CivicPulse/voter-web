@@ -91,8 +91,8 @@ export function formatShortDate(dateStr: string): string {
   })
 }
 
-/** Race category labels for chip display */
-const RACE_CATEGORY_LABELS: Record<string, string> = {
+/** Race category labels for chip and dropdown display */
+export const RACE_CATEGORY_LABELS: Record<string, string> = {
   federal: "Federal",
   state_senate: "State Senate",
   state_house: "State House",

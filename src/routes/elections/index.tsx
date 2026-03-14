@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
-import { useDeferredValue, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
+  Check,
   ChevronLeft,
   ChevronRight,
+  ChevronsUpDown,
   Loader2,
   MapPin,
   Search,
@@ -25,7 +27,18 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import { cn } from "@/lib/utils"
 import { useElections } from "@/lib/hooks/use-elections"
+import { useElectionCapabilities } from "@/lib/hooks/use-election-capabilities"
+import { useFilterOptions } from "@/lib/hooks/use-filter-options"
 import { useNavigationContext } from "@/stores/navigation-context"
 import { ABBREV_TO_NAME } from "@/lib/states"
 import { synthesizeDescription } from "@/types/elections"
@@ -39,6 +52,8 @@ import {
   electionSearchSchema,
   mapParamsToApiFilters,
   deriveActiveFilters,
+  formatShortDate,
+  RACE_CATEGORY_LABELS,
 } from "@/lib/election-search"
 import type { ElectionSearchParams } from "@/lib/election-search"
 import { EmptyState } from "@/components/ui/empty-state"
@@ -53,6 +68,18 @@ export const Route = createFileRoute("/elections/")({
   component: ElectionsListPage,
   validateSearch: electionSearchSchema,
 })
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+/** Hardcoded fallback race category options when filter-options endpoint is unavailable */
+const FALLBACK_RACE_OPTIONS = [
+  { value: "federal", label: "Federal" },
+  { value: "state_senate", label: "State Senate" },
+  { value: "state_house", label: "State House" },
+  { value: "local", label: "Local" },
+]
 
 // ---------------------------------------------------------------------------
 // ElectionListItem (unchanged)
@@ -120,14 +147,20 @@ function ElectionsListPage() {
   const params = Route.useSearch()
   const navigate = useNavigate()
 
+  // Feature flags from capabilities endpoint
+  const flags = useElectionCapabilities()
+
   // Default date range for "Next 3 months" (applied when no dates in URL)
   const defaultDates = getDefaultDateRange()
 
   // Map URL params to API filters
   const apiFilters = mapParamsToApiFilters(params, defaultDates)
 
-  // Exclude client-side search from API params
+  // Fetch elections from API
   const { data, isLoading, error } = useElections(apiFilters, params.page ?? 1)
+
+  // Fetch filter options (always call hook to avoid conditional hook rules)
+  const { data: filterOptionsData } = useFilterOptions(apiFilters)
 
   // Helper to update filters and reset page
   const updateFilters = (updates: Partial<ElectionSearchParams>) => {
@@ -153,27 +186,58 @@ function ElectionsListPage() {
   const [customFrom, setCustomFrom] = useState(params.date_from ?? "")
   const [customTo, setCustomTo] = useState(params.date_to ?? "")
 
-  // Client-side search filtering with deferred value
-  const searchText = params.search ?? ""
-  const deferredSearch = useDeferredValue(searchText)
+  // ---------------------------------------------------------------------------
+  // Server-side search with debounce
+  // ---------------------------------------------------------------------------
 
-  const elections = data?.elections
-  const filteredElections = useMemo(() => {
-    if (!elections) return []
-    if (!deferredSearch) return elections
-    const lower = deferredSearch.toLowerCase()
-    return elections.filter(
-      (e) =>
-        e.name.toLowerCase().includes(lower) ||
-        e.district.toLowerCase().includes(lower) ||
-        synthesizeDescription(e).toLowerCase().includes(lower),
-    )
-  }, [elections, deferredSearch])
+  const [searchInput, setSearchInput] = useState(params.q ?? "")
+  const [isSearching, setIsSearching] = useState(false)
 
-  // Geographic context
+  useEffect(() => {
+    setIsSearching(true)
+    const timer = setTimeout(() => {
+      const trimmed = searchInput.trim()
+      if (trimmed.length >= 2 || trimmed === "") {
+        if (trimmed !== (params.q ?? "")) {
+          updateFilters({ q: trimmed || undefined, search: undefined })
+        }
+      }
+      setIsSearching(false)
+    }, 300)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchInput])
+
+  // ---------------------------------------------------------------------------
+  // County combobox state
+  // ---------------------------------------------------------------------------
+
+  const [countyOpen, setCountyOpen] = useState(false)
+
+  // ---------------------------------------------------------------------------
+  // County auto-populate from navigation context
+  // ---------------------------------------------------------------------------
+
   const navState = useNavigationContext((s) => s.stateAbbrev)
   const navCounty = useNavigationContext((s) => s.countyName)
   const clearContext = useNavigationContext((s) => s.setContext)
+
+  const countyInitRef = useRef(false)
+  useEffect(() => {
+    if (
+      !countyInitRef.current &&
+      navCounty &&
+      !params.county &&
+      flags.geographic &&
+      flags.filterOptions
+    ) {
+      countyInitRef.current = true
+      updateFilters({ county: navCounty })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navCounty, params.county, flags.geographic, flags.filterOptions])
+
+  // Geographic context label
   let contextLabel: string | null = null
   if (navCounty && navState) {
     contextLabel = `${navCounty} County, ${ABBREV_TO_NAME[navState] ?? navState.toUpperCase()}`
@@ -199,6 +263,38 @@ function ElectionsListPage() {
     [params, activePreset],
   )
 
+  // ---------------------------------------------------------------------------
+  // Race category options
+  // ---------------------------------------------------------------------------
+
+  const raceOptions = useMemo(() => {
+    if (filterOptionsData?.race_categories && filterOptionsData.race_categories.length > 0) {
+      return filterOptionsData.race_categories.map((cat) => ({
+        value: cat,
+        label: RACE_CATEGORY_LABELS[cat] ?? cat,
+      }))
+    }
+    return FALLBACK_RACE_OPTIONS
+  }, [filterOptionsData?.race_categories])
+
+  // ---------------------------------------------------------------------------
+  // County options (sorted alphabetically)
+  // ---------------------------------------------------------------------------
+
+  const countyOptions = useMemo(() => {
+    const counties = filterOptionsData?.counties ?? []
+    return [...counties].sort((a, b) => a.localeCompare(b))
+  }, [filterOptionsData?.counties])
+
+  // ---------------------------------------------------------------------------
+  // Election date options (sorted descending -- most recent first)
+  // ---------------------------------------------------------------------------
+
+  const electionDateOptions = useMemo(() => {
+    const dates = filterOptionsData?.election_dates ?? []
+    return [...dates].sort((a, b) => b.localeCompare(a))
+  }, [filterOptionsData?.election_dates])
+
   // Handle removing a single filter chip
   const onRemoveChip = (paramKey: string) => {
     switch (paramKey) {
@@ -223,6 +319,19 @@ function ElectionsListPage() {
         break
       case "search":
         updateFilters({ search: undefined })
+        break
+      case "q":
+        updateFilters({ q: undefined })
+        setSearchInput("")
+        break
+      case "race":
+        updateFilters({ race: undefined })
+        break
+      case "county":
+        updateFilters({ county: undefined })
+        break
+      case "election_date":
+        updateFilters({ election_date: undefined })
         break
     }
   }
@@ -264,6 +373,8 @@ function ElectionsListPage() {
     setCustomRangeOpen(false)
   }
 
+  const elections = data?.elections
+
   return (
     <div className="container mx-auto px-4 py-4 sm:p-6 max-w-3xl">
       <div className="flex items-center gap-3 mb-6">
@@ -289,132 +400,273 @@ function ElectionsListPage() {
         </div>
       )}
 
-      {/* Search */}
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search elections..."
-          value={searchText}
-          onChange={(e) => updateFilters({ search: e.target.value || undefined })}
-          className="pl-9"
-        />
-      </div>
+      {/* Search -- only shown when capabilities include search */}
+      {flags.search && (
+        <div className="relative mb-4">
+          {isSearching ? (
+            <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+          ) : (
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          )}
+          <Input
+            placeholder="Search elections (min. 2 characters)..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+      )}
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-6 items-center">
-        {/* Status filter */}
-        <Select
-          value={params.status ?? "all"}
-          onValueChange={(v) =>
-            updateFilters({ status: v === "all" ? undefined : (v as "active" | "finalized") })
-          }
-        >
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="finalized">Finalized</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="space-y-3 mb-6">
+        {/* Row 1: Existing filters */}
+        <div className="flex flex-wrap gap-3 items-center">
+          {/* Status filter */}
+          <Select
+            value={params.status ?? "all"}
+            onValueChange={(v) =>
+              updateFilters({ status: v === "all" ? undefined : (v as "active" | "finalized") })
+            }
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="finalized">Finalized</SelectItem>
+            </SelectContent>
+          </Select>
 
-        {/* Type filter */}
-        <Select
-          value={params.type ?? "all"}
-          onValueChange={(v) =>
-            updateFilters({ type: v === "all" ? undefined : (v as "general" | "primary" | "special" | "runoff") })
-          }
-        >
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="general">General</SelectItem>
-            <SelectItem value="primary">Primary</SelectItem>
-            <SelectItem value="special">Special</SelectItem>
-            <SelectItem value="runoff">Runoff</SelectItem>
-          </SelectContent>
-        </Select>
+          {/* Type filter */}
+          <Select
+            value={params.type ?? "all"}
+            onValueChange={(v) =>
+              updateFilters({ type: v === "all" ? undefined : (v as "general" | "primary" | "special" | "runoff") })
+            }
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="general">General</SelectItem>
+              <SelectItem value="primary">Primary</SelectItem>
+              <SelectItem value="special">Special</SelectItem>
+              <SelectItem value="runoff">Runoff</SelectItem>
+            </SelectContent>
+          </Select>
 
-        {/* Date preset filter */}
-        <Popover open={customRangeOpen} onOpenChange={setCustomRangeOpen}>
-          <PopoverTrigger asChild>
-            <div>
-              <Select value={activePreset} onValueChange={handlePresetChange}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Date range" />
+          {/* Date preset filter */}
+          <Popover open={customRangeOpen} onOpenChange={setCustomRangeOpen}>
+            <PopoverTrigger asChild>
+              <div>
+                <Select value={activePreset} onValueChange={handlePresetChange}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Date range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DATE_PRESETS.map((preset) => (
+                      <SelectItem key={preset.key} value={preset.key}>
+                        {preset.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-72" align="start">
+              <div className="space-y-3">
+                <p className="text-sm font-medium">Custom date range</p>
+                <div className="space-y-2">
+                  <label className="text-sm text-muted-foreground">From</label>
+                  <Input
+                    type="date"
+                    value={customFrom}
+                    onChange={(e) => setCustomFrom(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm text-muted-foreground">To</label>
+                  <Input
+                    type="date"
+                    value={customTo}
+                    onChange={(e) => setCustomTo(e.target.value)}
+                  />
+                </div>
+                <Button size="sm" className="w-full" onClick={applyCustomRange}>
+                  Apply
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Registration open checkbox */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="reg-open"
+              checked={params.reg_open === "true"}
+              onCheckedChange={(checked) =>
+                updateFilters({ reg_open: checked ? "true" : undefined })
+              }
+            />
+            <label
+              htmlFor="reg-open"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Registration open
+            </label>
+          </div>
+
+          {/* Early voting active checkbox */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="early-voting"
+              checked={params.early_voting === "true"}
+              onCheckedChange={(checked) =>
+                updateFilters({ early_voting: checked ? "true" : undefined })
+              }
+            />
+            <label
+              htmlFor="early-voting"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Early voting active
+            </label>
+          </div>
+        </div>
+
+        {/* Row 2: API-dependent filter controls */}
+        {(flags.raceCategory || flags.electionDate || (flags.geographic && flags.filterOptions)) && (
+          <div className="flex flex-wrap gap-3 items-center">
+            {/* Race category filter */}
+            {flags.raceCategory && (
+              <Select
+                value={params.race ?? "all"}
+                onValueChange={(v) =>
+                  updateFilters({
+                    race: v === "all" ? undefined : (v as "federal" | "state_senate" | "state_house" | "local"),
+                  })
+                }
+              >
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Race category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DATE_PRESETS.map((preset) => (
-                    <SelectItem key={preset.key} value={preset.key}>
-                      {preset.label}
+                  <SelectItem value="all">All Races</SelectItem>
+                  {raceOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-          </PopoverTrigger>
-          <PopoverContent className="w-72" align="start">
-            <div className="space-y-3">
-              <p className="text-sm font-medium">Custom date range</p>
-              <div className="space-y-2">
-                <label className="text-sm text-muted-foreground">From</label>
-                <Input
-                  type="date"
-                  value={customFrom}
-                  onChange={(e) => setCustomFrom(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm text-muted-foreground">To</label>
-                <Input
-                  type="date"
-                  value={customTo}
-                  onChange={(e) => setCustomTo(e.target.value)}
-                />
-              </div>
-              <Button size="sm" className="w-full" onClick={applyCustomRange}>
-                Apply
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
+            )}
 
-        {/* Registration open checkbox */}
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="reg-open"
-            checked={params.reg_open === "true"}
-            onCheckedChange={(checked) =>
-              updateFilters({ reg_open: checked ? "true" : undefined })
-            }
-          />
-          <label
-            htmlFor="reg-open"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          >
-            Registration open
-          </label>
-        </div>
+            {/* County combobox filter */}
+            {flags.geographic && flags.filterOptions && (
+              <Popover open={countyOpen} onOpenChange={setCountyOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={countyOpen}
+                    className="w-[200px] justify-between"
+                  >
+                    {params.county ?? "Select county..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search counties..." />
+                    <CommandList>
+                      <CommandEmpty>No county found.</CommandEmpty>
+                      <CommandGroup>
+                        {params.county && (
+                          <CommandItem
+                            value="__clear__"
+                            onSelect={() => {
+                              updateFilters({ county: undefined })
+                              setCountyOpen(false)
+                            }}
+                          >
+                            <X className="mr-2 h-4 w-4" />
+                            Clear selection
+                          </CommandItem>
+                        )}
+                        {countyOptions.map((county) => (
+                          <CommandItem
+                            key={county}
+                            value={county}
+                            onSelect={(value) => {
+                              updateFilters({ county: value })
+                              setCountyOpen(false)
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                params.county === county ? "opacity-100" : "opacity-0",
+                              )}
+                            />
+                            {county}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            )}
 
-        {/* Early voting active checkbox */}
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="early-voting"
-            checked={params.early_voting === "true"}
-            onCheckedChange={(checked) =>
-              updateFilters({ early_voting: checked ? "true" : undefined })
-            }
-          />
-          <label
-            htmlFor="early-voting"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          >
-            Early voting active
-          </label>
-        </div>
+            {/* Election date filter */}
+            {flags.electionDate && (
+              <>
+                {filterOptionsData?.election_dates ? (
+                  <Select
+                    value={params.election_date ?? "all"}
+                    onValueChange={(v) =>
+                      updateFilters({
+                        election_date: v === "all" ? undefined : v,
+                        date_from: v === "all" ? undefined : undefined,
+                        date_to: v === "all" ? undefined : undefined,
+                        date_preset: v === "all" ? undefined : "all-time",
+                      })
+                    }
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Election date" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All dates</SelectItem>
+                      {electionDateOptions.map((date) => (
+                        <SelectItem key={date} value={date}>
+                          {formatShortDate(date)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    type="date"
+                    value={params.election_date ?? ""}
+                    onChange={(e) =>
+                      updateFilters({
+                        election_date: e.target.value || undefined,
+                        date_from: undefined,
+                        date_to: undefined,
+                        date_preset: e.target.value ? "all-time" : undefined,
+                      })
+                    }
+                    className="w-[180px]"
+                    placeholder="Election date"
+                  />
+                )}
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Active filter chips */}
@@ -456,7 +708,7 @@ function ElectionsListPage() {
       )}
 
       {/* Empty state: filters active, zero results */}
-      {data && filteredElections.length === 0 && activeFilters.length > 0 && (
+      {data && elections?.length === 0 && activeFilters.length > 0 && (
         <EmptyState
           icon={<Vote className="h-12 w-12" />}
           title="No elections found"
@@ -476,7 +728,7 @@ function ElectionsListPage() {
       )}
 
       {/* Empty state: default filters, no results */}
-      {data && filteredElections.length === 0 && activeFilters.length === 0 && (
+      {data && elections?.length === 0 && activeFilters.length === 0 && (
         <EmptyState
           icon={<Vote className="h-12 w-12" />}
           title="No upcoming elections"
@@ -493,15 +745,15 @@ function ElectionsListPage() {
         />
       )}
 
-      {data && filteredElections.length > 0 && (
+      {data && elections && elections.length > 0 && (
         <>
           {/* Result count */}
           <p className="text-sm text-muted-foreground mb-3">
-            Showing {filteredElections.length} of {data.total} elections
+            Showing {elections.length} of {data.total} elections
           </p>
 
           <div className="space-y-3">
-            {filteredElections.map((election) => (
+            {elections.map((election) => (
               <ElectionListItem
                 key={election.id}
                 election={election}
