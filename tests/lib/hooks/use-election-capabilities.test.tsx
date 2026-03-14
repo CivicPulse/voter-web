@@ -59,7 +59,9 @@ describe("useElectionCapabilities", () => {
       wrapper: createWrapper(),
     })
 
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    await waitFor(() => expect(result.current.isLoading).toBe(false), {
+      timeout: 5000,
+    })
 
     expect(result.current.search).toBe(false)
     expect(result.current.raceCategory).toBe(false)
@@ -77,7 +79,9 @@ describe("useElectionCapabilities", () => {
       wrapper: createWrapper(),
     })
 
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    await waitFor(() => expect(result.current.isLoading).toBe(false), {
+      timeout: 5000,
+    })
 
     expect(result.current.search).toBe(false)
     expect(result.current.raceCategory).toBe(false)

@@ -11,6 +11,7 @@ import type {
   UpdateElectionRequest,
   RefreshResponse,
   ElectionFilters,
+  CapabilitiesResponse,
   FeedImportRequest,
   FeedImportPreviewResponse,
   FeedImportResponse,
@@ -19,6 +20,13 @@ import type {
 // ============================================================================
 // Public Endpoints (No Authentication Required)
 // ============================================================================
+
+/** Fetch election API capabilities (which filters are supported) */
+export async function getElectionCapabilities(): Promise<CapabilitiesResponse> {
+  return publicApi
+    .get("elections/capabilities")
+    .json<CapabilitiesResponse>()
+}
 
 /** Raw API response shape from GET /elections */
 interface RawElectionListResponse {

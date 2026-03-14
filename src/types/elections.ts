@@ -244,6 +244,28 @@ export interface RaceFilters {
   category: RaceCategory
 }
 
+/** API capabilities response from GET /elections/capabilities */
+export interface CapabilitiesResponse {
+  supported_filters: string[]
+  endpoints: {
+    filter_options: boolean
+  }
+}
+
+/** Feature flags derived from API capabilities */
+export interface ElectionFeatureFlags {
+  /** Server-side text search via `q` param */
+  search: boolean
+  /** Race category filter via `race_category` param */
+  raceCategory: boolean
+  /** Geographic filters via `county` and/or `district` params */
+  geographic: boolean
+  /** Election date exact filter via `election_date` param */
+  electionDate: boolean
+  /** Filter options endpoint availability */
+  filterOptions: boolean
+}
+
 // ============================================================================
 // Constants and Utility Functions
 // ============================================================================
