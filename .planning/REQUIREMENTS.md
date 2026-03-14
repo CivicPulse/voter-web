@@ -30,11 +30,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### New API Filters (Feature-Detected)
 
-- [ ] **API-01**: Server-side text search (q param) replaces client-side search, works across all pages with 300ms debounce
-- [ ] **API-02**: Race category filter (federal / state senate / state house / local) backed by API race_category field
-- [ ] **API-03**: Election date exact filter narrows results to a specific election day
-- [ ] **API-04**: Geographic filter (county/district) narrows results to specific geography
-- [ ] **API-05**: Filter options endpoint provides valid values per filter, disabling options that yield zero results
+- [x] **API-01**: Server-side text search (q param) replaces client-side search, works across all pages with 300ms debounce
+- [x] **API-02**: Race category filter (federal / state senate / state house / local) backed by API race_category field
+- [x] **API-03**: Election date exact filter narrows results to a specific election day
+- [x] **API-04**: Geographic filter (county/district) narrows results to specific geography
+- [x] **API-05**: Filter options endpoint provides valid values per filter, disabling options that yield zero results
 
 ### Infrastructure
 
@@ -85,11 +85,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UX-02 | Phase 1 | Complete |
 | UX-03 | Phase 1 | Complete |
 | UX-04 | Phase 1 | Complete |
-| API-01 | Phase 3 | Pending |
-| API-02 | Phase 3 | Pending |
-| API-03 | Phase 3 | Pending |
-| API-04 | Phase 3 | Pending |
-| API-05 | Phase 3 | Pending |
+| API-01 | Phase 3 | Complete |
+| API-02 | Phase 3 | Complete |
+| API-03 | Phase 3 | Complete |
+| API-04 | Phase 3 | Complete |
+| API-05 | Phase 3 | Complete |
 | INFRA-01 | Phase 2 | Complete |
 | INFRA-02 | Phase 2 | Complete |
 
