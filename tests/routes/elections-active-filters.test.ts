@@ -111,4 +111,75 @@ describe("deriveActiveFilters", () => {
       { key: 'Search: "senate"', paramKey: "search" },
     ])
   })
+
+  // Phase 3: new filter chip types
+  it("returns q chip with search text", () => {
+    const result = deriveActiveFilters({ q: "senate" }, defaultPreset)
+    expect(result).toContainEqual({
+      key: 'Search: "senate"',
+      paramKey: "q",
+    })
+  })
+
+  it("truncates q text longer than 20 characters", () => {
+    const result = deriveActiveFilters(
+      { q: "a very long search string that exceeds twenty characters" },
+      defaultPreset,
+    )
+    expect(result).toContainEqual({
+      key: 'Search: "a very long search s..."',
+      paramKey: "q",
+    })
+  })
+
+  it("returns race chip with formatted label", () => {
+    const result = deriveActiveFilters({ race: "state_senate" }, defaultPreset)
+    expect(result).toContainEqual({
+      key: "Race: State Senate",
+      paramKey: "race",
+    })
+  })
+
+  it("returns county chip", () => {
+    const result = deriveActiveFilters({ county: "Bibb" }, defaultPreset)
+    expect(result).toContainEqual({
+      key: "County: Bibb",
+      paramKey: "county",
+    })
+  })
+
+  it("returns election_date chip with formatted date", () => {
+    const result = deriveActiveFilters(
+      { election_date: "2026-11-03" },
+      defaultPreset,
+    )
+    expect(result).toContainEqual({
+      key: "Date: Nov 3, 2026",
+      paramKey: "election_date",
+    })
+  })
+
+  it("returns new chips after existing chips in correct order", () => {
+    const result = deriveActiveFilters(
+      {
+        status: "active",
+        search: "test",
+        q: "senate",
+        race: "federal",
+        county: "Bibb",
+        election_date: "2026-11-03",
+      },
+      defaultPreset,
+    )
+    const paramKeys = result.map((f) => f.paramKey)
+    // Existing chips first, then new Phase 3 chips
+    expect(paramKeys).toEqual([
+      "status",
+      "search",
+      "q",
+      "race",
+      "county",
+      "election_date",
+    ])
+  })
 })

@@ -236,6 +236,21 @@ export interface ElectionFilters {
   registration_open?: boolean
   early_voting_active?: boolean
   search?: string
+  /** Server-side text search query */
+  q?: string
+  /** Race category filter (e.g., federal, state_senate, state_house, local) */
+  race_category?: string
+  /** County filter */
+  county?: string
+  /** Exact election date filter (ISO date string) */
+  election_date?: string
+}
+
+/** Response from GET /elections/filter-options */
+export interface FilterOptionsResponse {
+  race_categories: string[]
+  counties: string[]
+  election_dates: string[]
 }
 
 /** Race list filter state (within an election event) */

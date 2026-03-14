@@ -71,6 +71,49 @@ describe("electionSearchSchema", () => {
     const result = electionSearchSchema.parse({ search: "governor" })
     expect(result.search).toBe("governor")
   })
+
+  // Phase 3: new URL params
+  it("parses q string field", () => {
+    const result = electionSearchSchema.parse({ q: "senate" })
+    expect(result.q).toBe("senate")
+  })
+
+  it("catches undefined on missing q", () => {
+    const result = electionSearchSchema.parse({})
+    expect(result.q).toBeUndefined()
+  })
+
+  it("parses race field with valid enum values", () => {
+    for (const value of ["federal", "state_senate", "state_house", "local"]) {
+      const result = electionSearchSchema.parse({ race: value })
+      expect(result.race).toBe(value)
+    }
+  })
+
+  it("catches invalid race to undefined", () => {
+    const result = electionSearchSchema.parse({ race: "invalid" })
+    expect(result.race).toBeUndefined()
+  })
+
+  it("parses county string field", () => {
+    const result = electionSearchSchema.parse({ county: "Bibb" })
+    expect(result.county).toBe("Bibb")
+  })
+
+  it("catches undefined on missing county", () => {
+    const result = electionSearchSchema.parse({})
+    expect(result.county).toBeUndefined()
+  })
+
+  it("parses election_date string field", () => {
+    const result = electionSearchSchema.parse({ election_date: "2026-11-03" })
+    expect(result.election_date).toBe("2026-11-03")
+  })
+
+  it("catches undefined on missing election_date", () => {
+    const result = electionSearchSchema.parse({})
+    expect(result.election_date).toBeUndefined()
+  })
 })
 
 describe("mapParamsToApiFilters", () => {
@@ -130,5 +173,41 @@ describe("mapParamsToApiFilters", () => {
   it("maps status to status", () => {
     const result = mapParamsToApiFilters({ status: "active" }, defaultDates)
     expect(result.status).toBe("active")
+  })
+
+  // Phase 3: new param mappings
+  it("passes q param through to output", () => {
+    const result = mapParamsToApiFilters({ q: "senate" }, defaultDates)
+    expect(result.q).toBe("senate")
+  })
+
+  it("maps race param to race_category in output", () => {
+    const result = mapParamsToApiFilters({ race: "state_senate" }, defaultDates)
+    expect(result.race_category).toBe("state_senate")
+  })
+
+  it("passes county param through to output", () => {
+    const result = mapParamsToApiFilters({ county: "Bibb" }, defaultDates)
+    expect(result.county).toBe("Bibb")
+  })
+
+  it("passes election_date and clears date_from/date_to", () => {
+    const result = mapParamsToApiFilters(
+      { election_date: "2026-11-03" },
+      defaultDates,
+    )
+    expect(result.election_date).toBe("2026-11-03")
+    expect(result.date_from).toBeNull()
+    expect(result.date_to).toBeNull()
+  })
+
+  it("election_date takes precedence over date_preset all-time", () => {
+    const result = mapParamsToApiFilters(
+      { election_date: "2026-11-03", date_preset: "all-time" },
+      defaultDates,
+    )
+    expect(result.election_date).toBe("2026-11-03")
+    expect(result.date_from).toBeNull()
+    expect(result.date_to).toBeNull()
   })
 })

@@ -29,6 +29,14 @@ export const electionSearchSchema = z.object({
   early_voting: z.literal("true").optional().catch(undefined),
   search: z.string().optional().catch(undefined),
   page: z.coerce.number().int().positive().optional().catch(undefined),
+  // Phase 3: API-dependent filter params
+  q: z.string().optional().catch(undefined),
+  race: z
+    .enum(["federal", "state_senate", "state_house", "local"])
+    .optional()
+    .catch(undefined),
+  county: z.string().optional().catch(undefined),
+  election_date: z.string().optional().catch(undefined),
 })
 
 export type ElectionSearchParams = z.infer<typeof electionSearchSchema>
@@ -42,13 +50,23 @@ export function mapParamsToApiFilters(
   defaultDates: { date_from: string; date_to: string },
 ): Partial<ElectionFilters> {
   const isAllTime = params.date_preset === "all-time"
+  const hasExactDate = !!params.election_date
+
+  // When an exact election_date is set, it takes precedence over any date range
+  const date_from = hasExactDate ? null : (isAllTime ? null : (params.date_from ?? defaultDates.date_from))
+  const date_to = hasExactDate ? null : (isAllTime ? null : (params.date_to ?? defaultDates.date_to))
+
   return {
     status: params.status ?? "all",
     election_type: params.type ?? "all",
-    date_from: isAllTime ? null : (params.date_from ?? defaultDates.date_from),
-    date_to: isAllTime ? null : (params.date_to ?? defaultDates.date_to),
+    date_from,
+    date_to,
     registration_open: params.reg_open === "true" ? true : undefined,
     early_voting_active: params.early_voting === "true" ? true : undefined,
+    q: params.q,
+    race_category: params.race,
+    county: params.county,
+    election_date: params.election_date,
   }
 }
 
@@ -62,6 +80,23 @@ export interface ActiveFilter {
   key: string
   /** Which URL param this filter corresponds to (for removal) */
   paramKey: string
+}
+
+/** Format an ISO date string to a short human-readable format (e.g., "Nov 3, 2026") */
+export function formatShortDate(dateStr: string): string {
+  return new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  })
+}
+
+/** Race category labels for chip display */
+const RACE_CATEGORY_LABELS: Record<string, string> = {
+  federal: "Federal",
+  state_senate: "State Senate",
+  state_house: "State House",
+  local: "Local",
 }
 
 /** Capitalize first letter of a string */
@@ -111,6 +146,26 @@ export function deriveActiveFilters(
         ? params.search.slice(0, 20) + "..."
         : params.search
     filters.push({ key: `Search: "${truncated}"`, paramKey: "search" })
+  }
+
+  // Phase 3: API-dependent filter chips
+  if (params.q) {
+    const truncated =
+      params.q.length > 20 ? params.q.slice(0, 20) + "..." : params.q
+    filters.push({ key: `Search: "${truncated}"`, paramKey: "q" })
+  }
+  if (params.race) {
+    const label = RACE_CATEGORY_LABELS[params.race] ?? params.race
+    filters.push({ key: `Race: ${label}`, paramKey: "race" })
+  }
+  if (params.county) {
+    filters.push({ key: `County: ${params.county}`, paramKey: "county" })
+  }
+  if (params.election_date) {
+    filters.push({
+      key: `Date: ${formatShortDate(params.election_date)}`,
+      paramKey: "election_date",
+    })
   }
 
   return filters
