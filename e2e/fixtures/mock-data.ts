@@ -777,3 +777,26 @@ export const candidateDetailResponse = {
   result_vote_count: 15234,
   result_political_party: "Democratic",
 }
+
+// ---------------------------------------------------------------------------
+// Election Capabilities & Filter Options
+// ---------------------------------------------------------------------------
+
+/** Mock capabilities response with all flags enabled */
+export const mockCapabilities = {
+  supported_filters: ["q", "race_category", "county", "district", "election_date"],
+  endpoints: { filter_options: true },
+}
+
+/** Mock capabilities response with no flags enabled */
+export const mockCapabilitiesNone = {
+  supported_filters: [],
+  endpoints: { filter_options: false },
+}
+
+/** Mock filter-options response */
+export const mockFilterOptions = {
+  race_categories: ["federal", "state_senate", "state_house", "local"],
+  counties: ["Bibb", "Houston", "Peach"],
+  election_dates: ["2026-11-03", "2026-05-19", "2026-02-17"],
+}

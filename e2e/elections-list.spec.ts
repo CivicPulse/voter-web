@@ -1,6 +1,9 @@
 import { test, expect } from "./fixtures/election-api"
 import { setupElectionApiMocks } from "./fixtures/election-api"
-import { electionsEmptyResponse } from "./fixtures/mock-data"
+import {
+  electionsEmptyResponse,
+  mockCapabilitiesNone,
+} from "./fixtures/mock-data"
 
 test.describe("Elections List - URL State", () => {
   test("persists status filter in URL", async ({ page }) => {
@@ -201,11 +204,186 @@ test.describe("Elections List - UX Feedback", () => {
     await expect(page).toHaveURL(/\/elections\/550e8400/)
   })
 
-  test("search filters elections client-side", async ({ page }) => {
+  test("search filters elections server-side", async ({ page }) => {
     await page.goto("/elections")
-    await page.getByPlaceholder("Search elections...").fill("Senate")
+    const searchInput = page.getByPlaceholder(/Search elections/)
+    await expect(searchInput).toBeVisible()
+    await searchInput.fill("Senate")
+    // Wait for debounce
+    await page.waitForTimeout(400)
+    await expect(page).toHaveURL(/[?&]q=Senate/)
+  })
+})
+
+test.describe("Elections List - API-dependent filters", () => {
+  test("shows search input when capabilities include search", async ({
+    page,
+  }) => {
+    await page.goto("/elections")
+    await expect(page.getByPlaceholder(/Search elections/)).toBeVisible()
+  })
+
+  test("hides search input when capabilities lack search", async ({
+    page,
+  }) => {
+    await setupElectionApiMocks(page, {
+      capabilitiesOverride: mockCapabilitiesNone,
+    })
+    await page.goto("/elections")
+    // Wait for content to load
     await expect(
       page.getByText("State Senate District 18 Special"),
     ).toBeVisible()
+    // Search input should not be present
+    await expect(
+      page.getByPlaceholder(/Search elections/),
+    ).not.toBeVisible()
+  })
+
+  test("search filters results with server-side query", async ({ page }) => {
+    // Track API calls to verify q param is sent
+    const apiCalls: string[] = []
+    await page.route("**/api/v1/elections?*", (route) => {
+      apiCalls.push(route.request().url())
+      return route.fallback()
+    })
+
+    await page.goto("/elections")
+    const searchInput = page.getByPlaceholder(/Search elections/)
+    await expect(searchInput).toBeVisible()
+
+    await searchInput.fill("senate")
+    // Wait for debounce (300ms) + navigation
+    await page.waitForTimeout(500)
+
+    await expect(page).toHaveURL(/[?&]q=senate/)
+    // Verify the API was called with the q parameter
+    const hasQParam = apiCalls.some((url) => url.includes("q=senate"))
+    expect(hasQParam).toBeTruthy()
+  })
+
+  test("shows race category dropdown when capability is enabled", async ({
+    page,
+  }) => {
+    await page.goto("/elections")
+    await expect(
+      page.getByText("State Senate District 18 Special"),
+    ).toBeVisible()
+
+    // Race category dropdown with "All Races" default
+    await expect(
+      page.locator("button").filter({ hasText: "All Races" }),
+    ).toBeVisible()
+  })
+
+  test("filters by race category", async ({ page }) => {
+    await page.goto("/elections")
+    await expect(
+      page.getByText("State Senate District 18 Special"),
+    ).toBeVisible()
+
+    // Open race category dropdown and select Federal
+    await page.locator("button").filter({ hasText: "All Races" }).click()
+    await page.getByRole("option", { name: "Federal" }).click()
+
+    await expect(page).toHaveURL(/[?&]race=federal/)
+  })
+
+  test("shows county combobox when filter-options is available", async ({
+    page,
+  }) => {
+    await page.goto("/elections")
+    await expect(
+      page.getByText("State Senate District 18 Special"),
+    ).toBeVisible()
+
+    // County combobox trigger button
+    await expect(
+      page.locator("button").filter({ hasText: "Select county..." }),
+    ).toBeVisible()
+  })
+
+  test("filters by county", async ({ page }) => {
+    await page.goto("/elections")
+    await expect(
+      page.getByText("State Senate District 18 Special"),
+    ).toBeVisible()
+
+    // Open county combobox
+    await page.locator("button").filter({ hasText: "Select county..." }).click()
+    // Select "Bibb"
+    await page.getByRole("option", { name: "Bibb" }).click()
+
+    await expect(page).toHaveURL(/[?&]county=bibb/i)
+  })
+
+  test("shows election date dropdown with formatted dates", async ({
+    page,
+  }) => {
+    await page.goto("/elections")
+    await expect(
+      page.getByText("State Senate District 18 Special"),
+    ).toBeVisible()
+
+    // Election date dropdown with "All dates" default
+    await expect(
+      page.locator("button").filter({ hasText: "All dates" }),
+    ).toBeVisible()
+  })
+
+  test("filters by election date", async ({ page }) => {
+    await page.goto("/elections")
+    await expect(
+      page.getByText("State Senate District 18 Special"),
+    ).toBeVisible()
+
+    // Open election date dropdown and select a date
+    await page.locator("button").filter({ hasText: "All dates" }).click()
+    await page.getByRole("option", { name: /Nov 3, 2026/ }).click()
+
+    await expect(page).toHaveURL(/[?&]election_date=2026-11-03/)
+  })
+
+  test("shows filter chips for new filters", async ({ page }) => {
+    await page.goto("/elections?race=federal&county=Bibb")
+
+    await expect(page.getByText("Race: Federal")).toBeVisible()
+    await expect(page.getByText("County: Bibb")).toBeVisible()
+  })
+
+  test("removes new filter chip on click", async ({ page }) => {
+    await page.goto("/elections?race=federal")
+
+    // Verify chip is visible
+    const chip = page.getByText("Race: Federal")
+    await expect(chip).toBeVisible()
+
+    // Click the chip to remove it
+    await chip.click()
+
+    // Chip should disappear and URL should not have race param
+    await expect(page.getByText("Race: Federal")).not.toBeVisible()
+    await expect(page).not.toHaveURL(/race=federal/)
+  })
+
+  test("Row 2 hidden when no new capabilities", async ({ page }) => {
+    await setupElectionApiMocks(page, {
+      capabilitiesOverride: mockCapabilitiesNone,
+    })
+    await page.goto("/elections")
+    await expect(
+      page.getByText("State Senate District 18 Special"),
+    ).toBeVisible()
+
+    // Row 2 filters should not be visible
+    await expect(
+      page.locator("button").filter({ hasText: "All Races" }),
+    ).not.toBeVisible()
+    await expect(
+      page.locator("button").filter({ hasText: "Select county..." }),
+    ).not.toBeVisible()
+    await expect(
+      page.locator("button").filter({ hasText: "All dates" }),
+    ).not.toBeVisible()
   })
 })

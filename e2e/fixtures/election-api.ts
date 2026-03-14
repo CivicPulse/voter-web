@@ -29,12 +29,16 @@ import {
   candidateListResponse,
   candidateDetailResponse,
   CANDIDATE_ID,
+  mockCapabilities,
+  mockFilterOptions,
 } from "./mock-data"
 
 export interface MockOptions {
   resultsOverride?: Record<string, unknown>
   precinctGeoJSONOverride?: Record<string, unknown>
   electionsListOverride?: Record<string, unknown>
+  capabilitiesOverride?: Record<string, unknown>
+  filterOptionsOverride?: Record<string, unknown>
 }
 
 export async function setupElectionApiMocks(
@@ -45,6 +49,8 @@ export async function setupElectionApiMocks(
   const precinctGeoJSON =
     options.precinctGeoJSONOverride ?? precinctGeoJSONResponse
   const electionsList = options.electionsListOverride ?? electionsListResponse
+  const capabilities = options.capabilitiesOverride ?? mockCapabilities
+  const filterOptions = options.filterOptionsOverride ?? mockFilterOptions
 
   // Precinct GeoJSON (most specific — register first)
   await page.route(
@@ -146,6 +152,24 @@ export async function setupElectionApiMocks(
         body: JSON.stringify(electionDetailResponse),
       })
     },
+  )
+
+  // Election capabilities
+  await page.route("**/api/v1/elections/capabilities*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(capabilities),
+    }),
+  )
+
+  // Election filter options
+  await page.route("**/api/v1/elections/filter-options*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(filterOptions),
+    }),
   )
 
   // Elections list (with query params)
