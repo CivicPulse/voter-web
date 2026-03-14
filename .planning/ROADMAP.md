@@ -55,11 +55,11 @@ Plans:
   2. User can filter by race category (federal, state senate, state house, local) and by specific election date to narrow results to a particular scope
   3. User can filter by county or district to see only geographically relevant contests
   4. Filter dropdowns show only valid options (values that yield results) when the filter-options endpoint is available, preventing dead-end selections
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md — Data layer: types, API functions, Zod schema, filter mapping, chip derivation, filter-options hook + unit tests
+- [ ] 03-02-PLAN.md — UI: server-side search with debounce, Row 2 filter controls (race category, county combobox, election date), E2E tests
 
 ## Progress
 
@@ -68,6 +68,6 @@ Phases execute in numeric order: 1 -> 2 -> 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. URL State and Existing Filters | 1/2 | In Progress | - |
-| 2. Feature Detection Infrastructure | 0/1 | Not started | - |
-| 3. API-Dependent Filters | 0/0 | Not started | - |
+| 1. URL State and Existing Filters | 2/2 | Complete | 2026-03-13 |
+| 2. Feature Detection Infrastructure | 1/1 | Complete | 2026-03-14 |
+| 3. API-Dependent Filters | 0/2 | Not started | - |
