@@ -1,5 +1,4 @@
-import { test, expect } from "./fixtures/election-api"
-import { setupElectionApiMocks } from "./fixtures/election-api"
+import { test, expect, setupElectionApiMocks } from "./fixtures/election-api"
 import {
   electionsEmptyResponse,
   mockCapabilitiesNone,

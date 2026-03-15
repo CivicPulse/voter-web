@@ -16,24 +16,25 @@ import type { DatePresetKey } from "@/lib/date-presets"
 // Zod search schema -- defines URL search param types for the elections page
 // ---------------------------------------------------------------------------
 
+// Reusable schema fragments to reduce duplication
+const optStr = z.string().optional().catch(undefined)
+const optDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().catch(undefined)
+const optFlag = z.literal("true").optional().catch(undefined)
+
 export const electionSearchSchema = z.object({
   status: z.enum(["active", "finalized"]).optional().catch(undefined),
-  type: z
-    .enum(["general", "primary", "special", "runoff"])
-    .optional()
-    .catch(undefined),
-  date_from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().catch(undefined),
-  date_to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().catch(undefined),
+  type: z.enum(["general", "primary", "special", "runoff"]).optional().catch(undefined),
+  date_from: optDate,
+  date_to: optDate,
   date_preset: z.enum(["all-time"]).optional().catch(undefined),
-  reg_open: z.literal("true").optional().catch(undefined),
-  early_voting: z.literal("true").optional().catch(undefined),
-  search: z.string().optional().catch(undefined),
+  reg_open: optFlag,
+  early_voting: optFlag,
+  search: optStr,
   page: z.coerce.number().int().positive().optional().catch(undefined),
-  // Phase 3: API-dependent filter params
-  q: z.string().optional().catch(undefined),
-  race: z.string().optional().catch(undefined),
-  county: z.string().optional().catch(undefined),
-  election_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().catch(undefined),
+  q: optStr,
+  race: optStr,
+  county: optStr,
+  election_date: optDate,
 })
 
 export type ElectionSearchParams = z.infer<typeof electionSearchSchema>

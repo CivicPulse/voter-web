@@ -239,7 +239,7 @@ export interface ElectionFilters {
   /** Server-side text search query */
   q?: string
   /** Race category filter (e.g., federal, state_senate, state_house, local) */
-  race_category?: RaceCategory | string
+  race_category?: string
   /** County filter */
   county?: string
   /** Exact election date filter (ISO date string) */

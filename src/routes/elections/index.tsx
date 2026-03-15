@@ -297,42 +297,13 @@ function ElectionsListPage() {
 
   // Handle removing a single filter chip
   const onRemoveChip = (paramKey: string) => {
-    switch (paramKey) {
-      case "status":
-        updateFilters({ status: undefined })
-        break
-      case "type":
-        updateFilters({ type: undefined })
-        break
-      case "date_range":
-        updateFilters({
-          date_from: undefined,
-          date_to: undefined,
-          date_preset: undefined,
-        })
-        break
-      case "reg_open":
-        updateFilters({ reg_open: undefined })
-        break
-      case "early_voting":
-        updateFilters({ early_voting: undefined })
-        break
-      case "search":
-        updateFilters({ search: undefined })
-        break
-      case "q":
-        updateFilters({ q: undefined })
-        setSearchInput("")
-        break
-      case "race":
-        updateFilters({ race: undefined })
-        break
-      case "county":
-        updateFilters({ county: undefined })
-        break
-      case "election_date":
-        updateFilters({ election_date: undefined })
-        break
+    if (paramKey === "date_range") {
+      updateFilters({ date_from: undefined, date_to: undefined, date_preset: undefined })
+    } else if (paramKey === "q") {
+      updateFilters({ q: undefined })
+      setSearchInput("")
+    } else {
+      updateFilters({ [paramKey]: undefined } as Partial<ElectionSearchParams>)
     }
   }
 
@@ -629,8 +600,8 @@ function ElectionsListPage() {
                     onValueChange={(v) =>
                       updateFilters({
                         election_date: v === "all" ? undefined : v,
-                        date_from: v === "all" ? undefined : undefined,
-                        date_to: v === "all" ? undefined : undefined,
+                        date_from: undefined,
+                        date_to: undefined,
                         date_preset: v === "all" ? undefined : "all-time",
                       })
                     }
