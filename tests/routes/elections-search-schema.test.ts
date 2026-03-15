@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest"
 import {
   electionSearchSchema,
+  formatShortDate,
   mapParamsToApiFilters,
 } from "@/lib/election-search"
 
@@ -204,5 +205,19 @@ describe("mapParamsToApiFilters", () => {
     expect(result.election_date).toBe("2026-11-03")
     expect(result.date_from).toBeNull()
     expect(result.date_to).toBeNull()
+  })
+})
+
+describe("formatShortDate", () => {
+  it("formats a valid ISO date string to short format", () => {
+    expect(formatShortDate("2026-11-03")).toBe("Nov 3, 2026")
+  })
+
+  it("formats another valid date", () => {
+    expect(formatShortDate("2026-01-15")).toBe("Jan 15, 2026")
+  })
+
+  it("handles end-of-year date", () => {
+    expect(formatShortDate("2026-12-31")).toBe("Dec 31, 2026")
   })
 })

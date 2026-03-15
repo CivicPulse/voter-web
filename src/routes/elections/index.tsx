@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useEffect, useMemo, useRef, useState } from "react"
 import {
+  AlertCircle,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -148,7 +149,7 @@ function ElectionsListPage() {
   const navigate = useNavigate()
 
   // Feature flags from capabilities endpoint
-  const flags = useElectionCapabilities()
+  const { isError: capabilitiesError, ...flags } = useElectionCapabilities()
 
   // Default date range for "Next 3 months" (applied when no dates in URL)
   const defaultDates = getDefaultDateRange()
@@ -159,8 +160,12 @@ function ElectionsListPage() {
   // Fetch elections from API
   const { data, isLoading, error } = useElections(apiFilters, params.page ?? 1)
 
-  // Fetch filter options (always call hook to avoid conditional hook rules)
-  const { data: filterOptionsData } = useFilterOptions(apiFilters)
+  // Fetch filter options (disabled when backend lacks the endpoint)
+  const { data: filterOptionsData, isError: filterOptionsError } = useFilterOptions(apiFilters, flags)
+
+  // Keep a ref to the latest params so debounced callbacks always see fresh values
+  const paramsRef = useRef(params)
+  paramsRef.current = params
 
   // Helper to update filters and reset page
   const updateFilters = (updates: Partial<ElectionSearchParams>) => {
@@ -194,19 +199,28 @@ function ElectionsListPage() {
   const [isSearching, setIsSearching] = useState(false)
 
   useEffect(() => {
-    setIsSearching(true)
+    const trimmed = searchInput.trim()
+    const shouldSearch = trimmed.length >= 2 || trimmed === ""
+    if (shouldSearch) {
+      setIsSearching(true)
+    }
     const timer = setTimeout(() => {
-      const trimmed = searchInput.trim()
-      if (trimmed.length >= 2 || trimmed === "") {
-        if (trimmed !== (params.q ?? "")) {
-          updateFilters({ q: trimmed || undefined, search: undefined })
-        }
+      if (shouldSearch) {
+        const current = paramsRef.current
+        navigate({
+          to: "/elections",
+          search: {
+            ...current,
+            q: trimmed || undefined,
+            search: undefined,
+            page: 1,
+          },
+        })
       }
       setIsSearching(false)
     }, 300)
     return () => clearTimeout(timer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchInput])
+  }, [searchInput, navigate])
 
   // ---------------------------------------------------------------------------
   // County combobox state
@@ -247,7 +261,7 @@ function ElectionsListPage() {
 
   // Highlight elections matching geographic context
   const contextMatch = (election: Election): boolean => {
-    if (!contextLabel) return false
+    if (!contextLabel || !election.district) return false
     const district = election.district.toLowerCase()
     if (navCounty && district.includes(navCounty.toLowerCase())) return true
     if (navState) {
@@ -570,8 +584,8 @@ function ElectionsListPage() {
                           <CommandItem
                             key={county}
                             value={county}
-                            onSelect={(value) => {
-                              updateFilters({ county: value })
+                            onSelect={() => {
+                              updateFilters({ county })
                               setCountyOpen(false)
                             }}
                           >
@@ -639,6 +653,18 @@ function ElectionsListPage() {
           </div>
         )}
       </div>
+
+      {/* Error indicators for capabilities/filter-options failures */}
+      {(capabilitiesError || filterOptionsError) && (
+        <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
+          <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+          <span>
+            {capabilitiesError
+              ? "Some filter options are unavailable."
+              : "Filter options could not be loaded."}
+          </span>
+        </div>
+      )}
 
       {/* Active filter chips */}
       {activeFilters.length > 0 && (

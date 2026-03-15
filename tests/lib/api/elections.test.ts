@@ -7,6 +7,7 @@ import {
   getPrecinctGeoJSON,
   getElectionParticipants,
   getFilterOptions,
+  getElectionCapabilities,
   createElection,
   updateElection,
   refreshElection,
@@ -487,6 +488,21 @@ describe("elections API client", () => {
         race_categories: ["federal", "local"],
         counties: ["Bibb", "Houston"],
         election_dates: ["2026-11-03"],
+      })
+    })
+  })
+
+  describe("getElectionCapabilities", () => {
+    it("calls GET elections/capabilities via publicApi", async () => {
+      mockPublicJson.mockResolvedValueOnce({
+        supported_filters: ["q", "county"],
+        endpoints: { filter_options: true },
+      })
+      const result = await getElectionCapabilities()
+      expect(mockPublicGet).toHaveBeenCalledWith("elections/capabilities")
+      expect(result).toEqual({
+        supported_filters: ["q", "county"],
+        endpoints: { filter_options: true },
       })
     })
   })

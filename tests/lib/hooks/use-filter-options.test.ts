@@ -26,7 +26,7 @@ describe("useFilterOptions", () => {
     mockedGetFilterOptions.mockResolvedValueOnce(mockFilterOptionsData)
 
     const { result } = renderHook(
-      () => useFilterOptions({ status: "all", election_type: "all" }),
+      () => useFilterOptions({ status: "all", election_type: "all" }, { filterOptions: true }),
       { wrapper: createWrapper() },
     )
 
@@ -39,7 +39,7 @@ describe("useFilterOptions", () => {
     mockedGetFilterOptions.mockReturnValue(new Promise(() => {}))
 
     const { result } = renderHook(
-      () => useFilterOptions({}),
+      () => useFilterOptions({}, { filterOptions: true }),
       { wrapper: createWrapper() },
     )
 
@@ -50,7 +50,7 @@ describe("useFilterOptions", () => {
     mockedGetFilterOptions.mockRejectedValue(new Error("API error"))
 
     const { result } = renderHook(
-      () => useFilterOptions({}),
+      () => useFilterOptions({}, { filterOptions: true }),
       { wrapper: createWrapper() },
     )
 
@@ -69,7 +69,7 @@ describe("useFilterOptions", () => {
     const filtersB = { status: "finalized" as const }
 
     const { result, rerender } = renderHook(
-      ({ filters }) => useFilterOptions(filters),
+      ({ filters }) => useFilterOptions(filters, { filterOptions: true }),
       {
         wrapper: createWrapper(),
         initialProps: { filters: filtersA },

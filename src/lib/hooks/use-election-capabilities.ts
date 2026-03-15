@@ -12,8 +12,8 @@ import type { ElectionFeatureFlags } from "@/types/elections"
  * Cached for 5 minutes (staleTime), garbage collected after 10 minutes (gcTime).
  * One retry on failure before treating as unavailable.
  */
-export function useElectionCapabilities(): ElectionFeatureFlags & { isLoading: boolean } {
-  const { data, isPending } = useQuery({
+export function useElectionCapabilities(): ElectionFeatureFlags & { isLoading: boolean; isError: boolean } {
+  const { data, isPending, isError } = useQuery({
     queryKey: ["election-capabilities"],
     queryFn: async () => {
       const response = await getElectionCapabilities()
@@ -27,5 +27,6 @@ export function useElectionCapabilities(): ElectionFeatureFlags & { isLoading: b
   return {
     ...(data ?? EMPTY_FLAGS),
     isLoading: isPending,
+    isError,
   }
 }

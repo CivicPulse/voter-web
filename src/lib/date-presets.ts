@@ -129,8 +129,10 @@ export function matchPreset(
  */
 export function getDefaultDateRange(): { date_from: string; date_to: string } {
   const resolved = resolvePreset(DEFAULT_PRESET)
-  return {
-    date_from: resolved.date_from!,
-    date_to: resolved.date_to!,
+  if (!resolved.date_from || !resolved.date_to) {
+    throw new Error(
+      `DEFAULT_PRESET "${DEFAULT_PRESET}" must resolve to concrete dates`,
+    )
   }
+  return { date_from: resolved.date_from, date_to: resolved.date_to }
 }

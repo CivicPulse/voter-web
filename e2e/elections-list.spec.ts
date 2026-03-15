@@ -198,9 +198,7 @@ test.describe("Elections List - UX Feedback", () => {
     const searchInput = page.getByPlaceholder(/Search elections/)
     await expect(searchInput).toBeVisible()
     await searchInput.fill("Senate")
-    // Wait for debounce
-    await page.waitForTimeout(400)
-    await expect(page).toHaveURL(/[?&]q=Senate/)
+    await page.waitForURL(/[?&]q=Senate/)
   })
 })
 
@@ -237,10 +235,7 @@ test.describe("Elections List - API-dependent filters", () => {
     await expect(searchInput).toBeVisible()
 
     await searchInput.fill("senate")
-    // Wait for debounce (300ms) + navigation
-    await page.waitForTimeout(500)
-
-    await expect(page).toHaveURL(/[?&]q=senate/)
+    await page.waitForURL(/[?&]q=senate/)
     // Verify the API was called with the q parameter
     const hasQParam = apiCalls.some((url) => url.includes("q=senate"))
     expect(hasQParam).toBeTruthy()
