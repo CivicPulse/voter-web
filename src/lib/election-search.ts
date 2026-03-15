@@ -43,6 +43,16 @@ export type ElectionSearchParams = z.infer<typeof electionSearchSchema>
 // URL param to API filter mapping
 // ---------------------------------------------------------------------------
 
+function resolveDateFilter(
+  hasExactDate: boolean,
+  isAllTime: boolean,
+  paramDate: string | undefined,
+  defaultDate: string,
+): string | null {
+  if (hasExactDate || isAllTime) return null
+  return paramDate ?? defaultDate
+}
+
 export function mapParamsToApiFilters(
   params: ElectionSearchParams,
   defaultDates: { date_from: string; date_to: string },
@@ -50,9 +60,8 @@ export function mapParamsToApiFilters(
   const isAllTime = params.date_preset === "all-time"
   const hasExactDate = !!params.election_date
 
-  // When an exact election_date is set, it takes precedence over any date range
-  const date_from = hasExactDate ? null : (isAllTime ? null : (params.date_from ?? defaultDates.date_from))
-  const date_to = hasExactDate ? null : (isAllTime ? null : (params.date_to ?? defaultDates.date_to))
+  const date_from = resolveDateFilter(hasExactDate, isAllTime, params.date_from, defaultDates.date_from)
+  const date_to = resolveDateFilter(hasExactDate, isAllTime, params.date_to, defaultDates.date_to)
 
   return {
     status: params.status ?? "all",
