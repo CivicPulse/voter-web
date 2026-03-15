@@ -199,6 +199,15 @@ base.describe("Election Participant List (admin)", () => {
       }),
     )
 
+    // Override /users/me with admin role (setupElectionApiMocks sets viewer)
+    await page.route("**/api/v1/users/me", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ id: "test-user", role: "admin" }),
+      }),
+    )
+
     // Navigate to set localStorage (must be same origin)
     await page.goto(baseURL ?? "http://localhost:4173")
     await page.evaluate(() => {

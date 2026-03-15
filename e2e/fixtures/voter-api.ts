@@ -38,6 +38,17 @@ export async function setupVoterApiMocks(
   const locationsData =
     options.locationsOverride ?? voterGeocodedLocationsResponse
 
+  // Catch-all: prevent any unmocked API request from reaching the production
+  // server. Registered first so it is checked last (Playwright checks handlers
+  // in reverse registration order).
+  await page.route("**/api/v1/**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({}),
+    }),
+  )
+
   // Voter search (with query params)
   await page.route("**/api/v1/voters?*", (route) =>
     route.fulfill({
@@ -186,6 +197,77 @@ export async function setupVoterApiMocks(
       body: JSON.stringify({ id: "test-user", role }),
     }),
   )
+
+  // Auth/me endpoint (used by authStore.initialize and useUserRole)
+  await page.route("**/api/v1/auth/me", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ id: "test-user", role }),
+    }),
+  )
+
+  // District check (voter detail page)
+  await page.route(`**/api/v1/voters/*/district-check`, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        voter_id: VOTER_ID,
+        match_status: "match",
+        geocoded_point: null,
+        registered_boundaries: {},
+        determined_boundaries: {},
+        comparisons: [],
+        mismatch_count: 0,
+        checked_at: new Date().toISOString(),
+      }),
+    }),
+  )
+
+  // Provider boundary check (voter detail page)
+  await page.route(`**/api/v1/voters/*/geocode/check-boundaries`, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        voter_id: VOTER_ID,
+        districts: [],
+        provider_summary: [],
+        total_locations: 0,
+        total_districts: 0,
+        checked_at: new Date().toISOString(),
+      }),
+    }),
+  )
+
+  // Boundary types (RootLayout LayerBar)
+  await page.route("**/api/v1/boundaries/types*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    }),
+  )
+
+  // Active elections (RootLayout)
+  await page.route("**/api/v1/elections?*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ items: [], total: 0, page: 1, page_size: 100 }),
+    }),
+  )
+
+  // Elections bare path
+  await page.route("**/api/v1/elections", (route, request) => {
+    if (request.url().includes("/elections/")) return route.fallback()
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ items: [], total: 0, page: 1, page_size: 100 }),
+    })
+  })
 
   // Suppress map tile requests
   await page.route("**/tile.openstreetmap.org/**", (route) =>

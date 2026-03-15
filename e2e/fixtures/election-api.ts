@@ -52,6 +52,17 @@ export async function setupElectionApiMocks(
   const capabilities = options.capabilitiesOverride ?? mockCapabilities
   const filterOptions = options.filterOptionsOverride ?? mockFilterOptions
 
+  // Catch-all: prevent any unmocked API request from reaching the production
+  // server. Registered first so it is checked last (Playwright checks handlers
+  // in reverse registration order).
+  await page.route("**/api/v1/**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({}),
+    }),
+  )
+
   // Precinct GeoJSON (most specific — register first)
   await page.route(
     `**/api/v1/elections/${ELECTION_ID}/results/geojson/precincts*`,
