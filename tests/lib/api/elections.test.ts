@@ -6,6 +6,8 @@ import {
   getElectionGeoJSON,
   getPrecinctGeoJSON,
   getElectionParticipants,
+  getFilterOptions,
+  getElectionCapabilities,
   createElection,
   updateElection,
   refreshElection,
@@ -18,6 +20,8 @@ const mockGet = vi.fn(() => ({ json: mockJson }))
 const mockPost = vi.fn(() => ({ json: mockJson }))
 const mockPatch = vi.fn(() => ({ json: mockJson }))
 const mockDelete = vi.fn()
+const mockPublicJson = vi.fn()
+const mockPublicGet = vi.fn(() => ({ json: mockPublicJson }))
 
 vi.mock("@/api/client", () => ({
   api: {
@@ -25,6 +29,9 @@ vi.mock("@/api/client", () => ({
     post: (...args: unknown[]) => mockPost(...args),
     patch: (...args: unknown[]) => mockPatch(...args),
     delete: (...args: unknown[]) => mockDelete(...args),
+  },
+  publicApi: {
+    get: (...args: unknown[]) => mockPublicGet(...args),
   },
 }))
 
@@ -128,6 +135,35 @@ describe("elections API client", () => {
       await getElections({ registration_open: false })
       expect(mockGet).toHaveBeenCalledWith("elections", {
         searchParams: {},
+      })
+    })
+
+    // Phase 3: new filter params
+    it("passes q param to searchParams", async () => {
+      await getElections({ q: "senate" })
+      expect(mockGet).toHaveBeenCalledWith("elections", {
+        searchParams: { q: "senate" },
+      })
+    })
+
+    it("passes race_category param to searchParams", async () => {
+      await getElections({ race_category: "federal" })
+      expect(mockGet).toHaveBeenCalledWith("elections", {
+        searchParams: { race_category: "federal" },
+      })
+    })
+
+    it("passes county param to searchParams", async () => {
+      await getElections({ county: "Bibb" })
+      expect(mockGet).toHaveBeenCalledWith("elections", {
+        searchParams: { county: "Bibb" },
+      })
+    })
+
+    it("passes election_date param to searchParams", async () => {
+      await getElections({ election_date: "2026-11-03" })
+      expect(mockGet).toHaveBeenCalledWith("elections", {
+        searchParams: { election_date: "2026-11-03" },
       })
     })
   })
@@ -400,6 +436,73 @@ describe("elections API client", () => {
         page: 1,
         page_size: 25,
         total_pages: 1,
+      })
+    })
+  })
+
+  describe("getFilterOptions", () => {
+    beforeEach(() => {
+      mockPublicJson.mockResolvedValue({
+        race_categories: ["federal", "local"],
+        counties: ["Bibb", "Houston"],
+        election_dates: ["2026-11-03"],
+      })
+    })
+
+    it("calls GET elections/filter-options with scoped filter params", async () => {
+      await getFilterOptions({
+        status: "active",
+        election_type: "general",
+        date_from: "2026-01-01",
+        date_to: "2026-12-31",
+        q: "senate",
+        race_category: "federal",
+        county: "Bibb",
+      })
+      expect(mockPublicGet).toHaveBeenCalledWith("elections/filter-options", {
+        searchParams: {
+          status: "active",
+          election_type: "general",
+          date_from: "2026-01-01",
+          date_to: "2026-12-31",
+          q: "senate",
+          race_category: "federal",
+          county: "Bibb",
+        },
+      })
+    })
+
+    it("omits 'all' values from searchParams", async () => {
+      await getFilterOptions({
+        status: "all",
+        election_type: "all",
+      })
+      expect(mockPublicGet).toHaveBeenCalledWith("elections/filter-options", {
+        searchParams: {},
+      })
+    })
+
+    it("returns typed FilterOptionsResponse", async () => {
+      const result = await getFilterOptions()
+      expect(result).toEqual({
+        race_categories: ["federal", "local"],
+        counties: ["Bibb", "Houston"],
+        election_dates: ["2026-11-03"],
+      })
+    })
+  })
+
+  describe("getElectionCapabilities", () => {
+    it("calls GET elections/capabilities via publicApi", async () => {
+      mockPublicJson.mockResolvedValueOnce({
+        supported_filters: ["q", "county"],
+        endpoints: { filter_options: true },
+      })
+      const result = await getElectionCapabilities()
+      expect(mockPublicGet).toHaveBeenCalledWith("elections/capabilities")
+      expect(result).toEqual({
+        supported_filters: ["q", "county"],
+        endpoints: { filter_options: true },
       })
     })
   })

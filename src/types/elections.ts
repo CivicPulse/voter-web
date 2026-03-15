@@ -236,12 +236,49 @@ export interface ElectionFilters {
   registration_open?: boolean
   early_voting_active?: boolean
   search?: string
+  /** Server-side text search query */
+  q?: string
+  /** Race category filter (e.g., federal, state_senate, state_house, local) */
+  race_category?: string
+  /** County filter */
+  county?: string
+  /** Exact election date filter (ISO date string) */
+  election_date?: string
+}
+
+/** Response from GET /elections/filter-options */
+export interface FilterOptionsResponse {
+  race_categories: string[]
+  counties: string[]
+  election_dates: string[]
 }
 
 /** Race list filter state (within an election event) */
 export interface RaceFilters {
   search: string
   category: RaceCategory
+}
+
+/** API capabilities response from GET /elections/capabilities */
+export interface CapabilitiesResponse {
+  supported_filters: string[]
+  endpoints?: {
+    filter_options?: boolean
+  }
+}
+
+/** Feature flags derived from API capabilities */
+export interface ElectionFeatureFlags {
+  /** Server-side text search via `q` param */
+  search: boolean
+  /** Race category filter via `race_category` param */
+  raceCategory: boolean
+  /** Geographic filters via `county` and/or `district` params */
+  geographic: boolean
+  /** Election date exact filter via `election_date` param */
+  electionDate: boolean
+  /** Filter options endpoint availability */
+  filterOptions: boolean
 }
 
 // ============================================================================

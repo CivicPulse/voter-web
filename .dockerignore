@@ -1,0 +1,15 @@
+node_modules
+dist
+dist-ssr
+coverage
+test-results
+playwright-report
+blob-report
+screenshots
+imgs
+.git
+.wrangler
+.tanstack/tmp
+.hatchkit/cache
+*.log
+public/geojson

@@ -11,6 +11,8 @@ import type {
   UpdateElectionRequest,
   RefreshResponse,
   ElectionFilters,
+  FilterOptionsResponse,
+  CapabilitiesResponse,
   FeedImportRequest,
   FeedImportPreviewResponse,
   FeedImportResponse,
@@ -19,6 +21,33 @@ import type {
 // ============================================================================
 // Public Endpoints (No Authentication Required)
 // ============================================================================
+
+/** Fetch election API capabilities (which filters are supported) */
+export async function getElectionCapabilities(): Promise<CapabilitiesResponse> {
+  return publicApi
+    .get("elections/capabilities")
+    .json<CapabilitiesResponse>()
+}
+
+/** Fetch available filter options scoped to current filter state */
+export async function getFilterOptions(
+  filters?: Partial<ElectionFilters>,
+): Promise<FilterOptionsResponse> {
+  const searchParams: Record<string, string> = {}
+  if (filters?.status && filters.status !== "all") searchParams.status = filters.status
+  if (filters?.election_type && filters.election_type !== "all") searchParams.election_type = filters.election_type
+  if (filters?.date_from) searchParams.date_from = filters.date_from
+  if (filters?.date_to) searchParams.date_to = filters.date_to
+  if (filters?.registration_open) searchParams.registration_open = "true"
+  if (filters?.early_voting_active) searchParams.early_voting_active = "true"
+  if (filters?.q) searchParams.q = filters.q
+  if (filters?.race_category) searchParams.race_category = filters.race_category
+  if (filters?.county) searchParams.county = filters.county
+  if (filters?.election_date) searchParams.election_date = filters.election_date
+  return publicApi
+    .get("elections/filter-options", { searchParams })
+    .json<FilterOptionsResponse>()
+}
 
 /** Raw API response shape from GET /elections */
 interface RawElectionListResponse {
@@ -60,6 +89,18 @@ export async function getElections(
   }
   if (params?.early_voting_active) {
     searchParams.early_voting_active = "true"
+  }
+  if (params?.q) {
+    searchParams.q = params.q
+  }
+  if (params?.race_category) {
+    searchParams.race_category = params.race_category
+  }
+  if (params?.county) {
+    searchParams.county = params.county
+  }
+  if (params?.election_date) {
+    searchParams.election_date = params.election_date
   }
 
   const raw = await api

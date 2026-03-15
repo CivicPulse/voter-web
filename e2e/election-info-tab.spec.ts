@@ -36,21 +36,36 @@ test.describe("Election Information Tab", () => {
     await expect(page.getByRole("tab", { name: "Participation" })).toBeVisible()
   })
 
-  test("unauthenticated user sees only Results tab", async ({ page }) => {
+  test("unauthenticated user sees Results and Info tabs but not Participation", async ({ page }) => {
     // Override: ensure no access_token for this test
     await page.evaluate(() => localStorage.removeItem("access_token"))
     await page.goto(`/elections/${ELECTION_ID}`)
     await expect(page.getByRole("tab", { name: "Results" })).toBeVisible()
-    await expect(page.getByRole("tab", { name: "Election Information" })).not.toBeVisible()
+    // Info tab is visible because mock candidates exist (PR #73 changed from auth-only)
+    await expect(page.getByRole("tab", { name: "Election Information" })).toBeVisible()
     await expect(page.getByRole("tab", { name: "Participation" })).not.toBeVisible()
   })
 
-  test("unauthenticated user visiting ?tab=info is redirected to results", async ({ page }) => {
+  test("unauthenticated user can view info tab when candidates exist", async ({ page }) => {
     // Override: ensure no access_token for this test
     await page.evaluate(() => localStorage.removeItem("access_token"))
     await page.goto(`/elections/${ELECTION_ID}?tab=info`)
-    // URL should be canonicalized to ?tab=results
-    await page.waitForURL(/tab=results/)
+    await expect(page.getByRole("tab", { name: "Election Information" })).toBeVisible()
+    await expect(page.getByText("Andrea C. Cooke")).toBeVisible()
+  })
+
+  test("unauthenticated user without candidates sees only Results tab", async ({ page }) => {
+    await page.evaluate(() => localStorage.removeItem("access_token"))
+    // Override candidates to return empty
+    await page.route(`**/api/v1/elections/${ELECTION_ID}/candidates*`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ items: [], total: 0, page: 1, page_size: 100 }),
+      }),
+    )
+    await page.goto(`/elections/${ELECTION_ID}`)
     await expect(page.getByRole("tab", { name: "Results" })).toBeVisible()
+    await expect(page.getByRole("tab", { name: "Election Information" })).not.toBeVisible()
   })
 })

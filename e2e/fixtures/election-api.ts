@@ -28,11 +28,16 @@ import {
   candidateListResponse,
   candidateDetailResponse,
   CANDIDATE_ID,
+  mockCapabilities,
+  mockFilterOptions,
 } from "./mock-data"
 
 export interface MockOptions {
   resultsOverride?: Record<string, unknown>
   precinctGeoJSONOverride?: Record<string, unknown>
+  electionsListOverride?: Record<string, unknown>
+  capabilitiesOverride?: Record<string, unknown>
+  filterOptionsOverride?: Record<string, unknown>
 }
 
 export async function setupElectionApiMocks(
@@ -42,6 +47,24 @@ export async function setupElectionApiMocks(
   const results = options.resultsOverride ?? electionResultsResponse
   const precinctGeoJSON =
     options.precinctGeoJSONOverride ?? precinctGeoJSONResponse
+  const electionsList = options.electionsListOverride ?? electionsListResponse
+  const capabilities = options.capabilitiesOverride ?? mockCapabilities
+  const filterOptions = options.filterOptionsOverride ?? mockFilterOptions
+
+  // Catch-all: prevent any unmocked API request from reaching the production
+  // server. Registered first so it is checked last (Playwright checks handlers
+  // in reverse registration order).
+  await page.route("**/api/v1/**", (route, request) =>
+    route.fulfill({
+      status: 501,
+      contentType: "application/json",
+      body: JSON.stringify({
+        error: "Unmocked API request in Playwright fixture",
+        method: request.method(),
+        url: request.url(),
+      }),
+    }),
+  )
 
   // Precinct GeoJSON (most specific — register first)
   await page.route(
@@ -145,12 +168,30 @@ export async function setupElectionApiMocks(
     },
   )
 
+  // Election capabilities
+  await page.route("**/api/v1/elections/capabilities*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(capabilities),
+    }),
+  )
+
+  // Election filter options
+  await page.route("**/api/v1/elections/filter-options*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(filterOptions),
+    }),
+  )
+
   // Elections list (with query params)
   await page.route("**/api/v1/elections?*", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(electionsListResponse),
+      body: JSON.stringify(electionsList),
     }),
   )
 
@@ -160,7 +201,7 @@ export async function setupElectionApiMocks(
     return route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(electionsListResponse),
+      body: JSON.stringify(electionsList),
     })
   })
 

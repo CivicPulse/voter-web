@@ -1,5 +1,7 @@
 # Admin Features Developer Guide
 
+> **Deprecated:** This content has been absorbed into [docs/development-guide.md](development-guide.md) (see "Admin Feature Architecture" section) and [docs/admin-guide.md](admin-guide.md) (user-facing admin documentation). This file is kept for reference but will not be updated.
+
 This guide explains the implementation details of the admin panel features, including architecture, patterns, and best practices.
 
 ## Table of Contents

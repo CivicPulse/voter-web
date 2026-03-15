@@ -1,8 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { useDeferredValue, useMemo, useState } from "react"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
+  AlertCircle,
+  Check,
   ChevronLeft,
   ChevronRight,
+  ChevronsUpDown,
   Loader2,
   MapPin,
   Search,
@@ -19,16 +22,69 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import { cn } from "@/lib/utils"
 import { useElections } from "@/lib/hooks/use-elections"
-import { useElectionFilters } from "@/lib/hooks/use-election-filters"
+import { useElectionCapabilities } from "@/lib/hooks/use-election-capabilities"
+import { useFilterOptions } from "@/lib/hooks/use-filter-options"
 import { useNavigationContext } from "@/stores/navigation-context"
 import { ABBREV_TO_NAME } from "@/lib/states"
 import { synthesizeDescription } from "@/types/elections"
+import {
+  DATE_PRESETS,
+  resolvePreset,
+  matchPreset,
+  getDefaultDateRange,
+} from "@/lib/date-presets"
+import {
+  electionSearchSchema,
+  mapParamsToApiFilters,
+  deriveActiveFilters,
+  formatShortDate,
+  RACE_CATEGORY_LABELS,
+} from "@/lib/election-search"
+import type { ElectionSearchParams } from "@/lib/election-search"
+import { EmptyState } from "@/components/ui/empty-state"
+import type { DatePresetKey } from "@/lib/date-presets"
 import type { Election } from "@/types/elections"
+
+// ---------------------------------------------------------------------------
+// Route definition
+// ---------------------------------------------------------------------------
 
 export const Route = createFileRoute("/elections/")({
   component: ElectionsListPage,
+  validateSearch: electionSearchSchema,
 })
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+/** Hardcoded fallback race category options when filter-options endpoint is unavailable */
+const FALLBACK_RACE_OPTIONS = [
+  { value: "federal", label: "Federal" },
+  { value: "state_senate", label: "State Senate" },
+  { value: "state_house", label: "State House" },
+  { value: "local", label: "Local" },
+]
+
+// ---------------------------------------------------------------------------
+// ElectionListItem (unchanged)
+// ---------------------------------------------------------------------------
 
 function ElectionListItem({
   election,
@@ -84,46 +140,123 @@ function ElectionListItem({
   )
 }
 
+// ---------------------------------------------------------------------------
+// ElectionsListPage
+// ---------------------------------------------------------------------------
+
 function ElectionsListPage() {
-  const { electionFilters, setElectionFilters, resetElectionFilters } =
-    useElectionFilters()
-  const [page, setPage] = useState(1)
+  const params = Route.useSearch()
+  const navigate = useNavigate()
 
-  // Exclude client-side search from API params
-  const apiFilters = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { search, ...rest } = electionFilters
-    return rest
-  }, [electionFilters])
-  const { data, isLoading, error } = useElections(apiFilters, page)
+  // Feature flags from capabilities endpoint
+  const { isError: capabilitiesError, ...flags } = useElectionCapabilities()
 
-  // Wrap filter updates to reset pagination when filters change
-  const updateFilters = (updates: Partial<typeof electionFilters>) => {
-    setElectionFilters(updates)
-    setPage(1)
+  // Default date range for "Next 3 months" (applied when no dates in URL)
+  const defaultDates = getDefaultDateRange()
+
+  // Map URL params to API filters
+  const apiFilters = mapParamsToApiFilters(params, defaultDates)
+
+  // Fetch elections from API
+  const { data, isLoading, error } = useElections(apiFilters, params.page ?? 1)
+
+  // Fetch filter options (disabled when backend lacks the endpoint)
+  const { data: filterOptionsData, isError: filterOptionsError } = useFilterOptions(apiFilters, flags)
+
+  // Keep a ref to the latest params so debounced callbacks always see fresh values
+  const paramsRef = useRef(params)
+  paramsRef.current = params
+
+  // Helper to update filters and reset page
+  const updateFilters = (updates: Partial<ElectionSearchParams>) => {
+    navigate({ to: "/elections", search: { ...params, ...updates, page: 1 } })
   }
 
-  // Client-side search filtering with deferred value
-  const searchText = electionFilters.search ?? ""
-  const deferredSearch = useDeferredValue(searchText)
+  // Clear all filters (returns to default "Next 3 months" state)
+  const clearAllFilters = () => {
+    navigate({ to: "/elections", search: {} })
+  }
 
-  const elections = data?.elections
-  const filteredElections = useMemo(() => {
-    if (!elections) return []
-    if (!deferredSearch) return elections
-    const lower = deferredSearch.toLowerCase()
-    return elections.filter(
-      (e) =>
-        e.name.toLowerCase().includes(lower) ||
-        e.district.toLowerCase().includes(lower) ||
-        synthesizeDescription(e).toLowerCase().includes(lower),
-    )
-  }, [elections, deferredSearch])
+  // Determine the active date preset from current URL params
+  const activePreset: DatePresetKey =
+    params.date_preset === "all-time"
+      ? "all-time"
+      : matchPreset(
+          params.date_from ?? defaultDates.date_from,
+          params.date_to ?? defaultDates.date_to,
+        )
 
-  // Geographic context
+  // Custom date range popover state
+  const [customRangeOpen, setCustomRangeOpen] = useState(false)
+  const [customFrom, setCustomFrom] = useState(params.date_from ?? "")
+  const [customTo, setCustomTo] = useState(params.date_to ?? "")
+
+  // ---------------------------------------------------------------------------
+  // Server-side search with debounce
+  // ---------------------------------------------------------------------------
+
+  const [searchInput, setSearchInput] = useState(params.q ?? "")
+  const [isSearching, setIsSearching] = useState(false)
+
+  // Sync local input when URL params change (back/forward navigation)
+  useEffect(() => {
+    setSearchInput(params.q ?? "")
+  }, [params.q])
+
+  useEffect(() => {
+    const trimmed = searchInput.trim()
+    const shouldSearch = trimmed.length >= 2 || trimmed === ""
+    if (shouldSearch) {
+      setIsSearching(true)
+    }
+    const timer = setTimeout(() => {
+      if (shouldSearch) {
+        const current = paramsRef.current
+        navigate({
+          to: "/elections",
+          search: {
+            ...current,
+            q: trimmed || undefined,
+            search: undefined,
+            page: 1,
+          },
+        })
+      }
+      setIsSearching(false)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchInput, navigate])
+
+  // ---------------------------------------------------------------------------
+  // County combobox state
+  // ---------------------------------------------------------------------------
+
+  const [countyOpen, setCountyOpen] = useState(false)
+
+  // ---------------------------------------------------------------------------
+  // County auto-populate from navigation context
+  // ---------------------------------------------------------------------------
+
   const navState = useNavigationContext((s) => s.stateAbbrev)
   const navCounty = useNavigationContext((s) => s.countyName)
   const clearContext = useNavigationContext((s) => s.setContext)
+
+  const countyInitRef = useRef(false)
+  useEffect(() => {
+    if (
+      !countyInitRef.current &&
+      navCounty &&
+      !params.county &&
+      flags.geographic &&
+      flags.filterOptions
+    ) {
+      countyInitRef.current = true
+      updateFilters({ county: navCounty })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navCounty, params.county, flags.geographic, flags.filterOptions])
+
+  // Geographic context label
   let contextLabel: string | null = null
   if (navCounty && navState) {
     contextLabel = `${navCounty} County, ${ABBREV_TO_NAME[navState] ?? navState.toUpperCase()}`
@@ -133,7 +266,7 @@ function ElectionsListPage() {
 
   // Highlight elections matching geographic context
   const contextMatch = (election: Election): boolean => {
-    if (!contextLabel) return false
+    if (!contextLabel || !election.district) return false
     const district = election.district.toLowerCase()
     if (navCounty && district.includes(navCounty.toLowerCase())) return true
     if (navState) {
@@ -143,12 +276,96 @@ function ElectionsListPage() {
     return false
   }
 
-  const hasActiveFilters =
-    electionFilters.status !== "all" ||
-    electionFilters.election_type !== "all" ||
-    electionFilters.registration_open ||
-    electionFilters.early_voting_active ||
-    searchText
+  // Derive active (non-default) filters for chip display
+  const activeFilters = useMemo(
+    () => deriveActiveFilters(params, activePreset),
+    [params, activePreset],
+  )
+
+  // ---------------------------------------------------------------------------
+  // Race category options
+  // ---------------------------------------------------------------------------
+
+  const raceOptions = useMemo(() => {
+    if (filterOptionsData?.race_categories && filterOptionsData.race_categories.length > 0) {
+      return filterOptionsData.race_categories.map((cat) => ({
+        value: cat,
+        label: RACE_CATEGORY_LABELS[cat] ?? cat,
+      }))
+    }
+    return FALLBACK_RACE_OPTIONS
+  }, [filterOptionsData?.race_categories])
+
+  // ---------------------------------------------------------------------------
+  // County options (sorted alphabetically)
+  // ---------------------------------------------------------------------------
+
+  const countyOptions = useMemo(() => {
+    const counties = filterOptionsData?.counties ?? []
+    return [...counties].sort((a, b) => a.localeCompare(b))
+  }, [filterOptionsData?.counties])
+
+  // ---------------------------------------------------------------------------
+  // Election date options (sorted descending -- most recent first)
+  // ---------------------------------------------------------------------------
+
+  const electionDateOptions = useMemo(() => {
+    const dates = filterOptionsData?.election_dates ?? []
+    return [...dates].sort((a, b) => b.localeCompare(a))
+  }, [filterOptionsData?.election_dates])
+
+  // Handle removing a single filter chip
+  const onRemoveChip = (paramKey: string) => {
+    if (paramKey === "date_range") {
+      updateFilters({ date_from: undefined, date_to: undefined, date_preset: undefined })
+    } else if (paramKey === "election_date") {
+      updateFilters({ election_date: undefined, date_preset: undefined })
+    } else if (paramKey === "q") {
+      updateFilters({ q: undefined })
+      setSearchInput("")
+    } else {
+      updateFilters({ [paramKey]: undefined } as Partial<ElectionSearchParams>)
+    }
+  }
+
+  // Handle date preset selection
+  const handlePresetChange = (value: string) => {
+    const key = value as DatePresetKey
+    if (key === "custom") {
+      // Open the custom date range popover, don't navigate yet
+      setCustomFrom(params.date_from ?? "")
+      setCustomTo(params.date_to ?? "")
+      setCustomRangeOpen(true)
+      return
+    }
+    if (key === "all-time") {
+      updateFilters({
+        date_from: undefined,
+        date_to: undefined,
+        date_preset: "all-time",
+      })
+      return
+    }
+    // Named preset -- resolve to dates
+    const resolved = resolvePreset(key)
+    updateFilters({
+      date_from: resolved.date_from,
+      date_to: resolved.date_to,
+      date_preset: undefined,
+    })
+  }
+
+  // Apply custom date range
+  const applyCustomRange = () => {
+    updateFilters({
+      date_from: customFrom || undefined,
+      date_to: customTo || undefined,
+      date_preset: undefined,
+    })
+    setCustomRangeOpen(false)
+  }
+
+  const elections = data?.elections
 
   return (
     <div className="container mx-auto px-4 py-4 sm:p-6 max-w-3xl">
@@ -175,57 +392,313 @@ function ElectionsListPage() {
         </div>
       )}
 
-      {/* Search */}
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search elections..."
-          value={searchText}
-          onChange={(e) => updateFilters({ search: e.target.value })}
-          className="pl-9"
-        />
-      </div>
+      {/* Search -- only shown when capabilities include search */}
+      {flags.search && (
+        <div className="relative mb-4">
+          {isSearching ? (
+            <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+          ) : (
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          )}
+          <Input
+            placeholder="Search elections (min. 2 characters)..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+      )}
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        <Select
-          value={electionFilters.status}
-          onValueChange={(v) =>
-            updateFilters({
-              status: v as typeof electionFilters.status,
-            })
-          }
-        >
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="finalized">Finalized</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="space-y-3 mb-6">
+        {/* Row 1: Existing filters */}
+        <div className="flex flex-wrap gap-3 items-center">
+          {/* Status filter */}
+          <Select
+            value={params.status ?? "all"}
+            onValueChange={(v) =>
+              updateFilters({ status: v === "all" ? undefined : (v as "active" | "finalized") })
+            }
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="finalized">Finalized</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Select
-          value={electionFilters.election_type}
-          onValueChange={(v) =>
-            updateFilters({
-              election_type: v as typeof electionFilters.election_type,
-            })
-          }
-        >
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="general">General</SelectItem>
-            <SelectItem value="primary">Primary</SelectItem>
-            <SelectItem value="special">Special</SelectItem>
-            <SelectItem value="runoff">Runoff</SelectItem>
-          </SelectContent>
-        </Select>
+          {/* Type filter */}
+          <Select
+            value={params.type ?? "all"}
+            onValueChange={(v) =>
+              updateFilters({ type: v === "all" ? undefined : (v as "general" | "primary" | "special" | "runoff") })
+            }
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="general">General</SelectItem>
+              <SelectItem value="primary">Primary</SelectItem>
+              <SelectItem value="special">Special</SelectItem>
+              <SelectItem value="runoff">Runoff</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Date preset filter */}
+          <Popover open={customRangeOpen} onOpenChange={setCustomRangeOpen}>
+            <PopoverTrigger asChild>
+              <div>
+                <Select value={activePreset} onValueChange={handlePresetChange}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Date range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DATE_PRESETS.map((preset) => (
+                      <SelectItem key={preset.key} value={preset.key}>
+                        {preset.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-72" align="start">
+              <div className="space-y-3">
+                <p className="text-sm font-medium">Custom date range</p>
+                <div className="space-y-2">
+                  <label htmlFor="custom-date-from" className="text-sm text-muted-foreground">From</label>
+                  <Input
+                    id="custom-date-from"
+                    type="date"
+                    value={customFrom}
+                    onChange={(e) => setCustomFrom(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="custom-date-to" className="text-sm text-muted-foreground">To</label>
+                  <Input
+                    id="custom-date-to"
+                    type="date"
+                    value={customTo}
+                    onChange={(e) => setCustomTo(e.target.value)}
+                  />
+                </div>
+                <Button size="sm" className="w-full" onClick={applyCustomRange}>
+                  Apply
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Registration open checkbox */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="reg-open"
+              checked={params.reg_open === "true"}
+              onCheckedChange={(checked) =>
+                updateFilters({ reg_open: checked ? "true" : undefined })
+              }
+            />
+            <label
+              htmlFor="reg-open"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Registration open
+            </label>
+          </div>
+
+          {/* Early voting active checkbox */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="early-voting"
+              checked={params.early_voting === "true"}
+              onCheckedChange={(checked) =>
+                updateFilters({ early_voting: checked ? "true" : undefined })
+              }
+            />
+            <label
+              htmlFor="early-voting"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Early voting active
+            </label>
+          </div>
+        </div>
+
+        {/* Row 2: API-dependent filter controls */}
+        {(flags.raceCategory || flags.electionDate || (flags.geographic && flags.filterOptions)) && (
+          <div className="flex flex-wrap gap-3 items-center">
+            {/* Race category filter */}
+            {flags.raceCategory && (
+              <Select
+                value={params.race ?? "all"}
+                onValueChange={(v) =>
+                  updateFilters({
+                    race: v === "all" ? undefined : (v as "federal" | "state_senate" | "state_house" | "local"),
+                  })
+                }
+              >
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Race category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Races</SelectItem>
+                  {raceOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {/* County combobox filter */}
+            {flags.geographic && flags.filterOptions && (
+              <Popover open={countyOpen} onOpenChange={setCountyOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={countyOpen}
+                    className="w-[200px] justify-between"
+                  >
+                    {params.county ?? "Select county..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search counties..." />
+                    <CommandList>
+                      <CommandEmpty>No county found.</CommandEmpty>
+                      <CommandGroup>
+                        {params.county && (
+                          <CommandItem
+                            value="__clear__"
+                            onSelect={() => {
+                              updateFilters({ county: undefined })
+                              setCountyOpen(false)
+                            }}
+                          >
+                            <X className="mr-2 h-4 w-4" />
+                            Clear selection
+                          </CommandItem>
+                        )}
+                        {countyOptions.map((county) => (
+                          <CommandItem
+                            key={county}
+                            value={county}
+                            onSelect={() => {
+                              updateFilters({ county })
+                              setCountyOpen(false)
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                params.county === county ? "opacity-100" : "opacity-0",
+                              )}
+                            />
+                            {county}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            )}
+
+            {/* Election date filter */}
+            {flags.electionDate && (
+              <>
+                {filterOptionsData?.election_dates ? (
+                  <Select
+                    value={params.election_date ?? "all"}
+                    onValueChange={(v) =>
+                      updateFilters({
+                        election_date: v === "all" ? undefined : v,
+                        date_from: undefined,
+                        date_to: undefined,
+                        date_preset: undefined,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Election date" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All dates</SelectItem>
+                      {electionDateOptions.map((date) => (
+                        <SelectItem key={date} value={date}>
+                          {formatShortDate(date)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    type="date"
+                    value={params.election_date ?? ""}
+                    onChange={(e) =>
+                      updateFilters({
+                        election_date: e.target.value || undefined,
+                        date_from: undefined,
+                        date_to: undefined,
+                        date_preset: undefined,
+                      })
+                    }
+                    className="w-[180px]"
+                    placeholder="Election date"
+                  />
+                )}
+              </>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Error indicators for capabilities/filter-options failures */}
+      {(capabilitiesError || filterOptionsError) && (
+        <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
+          <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+          <span>
+            {capabilitiesError
+              ? "Some filter options are unavailable."
+              : "Filter options could not be loaded."}
+          </span>
+        </div>
+      )}
+
+      {/* Active filter chips */}
+      {activeFilters.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          {activeFilters.map((chip) => (
+            <Badge
+              key={chip.paramKey}
+              variant="outline"
+              className="gap-1 cursor-pointer pl-2.5 pr-1.5 py-1"
+              onClick={() => onRemoveChip(chip.paramKey)}
+            >
+              {chip.key}
+              <X className="h-3 w-3" />
+            </Badge>
+          ))}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs"
+            onClick={clearAllFilters}
+          >
+            Clear all
+          </Button>
+        </div>
+      )}
 
       {/* Content */}
       {isLoading && (
@@ -240,29 +713,53 @@ function ElectionsListPage() {
         </div>
       )}
 
-      {data && filteredElections.length === 0 && (
-        <div className="text-center py-12">
-          <Vote className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground mb-2">
-            No elections found matching your search.
-          </p>
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => { resetElectionFilters(); setPage(1) }}
-            >
-              <X className="h-4 w-4 mr-1" />
-              Clear filters
-            </Button>
-          )}
-        </div>
+      {/* Empty state: filters active, zero results */}
+      {data && elections?.length === 0 && activeFilters.length > 0 && (
+        <EmptyState
+          icon={<Vote className="h-12 w-12" />}
+          title="No elections found"
+          description={
+            <div>
+              <p className="mb-2">Active filters:</p>
+              <ul className="text-left list-disc list-inside mb-2">
+                {activeFilters.map((f) => (
+                  <li key={f.key}>{f.key}</li>
+                ))}
+              </ul>
+              <p>Try broadening your filters for more results.</p>
+            </div>
+          }
+          action={{ label: "Clear all filters", onClick: clearAllFilters }}
+        />
       )}
 
-      {data && filteredElections.length > 0 && (
+      {/* Empty state: default filters, no results */}
+      {data && elections?.length === 0 && activeFilters.length === 0 && (
+        <EmptyState
+          icon={<Vote className="h-12 w-12" />}
+          title="No upcoming elections"
+          description="There are no elections in the next 3 months."
+          action={{
+            label: "Show all elections",
+            onClick: () =>
+              updateFilters({
+                date_from: undefined,
+                date_to: undefined,
+                date_preset: "all-time",
+              }),
+          }}
+        />
+      )}
+
+      {data && elections && elections.length > 0 && (
         <>
+          {/* Result count */}
+          <p className="text-sm text-muted-foreground mb-3">
+            Showing {elections.length} of {data.total} elections
+          </p>
+
           <div className="space-y-3">
-            {filteredElections.map((election) => (
+            {elections.map((election) => (
               <ElectionListItem
                 key={election.id}
                 election={election}
@@ -277,20 +774,30 @@ function ElectionsListPage() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => p - 1)}
+                disabled={(params.page ?? 1) <= 1}
+                onClick={() =>
+                  navigate({
+                    to: "/elections",
+                    search: { ...params, page: (params.page ?? 1) - 1 },
+                  })
+                }
               >
                 <ChevronLeft className="h-4 w-4" />
                 Previous
               </Button>
               <span className="text-sm text-muted-foreground">
-                Page {page} of {data.total_pages}
+                Page {params.page ?? 1} of {data.total_pages}
               </span>
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page >= data.total_pages}
-                onClick={() => setPage((p) => p + 1)}
+                disabled={(params.page ?? 1) >= data.total_pages}
+                onClick={() =>
+                  navigate({
+                    to: "/elections",
+                    search: { ...params, page: (params.page ?? 1) + 1 },
+                  })
+                }
               >
                 Next
                 <ChevronRight className="h-4 w-4" />
