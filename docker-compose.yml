@@ -1,0 +1,29 @@
+include:
+  - path: ../voter-api/docker-compose.yml
+
+x-web-base: &web-base
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+  ports:
+    - "5173:5173"
+  volumes:
+    - .:/app
+    - web_node_modules:/app/node_modules
+  environment:
+    - VITE_API_BASE_URL=http://localhost:8000/api/v1
+
+services:
+  web:
+    <<: *web-base
+    depends_on:
+      api:
+        condition: service_started
+
+  web-local:
+    <<: *web-base
+    profiles:
+      - local
+
+volumes:
+  web_node_modules:
