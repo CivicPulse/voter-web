@@ -83,16 +83,11 @@ describe("electionSearchSchema", () => {
     expect(result.q).toBeUndefined()
   })
 
-  it("parses race field with valid enum values", () => {
-    for (const value of ["federal", "state_senate", "state_house", "local"]) {
+  it("parses race field with any string value", () => {
+    for (const value of ["federal", "state_senate", "state_house", "local", "municipal"]) {
       const result = electionSearchSchema.parse({ race: value })
       expect(result.race).toBe(value)
     }
-  })
-
-  it("catches invalid race to undefined", () => {
-    const result = electionSearchSchema.parse({ race: "invalid" })
-    expect(result.race).toBeUndefined()
   })
 
   it("parses county string field", () => {

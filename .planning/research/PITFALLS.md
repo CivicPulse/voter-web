@@ -194,7 +194,7 @@ Mistakes that cause rewrites or major issues.
 
 **Prevention:**
 - Store and transmit dates as plain strings (`"2024-11-05"`) everywhere: URL params, API params, Zod schema. Never convert to/from `Date` objects for the filter state.
-- Use a date picker that works with string values, or extract only the date portion immediately: `input.toISOString().slice(0, 10)` or use `date-fns/format` with the format `"yyyy-MM-dd"`.
+- Use inputs/components that provide `YYYY-MM-DD` directly and keep that string unchanged in URL/API/state. Avoid `Date` object round-trips (`new Date(...)`, `toISOString()`) for filter state.
 - The existing codebase already uses string dates (`election.election_date + "T00:00:00"`) with explicit local-time parsing for display. Follow this pattern.
 
 **Detection:**

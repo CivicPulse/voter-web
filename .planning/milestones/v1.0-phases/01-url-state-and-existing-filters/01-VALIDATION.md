@@ -72,10 +72,10 @@ Each task's `<verify>` command runs the tests that task creates, ensuring Nyquis
 
 ## Validation Sign-Off
 
-- [x] All tasks have `<automated>` verify commands that run tests created by that task
-- [x] Sampling continuity: no 3 consecutive tasks without automated verify
-- [x] No watch-mode flags
-- [x] Feedback latency < 45s
-- [x] FILT-02 and FILT-03 covered by E2E tests (Plan 02 Task 2), not date-presets.test.ts
+- [ ] All tasks have `<automated>` verify commands that run tests created by that task
+- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
+- [ ] No watch-mode flags
+- [ ] Feedback latency < 45s
+- [ ] FILT-02 and FILT-03 covered by E2E tests (Plan 02 Task 2), not date-presets.test.ts
 
 **Approval:** pending

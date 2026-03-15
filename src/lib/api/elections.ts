@@ -38,9 +38,12 @@ export async function getFilterOptions(
   if (filters?.election_type && filters.election_type !== "all") searchParams.election_type = filters.election_type
   if (filters?.date_from) searchParams.date_from = filters.date_from
   if (filters?.date_to) searchParams.date_to = filters.date_to
+  if (filters?.registration_open) searchParams.registration_open = "true"
+  if (filters?.early_voting_active) searchParams.early_voting_active = "true"
   if (filters?.q) searchParams.q = filters.q
   if (filters?.race_category) searchParams.race_category = filters.race_category
   if (filters?.county) searchParams.county = filters.county
+  if (filters?.election_date) searchParams.election_date = filters.election_date
   return publicApi
     .get("elections/filter-options", { searchParams })
     .json<FilterOptionsResponse>()

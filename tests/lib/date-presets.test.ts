@@ -10,7 +10,7 @@ import {
 describe("date-presets", () => {
   beforeEach(() => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date("2026-03-15"))
+    vi.setSystemTime(new Date("2026-03-15T12:00:00Z"))
   })
 
   afterEach(() => {

@@ -78,9 +78,9 @@ Navigate to **Elections** from the main menu to see all elections in the system.
 **Filtering options:**
 - **Date range:** Choose from presets (Upcoming, Last 30 days, Last year, etc.) or enter custom dates
 - **Election type:** General, Primary, Runoff, Special
-- **Status:** Upcoming, Active, Certified, Unofficial
-- **State and county:** Filter by geographic area
-- **Race category:** Federal, State, County, Municipal, School Board, etc.
+- **Status:** Active (unofficial/in-progress results), Finalized (certified/official results)
+- **County:** Filter by geographic area
+- **Race category:** Federal, State Senate, State House, Local
 - **Search:** Free-text search by election name
 
 ### Election Detail

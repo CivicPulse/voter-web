@@ -16,7 +16,6 @@ import { test as base, type Page } from "@playwright/test"
 import {
   ELECTION_ID,
   electionsListResponse,
-  electionsEmptyResponse,
   electionDetailResponse,
   electionResultsResponse,
   countyGeoJSONResponse,

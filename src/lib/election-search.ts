@@ -22,8 +22,8 @@ export const electionSearchSchema = z.object({
     .enum(["general", "primary", "special", "runoff"])
     .optional()
     .catch(undefined),
-  date_from: z.string().optional().catch(undefined),
-  date_to: z.string().optional().catch(undefined),
+  date_from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().catch(undefined),
+  date_to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().catch(undefined),
   date_preset: z.enum(["all-time"]).optional().catch(undefined),
   reg_open: z.literal("true").optional().catch(undefined),
   early_voting: z.literal("true").optional().catch(undefined),
@@ -31,12 +31,9 @@ export const electionSearchSchema = z.object({
   page: z.coerce.number().int().positive().optional().catch(undefined),
   // Phase 3: API-dependent filter params
   q: z.string().optional().catch(undefined),
-  race: z
-    .enum(["federal", "state_senate", "state_house", "local"])
-    .optional()
-    .catch(undefined),
+  race: z.string().optional().catch(undefined),
   county: z.string().optional().catch(undefined),
-  election_date: z.string().optional().catch(undefined),
+  election_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().catch(undefined),
 })
 
 export type ElectionSearchParams = z.infer<typeof electionSearchSchema>
@@ -104,6 +101,22 @@ function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
+/** Truncate a string for chip display, adding ellipsis if needed */
+function truncateForChip(value: string, maxLen = 20): string {
+  return value.length > maxLen ? value.slice(0, maxLen) + "..." : value
+}
+
+/** Build the label for a date preset chip */
+function getDatePresetLabel(
+  activePreset: DatePresetKey,
+  params: ElectionSearchParams,
+): string {
+  if (activePreset === "custom") {
+    return `${params.date_from ?? "?"} to ${params.date_to ?? "?"}`
+  }
+  return DATE_PRESETS.find((p) => p.key === activePreset)?.label ?? activePreset
+}
+
 /**
  * Compute the list of active (non-default) filters from URL params.
  * Pure function — suitable for unit testing without rendering.
@@ -115,24 +128,13 @@ export function deriveActiveFilters(
   const filters: ActiveFilter[] = []
 
   if (params.status) {
-    filters.push({
-      key: `Status: ${capitalize(params.status)}`,
-      paramKey: "status",
-    })
+    filters.push({ key: `Status: ${capitalize(params.status)}`, paramKey: "status" })
   }
   if (params.type) {
-    filters.push({
-      key: `Type: ${capitalize(params.type)}`,
-      paramKey: "type",
-    })
+    filters.push({ key: `Type: ${capitalize(params.type)}`, paramKey: "type" })
   }
-  if (activePreset !== DEFAULT_PRESET && activePreset !== "next-3-months") {
-    const label =
-      activePreset === "custom"
-        ? `${params.date_from ?? "?"} to ${params.date_to ?? "?"}`
-        : (DATE_PRESETS.find((p) => p.key === activePreset)?.label ??
-          activePreset)
-    filters.push({ key: `Date: ${label}`, paramKey: "date_range" })
+  if (activePreset !== DEFAULT_PRESET) {
+    filters.push({ key: `Date: ${getDatePresetLabel(activePreset, params)}`, paramKey: "date_range" })
   }
   if (params.reg_open === "true") {
     filters.push({ key: "Registration open", paramKey: "reg_open" })
@@ -141,31 +143,19 @@ export function deriveActiveFilters(
     filters.push({ key: "Early voting active", paramKey: "early_voting" })
   }
   if (params.search) {
-    const truncated =
-      params.search.length > 20
-        ? params.search.slice(0, 20) + "..."
-        : params.search
-    filters.push({ key: `Search: "${truncated}"`, paramKey: "search" })
+    filters.push({ key: `Search: "${truncateForChip(params.search)}"`, paramKey: "search" })
   }
-
-  // Phase 3: API-dependent filter chips
   if (params.q) {
-    const truncated =
-      params.q.length > 20 ? params.q.slice(0, 20) + "..." : params.q
-    filters.push({ key: `Search: "${truncated}"`, paramKey: "q" })
+    filters.push({ key: `Search: "${truncateForChip(params.q)}"`, paramKey: "q" })
   }
   if (params.race) {
-    const label = RACE_CATEGORY_LABELS[params.race] ?? params.race
-    filters.push({ key: `Race: ${label}`, paramKey: "race" })
+    filters.push({ key: `Race: ${RACE_CATEGORY_LABELS[params.race] ?? params.race}`, paramKey: "race" })
   }
   if (params.county) {
     filters.push({ key: `County: ${params.county}`, paramKey: "county" })
   }
   if (params.election_date) {
-    filters.push({
-      key: `Date: ${formatShortDate(params.election_date)}`,
-      paramKey: "election_date",
-    })
+    filters.push({ key: `Date: ${formatShortDate(params.election_date)}`, paramKey: "election_date" })
   }
 
   return filters

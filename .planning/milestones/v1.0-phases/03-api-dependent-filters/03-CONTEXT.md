@@ -41,7 +41,7 @@ Add server-side text search, race category, geographic (county), and election da
 - County values from filter-options are sorted alphabetically
 - URL param name: `county` (matches API param name)
 - Chip format: `County: Bibb`
-- Auto-populate from navigation context when user navigates from a county page (pre-set URL param)
+- Auto-populate from navigation context when user navigates from a county page (pre-set URL param); uppercase the value before writing to URL/API params (e.g., convert mixed-case "Bibb" to "BIBB") to match backend expectations
 - Keep the geographic context banner alongside the county filter — banner provides context, filter provides control
 - Statewide races (US Senate, Governor, etc.) are included when filtering by county — matches API spec recommendation
 
