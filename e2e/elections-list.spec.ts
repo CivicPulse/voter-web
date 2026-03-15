@@ -235,7 +235,11 @@ test.describe("Elections List - API-dependent filters", () => {
     await expect(searchInput).toBeVisible()
 
     await searchInput.fill("senate")
-    await page.waitForURL(/[?&]q=senate/)
+    // Wait for URL change AND the API call to fire
+    await Promise.all([
+      page.waitForURL(/[?&]q=senate/),
+      page.waitForResponse((resp) => resp.url().includes("/api/v1/elections") && resp.url().includes("q=senate")),
+    ])
     // Verify the API was called with the q parameter
     const hasQParam = apiCalls.some((url) => url.includes("q=senate"))
     expect(hasQParam).toBeTruthy()
