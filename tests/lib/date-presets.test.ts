@@ -50,50 +50,21 @@ describe("date-presets", () => {
   })
 
   describe("resolvePreset", () => {
-    it("resolves 'next-3-months' to today through today + 3 months", () => {
-      const result = resolvePreset("next-3-months")
-      expect(result.date_from).toBe("2026-03-15")
-      expect(result.date_to).toBe("2026-06-15")
+    it.each([
+      ["next-3-months", "2026-03-15", "2026-06-15"],
+      ["next-6-months", "2026-03-15", "2026-09-15"],
+      ["this-year", "2026-01-01", "2026-12-31"],
+      ["last-30-days", "2026-02-13", "2026-03-15"],
+      ["last-6-months", "2025-09-15", "2026-03-15"],
+      ["last-year", "2025-01-01", "2025-12-31"],
+    ] as const)("resolves '%s' to %s through %s", (preset, expectedFrom, expectedTo) => {
+      const result = resolvePreset(preset)
+      expect(result.date_from).toBe(expectedFrom)
+      expect(result.date_to).toBe(expectedTo)
     })
 
-    it("resolves 'next-6-months' to today through today + 6 months", () => {
-      const result = resolvePreset("next-6-months")
-      expect(result.date_from).toBe("2026-03-15")
-      expect(result.date_to).toBe("2026-09-15")
-    })
-
-    it("resolves 'this-year' to Jan 1 through Dec 31 of current year", () => {
-      const result = resolvePreset("this-year")
-      expect(result.date_from).toBe("2026-01-01")
-      expect(result.date_to).toBe("2026-12-31")
-    })
-
-    it("resolves 'last-30-days' to today - 30 days through today", () => {
-      const result = resolvePreset("last-30-days")
-      expect(result.date_from).toBe("2026-02-13")
-      expect(result.date_to).toBe("2026-03-15")
-    })
-
-    it("resolves 'last-6-months' to today - 6 months through today", () => {
-      const result = resolvePreset("last-6-months")
-      expect(result.date_from).toBe("2025-09-15")
-      expect(result.date_to).toBe("2026-03-15")
-    })
-
-    it("resolves 'last-year' to Jan 1 through Dec 31 of previous year", () => {
-      const result = resolvePreset("last-year")
-      expect(result.date_from).toBe("2025-01-01")
-      expect(result.date_to).toBe("2025-12-31")
-    })
-
-    it("resolves 'all-time' to undefined date_from and date_to", () => {
-      const result = resolvePreset("all-time")
-      expect(result.date_from).toBeUndefined()
-      expect(result.date_to).toBeUndefined()
-    })
-
-    it("resolves 'custom' to undefined date_from and date_to", () => {
-      const result = resolvePreset("custom")
+    it.each(["all-time", "custom"] as const)("resolves '%s' to undefined dates", (preset) => {
+      const result = resolvePreset(preset)
       expect(result.date_from).toBeUndefined()
       expect(result.date_to).toBeUndefined()
     })

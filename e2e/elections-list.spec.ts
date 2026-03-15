@@ -1,15 +1,19 @@
 import { test, expect, setupElectionApiMocks } from "./fixtures/election-api"
+import type { Page } from "@playwright/test"
 import {
   electionsEmptyResponse,
   mockCapabilitiesNone,
 } from "./fixtures/mock-data"
 
+/** Navigate to /elections and wait for the election list to render */
+async function gotoElections(page: Page) {
+  await page.goto("/elections")
+  await expect(page.getByText("State Senate District 18 Special")).toBeVisible()
+}
+
 test.describe("Elections List - URL State", () => {
   test("persists status filter in URL", async ({ page }) => {
-    await page.goto("/elections")
-    await expect(
-      page.getByText("State Senate District 18 Special"),
-    ).toBeVisible()
+    await gotoElections(page)
 
     // Open status dropdown and select Active
     await page.locator("button").filter({ hasText: "All Statuses" }).click()
@@ -19,10 +23,7 @@ test.describe("Elections List - URL State", () => {
   })
 
   test("persists type filter in URL", async ({ page }) => {
-    await page.goto("/elections")
-    await expect(
-      page.getByText("State Senate District 18 Special"),
-    ).toBeVisible()
+    await gotoElections(page)
 
     // Open type dropdown and select General
     await page.locator("button").filter({ hasText: "All Types" }).click()
@@ -32,10 +33,7 @@ test.describe("Elections List - URL State", () => {
   })
 
   test("persists boolean filters in URL", async ({ page }) => {
-    await page.goto("/elections")
-    await expect(
-      page.getByText("State Senate District 18 Special"),
-    ).toBeVisible()
+    await gotoElections(page)
 
     // Check "Registration open" checkbox
     await page.getByLabel("Registration open").click()
@@ -61,10 +59,7 @@ test.describe("Elections List - URL State", () => {
   })
 
   test("back/forward navigates filter states", async ({ page }) => {
-    await page.goto("/elections")
-    await expect(
-      page.getByText("State Senate District 18 Special"),
-    ).toBeVisible()
+    await gotoElections(page)
 
     // Apply status filter
     await page.locator("button").filter({ hasText: "All Statuses" }).click()
@@ -96,10 +91,7 @@ test.describe("Elections List - Filter Chips", () => {
   })
 
   test("does not show chip for default date preset", async ({ page }) => {
-    await page.goto("/elections")
-    await expect(
-      page.getByText("State Senate District 18 Special"),
-    ).toBeVisible()
+    await gotoElections(page)
 
     // No "Date:" chip should be visible at default state
     await expect(page.getByText(/^Date:/)).not.toBeVisible()
@@ -150,9 +142,7 @@ test.describe("Elections List - Filter Chips", () => {
 
 test.describe("Elections List - UX Feedback", () => {
   test("displays result count", async ({ page }) => {
-    await page.goto("/elections")
-
-    // Wait for elections to load and verify result count
+    await gotoElections(page)
     await expect(page.getByText(/Showing \d+ of \d+ elections/)).toBeVisible()
   })
 
@@ -218,7 +208,7 @@ test.describe("Elections List - API-dependent filters", () => {
   test("shows search input when capabilities include search", async ({
     page,
   }) => {
-    await page.goto("/elections")
+    await gotoElections(page)
     await expect(page.getByPlaceholder(/Search elections/)).toBeVisible()
   })
 
@@ -228,12 +218,7 @@ test.describe("Elections List - API-dependent filters", () => {
     await setupElectionApiMocks(page, {
       capabilitiesOverride: mockCapabilitiesNone,
     })
-    await page.goto("/elections")
-    // Wait for content to load
-    await expect(
-      page.getByText("State Senate District 18 Special"),
-    ).toBeVisible()
-    // Search input should not be present
+    await gotoElections(page)
     await expect(
       page.getByPlaceholder(/Search elections/),
     ).not.toBeVisible()
@@ -264,24 +249,15 @@ test.describe("Elections List - API-dependent filters", () => {
   test("shows race category dropdown when capability is enabled", async ({
     page,
   }) => {
-    await page.goto("/elections")
-    await expect(
-      page.getByText("State Senate District 18 Special"),
-    ).toBeVisible()
-
-    // Race category dropdown with "All Races" default
+    await gotoElections(page)
     await expect(
       page.locator("button").filter({ hasText: "All Races" }),
     ).toBeVisible()
   })
 
   test("filters by race category", async ({ page }) => {
-    await page.goto("/elections")
-    await expect(
-      page.getByText("State Senate District 18 Special"),
-    ).toBeVisible()
+    await gotoElections(page)
 
-    // Open race category dropdown and select Federal
     await page.locator("button").filter({ hasText: "All Races" }).click()
     await page.getByRole("option", { name: "Federal" }).click()
 
@@ -291,26 +267,16 @@ test.describe("Elections List - API-dependent filters", () => {
   test("shows county combobox when filter-options is available", async ({
     page,
   }) => {
-    await page.goto("/elections")
-    await expect(
-      page.getByText("State Senate District 18 Special"),
-    ).toBeVisible()
-
-    // County combobox trigger button
+    await gotoElections(page)
     await expect(
       page.locator("button").filter({ hasText: "Select county..." }),
     ).toBeVisible()
   })
 
   test("filters by county", async ({ page }) => {
-    await page.goto("/elections")
-    await expect(
-      page.getByText("State Senate District 18 Special"),
-    ).toBeVisible()
+    await gotoElections(page)
 
-    // Open county combobox
     await page.locator("button").filter({ hasText: "Select county..." }).click()
-    // Select "Bibb"
     await page.getByRole("option", { name: "Bibb" }).click()
 
     await expect(page).toHaveURL(/[?&]county=bibb/i)
@@ -319,24 +285,15 @@ test.describe("Elections List - API-dependent filters", () => {
   test("shows election date dropdown with formatted dates", async ({
     page,
   }) => {
-    await page.goto("/elections")
-    await expect(
-      page.getByText("State Senate District 18 Special"),
-    ).toBeVisible()
-
-    // Election date dropdown with "All dates" default
+    await gotoElections(page)
     await expect(
       page.locator("button").filter({ hasText: "All dates" }),
     ).toBeVisible()
   })
 
   test("filters by election date", async ({ page }) => {
-    await page.goto("/elections")
-    await expect(
-      page.getByText("State Senate District 18 Special"),
-    ).toBeVisible()
+    await gotoElections(page)
 
-    // Open election date dropdown and select a date
     await page.locator("button").filter({ hasText: "All dates" }).click()
     await page.getByRole("option", { name: /Nov 3, 2026/ }).click()
 
@@ -369,10 +326,7 @@ test.describe("Elections List - API-dependent filters", () => {
     await setupElectionApiMocks(page, {
       capabilitiesOverride: mockCapabilitiesNone,
     })
-    await page.goto("/elections")
-    await expect(
-      page.getByText("State Senate District 18 Special"),
-    ).toBeVisible()
+    await gotoElections(page)
 
     // Row 2 filters should not be visible
     await expect(

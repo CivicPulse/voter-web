@@ -139,26 +139,10 @@ export const electionsEmptyResponse = {
 // ---------------------------------------------------------------------------
 
 export const electionDetailResponse = {
-  id: ELECTION_ID,
-  name: "State Senate District 18 Special",
-  election_date: ELECTION_DATE,
-  election_type: "special",
-  district: "State Senate - District 18",
-  data_source_url: "https://results.sos.ga.gov/api/test",
-  status: "active",
-  last_refreshed_at: "2026-02-17T19:40:48Z",
-  refresh_interval_seconds: 120,
-  created_at: "2026-02-10T14:00:00Z",
-  updated_at: "2026-02-17T19:40:48Z",
-  description: null,
-  purpose: "Special — State Senate District 18",
-  eligibility_description: null,
+  ...electionsListResponse.items[0],
   registration_deadline: null,
   early_voting_start: null,
   early_voting_end: null,
-  absentee_request_deadline: null,
-  qualifying_start: null,
-  qualifying_end: null,
 }
 
 // ---------------------------------------------------------------------------
@@ -283,25 +267,38 @@ export const precinctGeoJSONElectionNightComplete = {
 // GET /boundaries/geojson?boundary_type=county_precinct&county=...
 // ---------------------------------------------------------------------------
 
-/** Helper to build a minimal precinct boundary feature */
-function makePrecinctFeature(county: string, precinctId: string, precinctName: string) {
+/** Shared test geometry — a simple polygon used by all boundary mock features */
+const TEST_COORDINATES = [[[-83.65, 32.85], [-83.6, 32.85], [-83.6, 32.9], [-83.65, 32.9], [-83.65, 32.85]]] as const
+
+/** Generic boundary feature factory. Specify extra properties via `extraProps`. */
+function makeBoundaryFeature(
+  boundaryType: string,
+  identifier: string,
+  name: string,
+  county: string,
+  extraProps: Record<string, unknown> = {},
+) {
   return {
     type: "Feature" as const,
-    geometry: {
-      type: "Polygon" as const,
-      coordinates: [[[-83.65, 32.85], [-83.6, 32.85], [-83.6, 32.9], [-83.65, 32.9], [-83.65, 32.85]]],
-    },
+    geometry: { type: "Polygon" as const, coordinates: TEST_COORDINATES },
     properties: {
-      name: precinctName,
-      boundary_type: "county_precinct",
-      boundary_identifier: `${county.toLowerCase()}-${precinctId}`,
+      name,
+      boundary_type: boundaryType,
+      boundary_identifier: identifier,
       source: "census-tiger",
       county,
-      precinct_name: precinctName,
-      precinct_id: precinctId,
-      precinct_county_name: `${county} County`,
+      ...extraProps,
     },
   }
+}
+
+/** Helper to build a minimal precinct boundary feature */
+function makePrecinctFeature(county: string, precinctId: string, precinctName: string) {
+  return makeBoundaryFeature("county_precinct", `${county.toLowerCase()}-${precinctId}`, precinctName, county, {
+    precinct_name: precinctName,
+    precinct_id: precinctId,
+    precinct_county_name: `${county} County`,
+  })
 }
 
 /** County-specific boundary GeoJSON responses (precinct_id values match by_precinct mock) */
@@ -342,30 +339,13 @@ export const boundaryGeoJSONResponse = countyPrecinctBoundaries.Bibb
 // GET /boundaries/geojson?boundary_type=county_commission&county=...
 // ---------------------------------------------------------------------------
 
-function makeCommissionFeature(county: string, id: string, name: string) {
-  return {
-    type: "Feature" as const,
-    geometry: {
-      type: "Polygon" as const,
-      coordinates: [[[-83.65, 32.85], [-83.6, 32.85], [-83.6, 32.9], [-83.65, 32.9], [-83.65, 32.85]]],
-    },
-    properties: {
-      name,
-      boundary_type: "county_commission",
-      boundary_identifier: id,
-      source: "census-tiger",
-      county,
-    },
-  }
-}
-
-export const countyCommissionBoundaries: Record<string, { type: string; features: ReturnType<typeof makeCommissionFeature>[] }> = {
+export const countyCommissionBoundaries: Record<string, { type: string; features: ReturnType<typeof makeBoundaryFeature>[] }> = {
   Bibb: {
     type: "FeatureCollection",
     features: [
-      makeCommissionFeature("Bibb", "cc-001", "Commission District 1"),
-      makeCommissionFeature("Bibb", "cc-002", "Commission District 2"),
-      makeCommissionFeature("Bibb", "cc-003", "Commission District 3"),
+      makeBoundaryFeature("county_commission", "cc-001", "Commission District 1", "Bibb"),
+      makeBoundaryFeature("county_commission", "cc-002", "Commission District 2", "Bibb"),
+      makeBoundaryFeature("county_commission", "cc-003", "Commission District 3", "Bibb"),
     ],
   },
 }
@@ -374,29 +354,12 @@ export const countyCommissionBoundaries: Record<string, { type: string; features
 // GET /boundaries/geojson?boundary_type=school_board&county=...
 // ---------------------------------------------------------------------------
 
-function makeSchoolBoardFeature(county: string, id: string, name: string) {
-  return {
-    type: "Feature" as const,
-    geometry: {
-      type: "Polygon" as const,
-      coordinates: [[[-83.65, 32.85], [-83.6, 32.85], [-83.6, 32.9], [-83.65, 32.9], [-83.65, 32.85]]],
-    },
-    properties: {
-      name,
-      boundary_type: "school_board",
-      boundary_identifier: id,
-      source: "census-tiger",
-      county,
-    },
-  }
-}
-
-export const schoolBoardBoundaries: Record<string, { type: string; features: ReturnType<typeof makeSchoolBoardFeature>[] }> = {
+export const schoolBoardBoundaries: Record<string, { type: string; features: ReturnType<typeof makeBoundaryFeature>[] }> = {
   Bibb: {
     type: "FeatureCollection",
     features: [
-      makeSchoolBoardFeature("Bibb", "sb-001", "School Board District 1"),
-      makeSchoolBoardFeature("Bibb", "sb-002", "School Board District 2"),
+      makeBoundaryFeature("school_board", "sb-001", "School Board District 1", "Bibb"),
+      makeBoundaryFeature("school_board", "sb-002", "School Board District 2", "Bibb"),
     ],
   },
 }
