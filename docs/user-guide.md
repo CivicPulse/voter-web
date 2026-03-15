@@ -165,7 +165,8 @@ The application follows web accessibility standards:
 
 ### I can't see the Voters or Admin menus
 
-These require authentication. Click **Login** to sign in. If you're signed in but still don't see them, your account may not have the required role — contact your administrator.
+The **Voters** menu requires authentication. Click **Login** to sign in.
+The **Admin** menu may also require specific account permissions. If you're signed in and still can't see **Admin**, contact your administrator.
 
 ### The map isn't loading
 

@@ -198,6 +198,11 @@ function ElectionsListPage() {
   const [searchInput, setSearchInput] = useState(params.q ?? "")
   const [isSearching, setIsSearching] = useState(false)
 
+  // Sync local input when URL params change (back/forward navigation)
+  useEffect(() => {
+    setSearchInput(params.q ?? "")
+  }, [params.q])
+
   useEffect(() => {
     const trimmed = searchInput.trim()
     const shouldSearch = trimmed.length >= 2 || trimmed === ""
@@ -313,6 +318,8 @@ function ElectionsListPage() {
   const onRemoveChip = (paramKey: string) => {
     if (paramKey === "date_range") {
       updateFilters({ date_from: undefined, date_to: undefined, date_preset: undefined })
+    } else if (paramKey === "election_date") {
+      updateFilters({ election_date: undefined, date_preset: undefined })
     } else if (paramKey === "q") {
       updateFilters({ q: undefined })
       setSearchInput("")
@@ -464,16 +471,18 @@ function ElectionsListPage() {
               <div className="space-y-3">
                 <p className="text-sm font-medium">Custom date range</p>
                 <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">From</label>
+                  <label htmlFor="custom-date-from" className="text-sm text-muted-foreground">From</label>
                   <Input
+                    id="custom-date-from"
                     type="date"
                     value={customFrom}
                     onChange={(e) => setCustomFrom(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">To</label>
+                  <label htmlFor="custom-date-to" className="text-sm text-muted-foreground">To</label>
                   <Input
+                    id="custom-date-to"
                     type="date"
                     value={customTo}
                     onChange={(e) => setCustomTo(e.target.value)}
@@ -616,7 +625,7 @@ function ElectionsListPage() {
                         election_date: v === "all" ? undefined : v,
                         date_from: undefined,
                         date_to: undefined,
-                        date_preset: v === "all" ? undefined : "all-time",
+                        date_preset: undefined,
                       })
                     }
                   >
@@ -641,7 +650,7 @@ function ElectionsListPage() {
                         election_date: e.target.value || undefined,
                         date_from: undefined,
                         date_to: undefined,
-                        date_preset: e.target.value ? "all-time" : undefined,
+                        date_preset: undefined,
                       })
                     }
                     className="w-[180px]"

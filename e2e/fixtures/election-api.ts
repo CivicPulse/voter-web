@@ -54,11 +54,15 @@ export async function setupElectionApiMocks(
   // Catch-all: prevent any unmocked API request from reaching the production
   // server. Registered first so it is checked last (Playwright checks handlers
   // in reverse registration order).
-  await page.route("**/api/v1/**", (route) =>
+  await page.route("**/api/v1/**", (route, request) =>
     route.fulfill({
-      status: 200,
+      status: 501,
       contentType: "application/json",
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        error: "Unmocked API request in Playwright fixture",
+        method: request.method(),
+        url: request.url(),
+      }),
     }),
   )
 
