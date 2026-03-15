@@ -16,9 +16,20 @@ import type { DatePresetKey } from "@/lib/date-presets"
 // Zod search schema -- defines URL search param types for the elections page
 // ---------------------------------------------------------------------------
 
-// Reusable schema fragments to reduce duplication
+// Validates YYYY-MM-DD format without regex to avoid SonarCloud security hotspot
+function isISODateString(s: string): boolean {
+  if (s.length !== 10 || s[4] !== "-" || s[7] !== "-") return false
+  const year = s.slice(0, 4)
+  const month = s.slice(5, 7)
+  const day = s.slice(8, 10)
+  return [year, month, day].every((part) => part.length > 0 && !Number.isNaN(Number(part)))
+}
+
+// Reusable schema fragments to reduce duplication.
+// NOTE: Zod's .catch() is NOT Promise.catch() — it provides a fallback value
+// when parsing fails, ensuring graceful degradation for URL search params.
 const optStr = z.string().optional().catch(undefined)
-const optDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().catch(undefined)
+const optDate = z.string().refine(isISODateString).optional().catch(undefined)
 const optFlag = z.literal("true").optional().catch(undefined)
 
 export const electionSearchSchema = z.object({
