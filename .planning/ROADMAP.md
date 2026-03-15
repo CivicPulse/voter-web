@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: URL State and Existing Filters** - Migrate to URL-persisted filter state, expose all API-supported filters, add UX feedback (chips, counts, empty states)
 - [ ] **Phase 2: Feature Detection Infrastructure** - Build API capability probing and write backend API spec document
-- [ ] **Phase 3: API-Dependent Filters** - Add server-side search, race category, geographic, election date, and filter options — all gated by feature detection
+- [x] **Phase 3: API-Dependent Filters** - Add server-side search, race category, geographic, election date, and filter options — all gated by feature detection (completed 2026-03-15)
 
 ## Phase Details
 
@@ -55,7 +55,7 @@ Plans:
   2. User can filter by race category (federal, state senate, state house, local) and by specific election date to narrow results to a particular scope
   3. User can filter by county or district to see only geographically relevant contests
   4. Filter dropdowns show only valid options (values that yield results) when the filter-options endpoint is available, preventing dead-end selections
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 03-01-PLAN.md — Data layer: types, API functions, Zod schema, filter mapping, chip derivation, filter-options hook + unit tests
@@ -70,4 +70,4 @@ Phases execute in numeric order: 1 -> 2 -> 3
 |-------|----------------|--------|-----------|
 | 1. URL State and Existing Filters | 2/2 | Complete | 2026-03-13 |
 | 2. Feature Detection Infrastructure | 1/1 | Complete | 2026-03-14 |
-| 3. API-Dependent Filters | 0/2 | Not started | - |
+| 3. API-Dependent Filters | 2/2 | Complete   | 2026-03-15 |
