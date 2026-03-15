@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-voter-web is a React SPA frontend for the [voter-api](https://github.com/CivicPulse/voter-api) backend (FastAPI REST API at `/api/v1`). It builds to static files for deployment on S3/R2.
+voter-web is a React SPA frontend for the [voter-api](https://github.com/CivicPulse/voter-api) backend (FastAPI REST API at `/api/v1`). It builds to static files for deployment on Cloudflare Pages.
+
+**Governance:** The [project constitution](.specify/memory/constitution.md) defines non-negotiable rules: branch-based development, PRs required, 95% test coverage, conventional commits.
 
 ## Commands
 
@@ -22,17 +24,26 @@ Requires Node.js LTS (use `nvm use` — reads `.nvmrc`).
 
 ## Environment Setup
 
-Copy `.env.example` to `.env` before first run:
-
 ```bash
+nvm use
+npm install
 cp .env.example .env
+npm run dev
 ```
 
-Edit `.env` to configure the API base URL if needed (defaults to `http://localhost:8000/api/v1`).
+Edit `.env` to configure `VITE_API_BASE_URL` (defaults to `http://localhost:8000/api/v1`).
+
+For full-stack development with Docker Compose (requires voter-api cloned as sibling directory):
+
+```bash
+docker compose up
+```
+
+See [docs/setup-guide.md](docs/setup-guide.md) for Docker profiles and deployment details.
 
 ## Architecture
 
-**Stack:** React 19, TypeScript, Vite 7, Tailwind CSS v4, shadcn/ui (new-york style, neutral base color)
+**Stack:** React 19, TypeScript 5.9+ (strict), Vite 7, Tailwind CSS v4, shadcn/ui (new-york style, neutral base color)
 
 **Routing:** TanStack Router with file-based routing. Routes live in `src/routes/`. The Vite plugin auto-generates `src/routeTree.gen.ts` — never edit this file manually. Run `npx @tanstack/router-cli generate --target react` to regenerate outside dev server.
 
@@ -42,28 +53,24 @@ Edit `.env` to configure the API base URL if needed (defaults to `http://localho
 
 **Forms:** React Hook Form + Zod for validation.
 
-**State:** Zustand for client state (auth tokens, etc.).
+**State:** Zustand for client state (auth tokens, geographic context).
 
-**HTTP client:** `ky` configured in `src/api/client.ts` with JWT Bearer token from `localStorage("access_token")`. API base URL from `VITE_API_BASE_URL` env var (defaults to `http://localhost:8000/api/v1`).
+**HTTP client:** `ky` configured in `src/api/client.ts` with JWT Bearer token from `localStorage("access_token")`. API base URL from `VITE_API_BASE_URL` env var. Two instances: `api` (authenticated) and `publicApi` (opportunistic auth).
 
-**Maps:** React-Leaflet + Leaflet for geospatial visualization.
+**Maps:** React-Leaflet + Leaflet for geospatial visualization. Turf.js for geometric operations.
 
-**Geospatial utilities:** Turf.js (`@turf/bbox`, `@turf/boolean-intersects`, `@turf/helpers`) for geometric operations.
-
-**Charts:** Recharts.
-
-**Drawer component:** vaul for mobile-friendly drawer UI.
+**Charts:** Recharts. **Drawer:** vaul. **Icons:** Lucide React. **Toasts:** Sonner.
 
 ## Key Conventions
 
-- **Path alias:** `@/` maps to `src/` (configured in tsconfig and vite.config.ts). Always use `@/` imports.
+- **Path alias:** `@/` maps to `src/`. Always use `@/` imports — never relative paths.
 - **shadcn/ui components** go in `src/components/ui/`. Custom components go in `src/components/`.
-- **CSS class merging:** use `cn()` from `@/lib/utils` to merge Tailwind classes.
-- **Icons:** Lucide React (`lucide-react`).
+- **CSS class merging:** use `cn()` from `@/lib/utils`.
 - **Route files** must export `Route` using `createFileRoute()` or `createRootRoute()`.
 - **Environment variables** must be prefixed with `VITE_` to be exposed to the client.
-- `src/routeTree.gen.ts` is ignored by ESLint and marked read-only in VSCode.
-- **Map visualization:** District overlays use a colorblind-friendly color palette. Double-click on a district to navigate to its detail page.
+- `src/routeTree.gen.ts` is ignored by ESLint and marked read-only.
+- **Named exports only.** Use `export type` for type-only exports.
+- **Conventional commits:** `<type>(<scope>): <description>` — types: feat, fix, docs, style, refactor, test, chore, ci.
 
 ### URL Routing Patterns
 
@@ -74,235 +81,58 @@ The app supports multi-state, collision-free URL routing:
 - **County pages (legacy):** `/counties/$countyId` — UUID-based, redirects to slug URL
 - **State-level districts:** `/districts/$state/$type/$name` (e.g., `/districts/ga/state-senate/018`)
 - **County-level districts:** `/districts/$state/$county/$type/$name` (e.g., `/districts/ga/bibb/county-commission/005`)
-- **Legacy district slugs:** `/districts/$type/$name` — auto-redirects to fully-qualified URL if single match, shows disambiguation page if multiple matches
+- **Legacy district slugs:** `/districts/$type/$name` — auto-redirects to fully-qualified URL
 - **Legacy district UUID:** `/districts/$districtId` — still works directly
 
 **Key conventions:**
-
-- District scope is determined by the `county` field: present = county-scoped, null = state-scoped
-- State abbreviation is derived from the first 2 digits of `boundary_identifier` (FIPS code)
+- District scope: `county` field present = county-scoped, null = state-scoped
+- State abbreviation derived from first 2 digits of `boundary_identifier` (FIPS code)
 - URL slugs are lowercase, hyphenated (e.g., `county-commission`, `ben-hill`)
-- The `districtSlugPath()` utility in `src/lib/slugs.ts` generates fully-qualified district URLs
-- Navigation context (Zustand store in `src/stores/navigation-context.ts`) tracks geographic context for pre-populating voter/election filters
+- `districtSlugPath()` in `src/lib/slugs.ts` generates fully-qualified district URLs
+- Navigation context (Zustand store `src/stores/navigation-context.ts`) tracks geographic context
 
 ## Admin Features
 
-The app includes a comprehensive admin panel for managing users, imports, and exports. Admin routes are protected by role-based access control.
+Admin panel at `/admin/*` with role-based access control (admin/analyst roles). Features: user management, election management (CRUD + SOS feed import), data imports (voter CSV, boundary GeoJSON/ZIP), exports, batch geocoding, and district mismatch analysis.
 
-### Routing & Access Control
+Key patterns: auto-polling with `refetchInterval` for job monitoring, two-step confirmation dialogs, `AdminErrorBoundary` for error handling, `_components/` subdirectories for route-specific components.
 
-**Admin Routes:** All admin pages live under `/admin/*`:
-- `/admin/users` - User management (list, create)
-- `/admin/imports` - Data import jobs (voters, boundaries)
-- `/admin/exports` - Data export jobs (voters, boundaries, full database)
+See [docs/admin-guide.md](docs/admin-guide.md) for user-facing admin docs and [docs/development-guide.md](docs/development-guide.md) for admin architecture patterns.
 
-**Access Control:**
-- Role-based: Only users with `admin` or `analyst` roles can access admin routes
-- Enforced at layout level in `src/routes/admin.tsx`
-- Role fetched via `useUserRole` hook and cached in Zustand store
-- Admin navigation conditionally rendered in root layout based on user role
+## Static Assets & SPA Routing
 
-### Auto-Polling Pattern
-
-Import and export job lists use intelligent auto-polling:
-- Polls every 3 seconds when any job is `pending` or `processing`
-- Automatically stops polling when all jobs reach terminal states (`completed` or `failed`)
-- Implemented via TanStack Query's `refetchInterval` with dynamic function
-
-Example:
-```typescript
-refetchInterval: (query) => {
-  const jobs = query.state.data?.jobs ?? []
-  const hasActiveJobs = jobs.some(isActiveJob)
-  return hasActiveJobs ? 3000 : false  // Auto-stop when all terminal
-}
-```
-
-### Error Handling
-
-Comprehensive error handling with user-friendly notifications:
-
-**Error Types:**
-- `AuthenticationError` (401) - Session expired, triggers logout & redirect
-- `PermissionError` (403) - Insufficient permissions, clears role & hides admin UI
-- `NetworkError` - Network failures during polling, non-intrusive warnings
-
-**Error Components:**
-- `PermissionErrorComponent` - Displays auth/permission errors with action buttons
-- `AdminErrorBoundary` - Catches runtime errors in admin pages
-- Toast notifications (Sonner) for all error types
-
-**Automatic Handling:**
-- API client intercepts 401/403 responses and throws typed errors
-- All admin hooks show toast notifications on errors
-- Network errors during polling: show warning once, continue with last known data
-- Role changes automatically hide admin navigation (reactive via Zustand)
-
-### Component Organization
-
-Admin features use a consistent structure:
-- Page components in `src/routes/admin/[feature]/index.tsx`
-- Shared components in `src/routes/admin/[feature]/_components/`
-- `_components/` directories are not treated as routes (underscore prefix)
-
-### API Client
-
-**Admin API:** `src/lib/api/admin.ts` wraps all admin endpoints
-- Uses shared `ky` client with JWT authentication
-- Type-safe request/response types from `src/types/admin.ts`
-- Error interception at client level (throws `AuthenticationError`, `PermissionError`)
-
-### Hooks
-
-**User Management:**
-- `useUserRole()` - Fetches current user role, caches for 5 minutes
-- `useAdminUsers()` - Lists all users (30s cache)
-- `useCreateUser()` - Creates new user with toast feedback
-
-**Import Jobs:**
-- `useImportJobs()` - Auto-polling list of import jobs
-- `useCreateVoterImport(file)` - Upload voter CSV
-- `useCreateBoundaryImport(file, type?)` - Upload boundary GeoJSON/ZIP
-
-**Export Jobs:**
-- `useExportJobs()` - Auto-polling list of export jobs
-- `useCreateExport(request)` - Request new export job
-- `useDownloadExport(jobId)` - Download completed export file
-
-All hooks include:
-- Error handling with toast notifications
-- Automatic query invalidation on mutations
-- Network error resilience during polling
-
-### Two-Step Confirmation Pattern
-
-Critical admin operations use two-step confirmation dialogs:
-
-1. **User creation** (admin/analyst roles):
-   - Form submission → confirmation dialog → API call
-   - Viewer role: direct submission (no confirmation)
-
-2. **File uploads** (imports):
-   - File selection → client-side validation → confirmation → upload
-   - Validation: file type, size (100MB limit)
-
-### Role-Based Rendering
-
-Admin navigation appears only for authorized users:
-```typescript
-const { data: userProfile } = useUserRole()
-const isAdmin = userProfile?.role === "admin" || userProfile?.role === "analyst"
-
-{isAdmin && <AdminNavMenu />}
-```
-
-Role changes are reactive - if a user's role changes to `viewer`, admin nav disappears immediately.
-
-## Static Assets, Build & Deployment
-
-### Build-time GeoJSON Caching
-
-The `npm run build` command runs `scripts/fetch-geojson.mjs` before the Vite build. This script fetches boundary GeoJSON data from the API and saves it to `public/geojson/` as static files for fast load times and offline resilience.
-
-### Deployment
-
-Deployments are handled automatically by GitHub Actions (`.github/workflows/deploy.yml`):
-
-- **Production:** Pushes to `main` deploy to Cloudflare Pages at `https://vote.civpulse.org/`
-- **Preview:** Pull requests get automatic preview deployments with URLs posted as PR comments
-- **Manual:** `npx wrangler pages deploy dist/ --project-name=voter-web` (requires `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`)
-
-The `npm run deploy` script exists but is deprecated in favor of GitHub Actions.
-
-### SPA Routing
-
-The app is deployed as an SPA using `public/_redirects` (Cloudflare Pages / Netlify format). This file controls how the hosting platform routes requests:
+**IMPORTANT:** When adding static assets to `public/`, add a redirect rule in `public/_redirects` **before** the `/*` catch-all, or the SPA fallback will serve `index.html` instead of the file:
 
 ```
-# Don't redirect static GeoJSON files
-/geojson/*  200
-
-# SPA fallback for everything else
-/*  /index.html  200
-```
-
-**IMPORTANT:** When adding new static assets (JSON, images, fonts, etc.) to `public/`, ensure they are **excluded from the catch-all redirect** by adding specific rules **before** the `/*` rule. Rules are processed top-to-bottom, so more specific paths must come first.
-
-Example for adding other static content:
-```
-/data/*     200
-/fonts/*    200
 /geojson/*  200
 /*          /index.html  200
 ```
 
-Without these exclusions, the SPA catch-all will serve `index.html` (HTML content) instead of the actual static files, causing the browser to receive the wrong content type.
+Build-time GeoJSON caching: `npm run build` runs `scripts/fetch-geojson.mjs` to pre-fetch boundary data to `public/geojson/`.
+
+See [docs/setup-guide.md](docs/setup-guide.md) for full deployment details.
 
 ## Testing
 
-### Unit Tests (Vitest)
+- **Unit:** Vitest + jsdom + React Testing Library. Tests in `tests/`. Coverage: 95% threshold. Custom render: `src/test/render.tsx`. Mock factories: `src/test/mocks/`.
+- **E2E:** Playwright + Chromium against `vite preview` (port 4173). Tests in `e2e/`. API intercepted via `page.route()` — no backend needed. Fixtures: `e2e/fixtures/`.
+- **CI:** Unit tests in `deploy.yml` (lint → test → build → deploy). E2E in `e2e.yml`. Both on pushes/PRs to `main`.
 
-Unit tests use Vitest with jsdom and React Testing Library:
-
-- Test files live in `tests/`, mirroring the `src/` structure
-- Mock factories in `src/test/mocks/elections.ts`
-- Setup file: `src/test/setup.ts`
-- Custom render wrapper: `src/test/render.tsx`
-- Coverage thresholds: 95% (lines, functions, branches, statements)
-- Config: `vitest.config.ts`
-
-### E2E Tests (Playwright)
-
-End-to-end browser tests use Playwright with Chromium to verify rendered UI:
-
-- Test files live in `e2e/`
-- Mock data: `e2e/fixtures/mock-data.ts`
-- API interception fixture: `e2e/fixtures/election-api.ts`
-- Config: `playwright.config.ts`
-
-**Architecture:** E2E tests run against `vite preview` (production build on port 4173). The Playwright config auto-starts the preview server. API calls are intercepted using `page.route()` with mock JSON responses — no real backend needed.
-
-**Adding new E2E tests:**
-
-1. Add mock data to `e2e/fixtures/mock-data.ts` if new API endpoints are needed
-2. Add route interception to `e2e/fixtures/election-api.ts`
-3. Create test specs in `e2e/` using `import { test, expect } from "./fixtures/election-api"`
-
-**When to update E2E tests:**
-
-- After fixing UI bugs — add a regression test that would have caught the bug
-- After adding or modifying user-facing features (especially interactive elements)
-- After changing API response shapes or endpoint URLs
-- After modifying map rendering, dropdown behavior, or data display components
-
-### CI Integration
-
-- **Unit tests** run in `.github/workflows/deploy.yml` (lint -> test -> build -> deploy)
-- **E2E tests** run in `.github/workflows/e2e.yml` (build -> Playwright -> upload artifacts)
-- Both workflows trigger on pushes to `main` and PRs to `main`
+See [docs/development-guide.md](docs/development-guide.md) for testing patterns and adding tests.
 
 ## Backend API
 
-The voter-api uses JWT auth (access + refresh tokens), role-based access (admin/analyst/viewer), and async job patterns (returns 202 Accepted, poll for status). Key resource endpoints: `/voters`, `/boundaries`, `/imports`, `/geocoding`, `/analysis`, `/exports`.
+voter-api uses JWT auth (access + refresh tokens), role-based access (admin/analyst/viewer), and async job patterns (202 Accepted, poll for status).
 
-Interactive API documentation (Swagger/OpenAPI) is available at `/docs` on the API server (e.g., `http://localhost:8000/docs`).
+**Key endpoints:** `/auth/login`, `/auth/refresh`, `/auth/me`, `/voters`, `/boundaries`, `/elections`, `/imports`, `/exports`, `/geocoding`, `/analysis`.
 
-### US Census Bureau API
+**API docs:** Swagger/OpenAPI at `/docs` on the API server (e.g., `http://localhost:8000/docs`).
 
-The US Census Bureau Statistical Data API provides demographic, economic, and geographic data. Documentation is available at:
-
-- Human-readable: <https://api.census.gov/data.html>
-- Machine-readable (JSON): <https://api.census.gov/data.json>
-
-### Boundary Detail Response
-
-`GET /boundaries/{id}` returns a `BoundaryDetailResponse` which includes a `county_metadata` field (nullable) containing Census TIGER/Line geographic metadata for county boundaries. This metadata is typed as `CountyMetadata` in `src/types/boundary.ts` and includes FIPS codes, GEOID, land/water area (m² and km²), CBSA/CSA codes, functional status, GNIS code, and internal point coordinates.
-
-The county detail page (`src/routes/counties/$countyId.tsx`) displays this metadata in a "Geographic Details" subsection within the County Information card. Area values are shown in both km² and mi² (converted client-side). Functional status codes are mapped to human-readable labels via `functionalStatusLabels`.
+**Census Bureau API:** [api.census.gov/data.html](https://api.census.gov/data.html) (demographics, geographic data).
 
 ## Git Workflow
 
-**IMPORTANT:** Always create a feature branch before making any code changes. Never commit directly to `main` unless the user explicitly requests it. Create the branch at the start of work, not after changes are made.
+**IMPORTANT:** Always create a feature branch before making any code changes. Never commit directly to `main` unless explicitly requested. Branch naming: `###-feature-name`.
 
 Feature work, stories, and multi-step changes should be done on a feature branch off `main`. Commit after each logical step so progress is incremental and reviewable.
 
@@ -312,27 +142,26 @@ After making **any** UI changes (components, layouts, styles, routes), you **mus
 
 1. Ensure the dev server is running (`npm run dev`).
 2. Use `browser_navigate` to open the affected page(s) (e.g., `http://localhost:5173/...`).
-3. Use `browser_snapshot` to capture the page's accessibility tree and confirm the expected elements are present.
-4. Use `browser_take_screenshot` to visually verify layout, styling, and overall appearance. **Save all screenshots to the `screenshots/` directory** (e.g., `screenshots/feature-name.png`) — this folder is gitignored.
-5. If the change involves interaction (hover, click, form input), use the appropriate Playwright actions (`browser_click`, `browser_hover`, `browser_fill_form`, etc.) and verify the resulting state.
+3. Use `browser_snapshot` to capture the page's accessibility tree and confirm expected elements.
+4. Use `browser_take_screenshot` to visually verify layout and styling. **Save screenshots to `screenshots/`** (gitignored).
+5. For interactive changes, use Playwright actions (`browser_click`, `browser_hover`, etc.) and verify resulting state.
 
-Do **not** mark a UI task as complete without performing this verification. If the visual result does not match expectations, fix the issue and re-verify before proceeding.
+Do **not** mark a UI task as complete without this verification.
 
+## Documentation Index
+
+| Resource | Description |
+|----------|-------------|
+| [Constitution](.specify/memory/constitution.md) | Non-negotiable engineering principles |
+| [User Guide](docs/user-guide.md) | End user documentation |
+| [Admin Guide](docs/admin-guide.md) | Administrator documentation |
+| [Setup Guide](docs/setup-guide.md) | Local dev, Docker, deployment |
+| [Development Guide](docs/development-guide.md) | Architecture, conventions, testing |
+| [Architecture](.planning/codebase/ARCHITECTURE.md) | Detailed architecture analysis |
+| [Conventions](.planning/codebase/CONVENTIONS.md) | Coding convention analysis |
+
+<!-- Managed by .specify/scripts/bash/update-agent-context.sh -->
 ## Active Technologies
-- TypeScript 5.9+ (strict mode), React 19.2+ (001-admin-api-access)
-- TypeScript 5.9+, React 19.2+ + TanStack Router (file-based routing), TanStack Query (data fetching, caching, polling), React-Leaflet + Leaflet (maps), vaul (drawer), Recharts (charts if needed), Zustand (client state), ky (HTTP client), React Hook Form + Zod (admin forms), shadcn/ui (UI components), Lucide React (icons), Sonner (toasts) (002-election-results)
-- N/A (frontend SPA — all data from voter-api backend at `/api/v1`) (002-election-results)
-- TypeScript 5.9+, React 19.2+ + TanStack Router (file-based routing), TanStack Query (data fetching), React-Leaflet + Leaflet (map), shadcn/ui (UI components), Zustand (auth state), ky (HTTP client), React Hook Form + Zod (forms/validation), Sonner (toasts), Lucide React (icons) (003-voter-search-geocoding)
-- TypeScript 5.9+, React 19.2+ + TanStack Router (file-based routing, Vite plugin), TanStack Query (data fetching/caching), React-Leaflet + Leaflet (maps), Vite 7, shadcn/ui (UI components), ky (HTTP client), Zustand (auth state), Zod (validation), vaul (drawer), Turf.js (geo operations) (004-multi-county-routes)
-- N/A (frontend SPA — all data from voter-api at `/api/v1`) (004-multi-county-routes)
-- TypeScript 5.9+, strict mode + React 19.2+, TanStack Router (file-based routing), TanStack Query (data fetching/caching), shadcn/ui (UI components), Recharts 3.7 (charts — installed, first use), ky (HTTP client), Zustand (auth state), React Hook Form + Zod (if needed for search), Sonner (toasts), Lucide React (icons) (006-voter-history-participation)
-- TypeScript 5.9+ (strict mode) + React 19.2+, TanStack Router (file-based routing, Vite plugin), TanStack Query (data fetching/caching), shadcn/ui (new-york style, neutral base), ky (HTTP client), Zustand (client state), Zod (validation), Lucide React (icons), Sonner (toasts) (007-elections-discovery)
-- TypeScript 5.9+ (strict mode) + React 19.2+, TanStack Router (file-based routing, Vite plugin), TanStack Query (data fetching/caching), shadcn/ui (new-york style, neutral base), ky (HTTP client), Zustand (client state), Zod (validation), React Hook Form (admin forms), Lucide React (icons), Sonner (toasts) (007-elections-discovery)
-- TypeScript 5.9+ (strict mode) + React 19.2+, TanStack Router (file-based routing, `validateSearch`), TanStack Query (data fetching), shadcn/ui (Select, Input), ky (HTTP client), Zod (schema validation) (008-participant-list-filters)
-- N/A (frontend SPA) (008-participant-list-filters)
-- TypeScript 5.9+ (strict mode) + React 19.2+, TanStack Router (file-based routing), TanStack Query (data fetching/mutation), shadcn/ui (Dialog, Badge, Select, Command/Popover), React Hook Form + Zod, Sonner (toasts), Lucide React (Trash2, X icons), ky (HTTP client) (010-election-admin-mgmt)
-- TypeScript 5.9+ (strict mode) + React 19.2+, React-Leaflet 5.0.0, Leaflet 1.9.4, TanStack Query v5, TanStack Router (file-based), Zustand, ky, shadcn/ui (new-york, neutral), Sonner, Turf.js (@turf/bbox, @turf/boolean-intersects, @turf/helpers), Lucide React (011-geocoding-map-interactive)
-- N/A (SPA — all data from voter-api REST at `/api/v1`) (011-geocoding-map-interactive)
 
+<!-- Managed by .specify/scripts/bash/update-agent-context.sh -->
 ## Recent Changes
-- 001-admin-api-access: Added TypeScript 5.9+ (strict mode), React 19.2+

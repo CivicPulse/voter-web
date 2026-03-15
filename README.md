@@ -1,26 +1,48 @@
-# voter-web
+<!-- Project banner placeholder -->
 
-A SPA web interface for the [voter-api](https://github.com/CivicPulse/voter-api) backend.
+# CivicPulse Voter Data Explorer
 
+[![Build & Deploy](https://github.com/CivicPulse/voter-web/actions/workflows/deploy.yml/badge.svg)](https://github.com/CivicPulse/voter-web/actions/workflows/deploy.yml)
+[![E2E Tests](https://github.com/CivicPulse/voter-web/actions/workflows/e2e.yml/badge.svg)](https://github.com/CivicPulse/voter-web/actions/workflows/e2e.yml)
+[![License: LGPL v2.1](https://img.shields.io/badge/License-LGPL_v2.1-blue.svg)](LICENSE)
+[![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-## Tech Stack
+> An open-source web application for exploring voter registration data, election results, political boundaries, and demographic information.
 
-- **React 19** + **TypeScript** + **Vite 7**
-- **Tailwind CSS v4** + **shadcn/ui** for UI components
-- **TanStack Router** for type-safe file-based routing
-- **TanStack Query** for data fetching & caching
-- **TanStack Table** for data tables
-- **React Hook Form** + **Zod** for forms & validation
-- **Zustand** for state management
-- **React-Leaflet** for map visualization
-- **Recharts** for charts
-- **ky** for HTTP requests
+**Live site:** [vote.civpulse.org](https://vote.civpulse.org/)
 
-## Prerequisites
+## Features
 
-- **Node.js** LTS (managed via [nvm](https://github.com/nvm-sh/nvm) — see `.nvmrc`)
+### Public Access
+- **Interactive Maps** — state and county maps with toggleable district overlays (congressional, state senate, state house, county commission)
+- **Election Discovery** — browse, filter, and search elections by type, status, date, and race category
+- **Election Results** — live and historical results with county and precinct-level choropleth maps
+- **Address Lookup** — enter any address to see all district assignments (geocoding-powered)
+- **Elected Officials** — current representatives for congressional, state senate, and state house districts
+- **Census Demographics** — population, age, race/ethnicity, housing, and economic data per county
+- **Candidate Profiles** — biographical information and election history
 
-## Getting Started
+### Authenticated Access
+- **Voter Search** — search voter registration records with multi-field filters
+- **Voter Detail** — registration info, geocoded locations map, district assignments, voting history charts
+- **Participation Analysis** — voter turnout data and trends
+
+### Administration
+- **User Management** — create accounts, invite users, assign roles (admin/analyst/viewer)
+- **Election Management** — CRUD elections, import from GA Secretary of State feed, link candidates
+- **Data Imports** — upload voter CSVs and boundary GeoJSON/ZIP files with progress monitoring
+- **Data Exports** — export voter data, boundaries, or full database with job tracking
+- **Batch Geocoding** — trigger geocoding jobs, monitor provider stats, view cache metrics
+- **District Mismatch Analysis** — identify voters with incorrect district assignments
+
+## Screenshots
+
+<!-- TODO: Add screenshots of the map, election detail, and voter search pages -->
+
+Visit the [live site](https://vote.civpulse.org/) to explore.
+
+## Quick Start
 
 ```bash
 nvm use
@@ -29,79 +51,35 @@ cp .env.example .env
 npm run dev
 ```
 
-The dev server starts at `http://localhost:5173` with hot module replacement.
+The dev server starts at `http://localhost:5173`. See the [Setup Guide](docs/setup-guide.md) for Docker, deployment, and advanced configuration.
 
-## Environment Variables
+## Tech Stack
 
-| Variable            | Description        | Default                        |
-| ------------------- | ------------------ | ------------------------------ |
-| `VITE_API_BASE_URL` | voter-api base URL | `http://localhost:8000/api/v1` |
+React 19 · TypeScript 5.9 · Vite 7 · Tailwind CSS v4 · shadcn/ui · TanStack Router · TanStack Query · TanStack Table · React-Leaflet · Recharts · Zustand · React Hook Form · Zod · ky · Turf.js
 
-All client-exposed env vars must be prefixed with `VITE_`.
+## Documentation
 
-## Scripts
+| Guide | Audience | Description |
+|-------|----------|-------------|
+| [User Guide](docs/user-guide.md) | End users | Using maps, elections, address lookup, voter search |
+| [Admin Guide](docs/admin-guide.md) | Administrators | Managing users, imports, exports, elections, geocoding |
+| [Setup Guide](docs/setup-guide.md) | DevOps, self-hosters | Local dev, Docker, building, deploying, CI/CD |
+| [Development Guide](docs/development-guide.md) | Contributors | Architecture, conventions, testing, contributing |
 
-| Command           | Description                        |
-| ----------------- | ---------------------------------- |
-| `npm run dev`     | Start Vite dev server              |
-| `npm run build`   | Typecheck and build for production |
-| `npm run preview` | Serve the production build locally |
-| `npm run lint`    | Run ESLint                         |
+## Contributing
 
-## Project Structure
+1. Fork the repository
+2. Create a feature branch (`git checkout -b 042-feature-name`)
+3. Follow the [Development Guide](docs/development-guide.md) conventions
+4. Commit with [Conventional Commits](https://www.conventionalcommits.org/) format
+5. Open a PR against `main`
 
-```text
-src/
-├── api/          # HTTP client and API endpoint definitions
-├── components/
-│   └── ui/       # shadcn/ui components
-├── hooks/        # Custom React hooks
-├── lib/          # Utility functions (cn, etc.)
-├── routes/       # TanStack Router file-based routes
-├── stores/       # Zustand state stores
-├── types/        # TypeScript type definitions
-└── main.tsx      # App entry point (Router + QueryClient providers)
-```
+See [docs/development-guide.md](docs/development-guide.md) for full contributing instructions.
 
-## Adding UI Components
+## Related Projects
 
-shadcn/ui components are added via the CLI and copied into `src/components/ui/`:
+- [voter-api](https://github.com/CivicPulse/voter-api) — FastAPI backend providing the REST API
 
-```bash
-npx shadcn@latest add button
-npx shadcn@latest add data-table
-```
+## License
 
-## Features
-
-### Interactive County Map
-
-The home page displays an interactive map of Georgia counties. Clicking a county navigates to its detail page.
-
-### County Detail Page
-
-Each county page (`/counties/:countyId`) shows:
-
-- **County Map** — boundary visualization with selectable district overlays (congressional, state senate, state house, etc.) using a colorblind-friendly palette
-- **County Information** — basic boundary data (name, FIPS identifier, source, dates) plus a **Geographic Details** section populated from the API's `county_metadata` field, which includes:
-  - FIPS and GEOID codes
-  - Land and water area (km² and mi²)
-  - Internal point coordinates (lat/lon)
-  - CBSA/CSA statistical area codes
-  - Functional status
-  - GNIS code
-- **Voter Data & Analysis** — authenticated sections (requires sign-in)
-
-## External Data Sources
-
-- **US Census Bureau Statistical Data API** — Dataset discovery and documentation:
-  - Human-readable: <https://api.census.gov/data.html>
-  - Machine-readable (JSON): <https://api.census.gov/data.json>
-
-## Build & Deploy
-
-```bash
-npm run build
-```
-
-This outputs static files to `dist/`. Upload the contents to your static host (S3, R2, etc.) and configure `index.html` as both the index and error document for SPA routing.
+This project is licensed under the [GNU Lesser General Public License v2.1](LICENSE).
