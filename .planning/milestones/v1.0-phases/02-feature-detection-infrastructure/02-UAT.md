@@ -3,7 +3,7 @@ status: complete
 phase: 02-feature-detection-infrastructure
 source: [02-01-SUMMARY.md]
 started: 2026-03-15T12:00:00Z
-updated: 2026-03-15T04:05:00Z
+updated: 2026-03-15T12:10:00Z
 ---
 
 ## Current Test
@@ -15,6 +15,7 @@ updated: 2026-03-15T04:05:00Z
 ### 1. Graceful Degradation Without Capabilities
 expected: When the /elections/capabilities endpoint returns 404 or fails, the elections list page shows only Phase 1 filters (date preset, status, type, boolean checkboxes). No Phase 3 filters (search, race category, county, election date) are visible. No errors or broken UI.
 result: pass
+note: Verified interactively (backend offline) and via E2E test #27
 
 ## Summary
 
